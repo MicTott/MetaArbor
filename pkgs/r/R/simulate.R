@@ -5,7 +5,7 @@
 # of strength `batch_sd` plus library-size variation — a crude but honest
 # stand-in for the real batch axes the Allen benchmark will provide.
 
-tn_simulate_pair <- function(n_family = 4, n_sub = 3, cells_per_leaf = 120,
+ma_simulate_pair <- function(n_family = 4, n_sub = 3, cells_per_leaf = 120,
                              n_genes = 2000, fam_markers = 40, sub_markers = 15,
                              fam_lfc = 1.2, sub_lfc = 0.9,
                              batch_sd = 0.5, seed = 1) {

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "treeneighbor"
+name = "metaarbor"
 version = "0.1.0"
 description = "Integration-free alignment of cell-type taxonomies across atlases of different resolutions (MetaNeighbor-derived voting, hierarchical walk estimator, FUGW with refinement-invariant marginals)"
 readme = "README.md"
@@ -22,4 +22,4 @@ all = ["anndata>=0.9", "pot>=0.9.4"]
 test = ["pytest>=7"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/treeneighbor"]
+packages = ["src/metaarbor"]

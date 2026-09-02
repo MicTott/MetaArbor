@@ -1,4 +1,4 @@
-"""TreeNeighbor measurement kernel (DESIGN.md section 3a).
+"""MetaArbor measurement kernel (DESIGN.md section 3a).
 
 Convention: matrices are CELLS x GENES (AnnData orientation). The R
 companion uses genes x cells; parity tests transpose at the boundary.

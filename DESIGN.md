@@ -1,5 +1,11 @@
 # TreeNeighbor: MetaNeighbor-fused tree alignment for cross-atlas annotation harmonization
 
+> **Naming note (2026-09-02):** the framework described here was renamed
+> **MetaArbor** (modes: MetaArbor-Walk, MetaArbor-Transport) at git tag
+> `v0.1-treeneighbor-final`. This document retains the original working name
+> as part of the frozen design record.
+
+
 **Status: design document.** No code exists yet. This document specifies the method,
 its statistical rationale, and the benchmark that will decide whether its ambitious
 half earns its complexity. Working title `TreeNeighbor`; rename freely.

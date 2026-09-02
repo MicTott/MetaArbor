@@ -1,10 +1,12 @@
-# TreeNeighbor
+# MetaArbor (research repository)
 
-**Installable packages live in [pkgs/](pkgs/README.md)** — the primary
-python package (`treeneighbor-py`: kernel, frozen walk, refinement-invariant
-marginals, frozen FUGW, AnnData API) and the pure-R companion
-(`TreeNeighbor-R`). Both are cross-language parity-gated against the frozen
-benchmark. This top level is the research repo that produced those results.
+**The framework is now named MetaArbor** (renamed from TreeNeighbor at tag
+`v0.1-treeneighbor-final`; the historical name remains throughout this
+research repo's frozen analysis record). Installable packages live in
+[pkgs/](pkgs/README.md): the primary python package (`metaarbor`:
+kernel, MetaArbor-Walk, refinement-invariant marginals, MetaArbor-Transport,
+AnnData API) and the pure-R companion (`MetaArbor`). Walk/kernel are
+cross-language parity-gated; Transport is python-only, regression-gated.
 
 An integration-free framework for aligning independently constructed cell-type
 taxonomies across atlases of different resolutions, using MetaNeighbor-derived
@@ -60,11 +62,4 @@ Rscript tests/test_kernel.R && Rscript analysis/01_simulation_validation.R && Rs
 
 (~1 min total. No package installation; base R + Matrix/matrixStats.)
 
-## Next
-
-1. Benchmark stage 1–2 (DESIGN §4.3): download the six Isocortex h5ad packages
-   (~50 GB), subset to frontal cells, RBH anchors at cluster level across the
-   10Xv2/10Xv3 split.
-2. Forests for subset-of-family queries; donor-level bootstrap.
-3. FUGW estimator via POT/reticulate, consuming `costs$M` and
-   `tn_leaf_path_dist()`.
+Current state and next steps are tracked in [NOTES.md](NOTES.md).

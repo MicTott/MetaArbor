@@ -6,9 +6,9 @@ import os
 import numpy as np
 import pytest
 
-from treeneighbor import (Minstd, aggregate_cache, auroc, rank_normalize,
+from metaarbor import (Minstd, aggregate_cache, auroc, rank_normalize,
                           tree_from_levels, tree_weights, vote_cache)
-from treeneighbor.tree import leaves_under
+from metaarbor.tree import leaves_under
 
 FX = os.path.join(os.path.dirname(__file__), "..", "..", "fixtures")
 

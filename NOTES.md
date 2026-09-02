@@ -356,6 +356,31 @@ the figure work itself:
     `treeneighbor/` and `TreeNeighbor/` into one directory — hence the
     `-py` / `-R` suffixes.
 
+17. **Renamed to MetaArbor (2026-09-02); numerical behavior unchanged and
+    re-proven.** Framework = MetaArbor; modes = MetaArbor-Walk (both
+    languages) and MetaArbor-Transport (python-only). Python distribution +
+    import namespace `metaarbor` (`pkgs/python/`); R package `MetaArbor`
+    with `ma_*` functions (`pkgs/r/` — lowercase dirs because macOS
+    case-insensitive filesystems merge `metaarbor/`/`MetaArbor/`). The
+    pre-rename state is preserved at git tag `v0.1-treeneighbor-final`
+    (repo git-initialized for the purpose; ~5 GB of rebuildable caches
+    gitignored with documented rebuild paths). The old name persists only
+    in the frozen research record (top-level R/, analysis/, DESIGN.md with
+    a naming note, NOTES history). Serialization was already rename-proof:
+    RDS holds plain lists, fixtures are CSV, python never pickles. All
+    gates re-run post-rename with ZERO differences: clean R install +
+    tests; clean-venv python install + 7/7 tests against regenerated
+    fixtures; R identity gate IDENTICAL (23/23 fwd, 103/103 rev);
+    cross-language parity green; Transport gate identical to the digit
+    (23/23, 21 confident, same two underconfident IT queries, P-Q gap
+    8.2e-09). New additive feature: a **common node-evidence table**
+    (`metaarbor.node_evidence` / `ma_node_evidence`) — one row per (query,
+    split, child) with vote fraction, child one-vs-all AUROC, reverse-fold
+    directional AUROC, sibling/parent bootstrap lower bounds,
+    override/margin verdicts, decision, transport-mass share (python), and
+    the selected relation; evidence rows re-derive the walk with the same
+    per-query seeds, so recorded decisions are exactly the map's.
+
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
 siblings inside the margin one level above truth), fig2 (error topology on

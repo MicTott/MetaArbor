@@ -1,4 +1,4 @@
-"""The frozen TreeNeighbor walk estimator (NOTES.md items 4, 7-9; frozen
+"""The frozen MetaArbor-Walk estimator (NOTES.md items 4, 7-9; frozen
 2026-09-02). Votes navigate, AUROC contrasts decide:
 
 - navigation: each positive cell votes for its argmax mean-rank training
@@ -49,7 +49,10 @@ def _boot_delta(scores1, scores2, positive, rng, n_boot=200):
 
 def select_node(cache, test_labels, query, tree, seed,
                 alpha=0.05, n_boot=200, min_auroc=0.6,
-                margin=0.01, vote_override=0.9):
+                margin=0.01, vote_override=0.9, trace=False):
+    """`trace=True` additionally records per-split child diagnostics
+    (votes, child AUROCs, tests, decision). Recording only: it adds no RNG
+    draws and alters no decision."""
     positive = np.asarray(test_labels) == query
     rng = Minstd(seed)
     ms = cache["V"][positive] / cache["leaf_sizes"]
@@ -68,6 +71,7 @@ def select_node(cache, test_labels, query, tree, seed,
 
     current = "root"
     path = []
+    trace_rows = [] if trace else None
     while True:
         kids = tree["children"][current]
         if not kids:
@@ -96,6 +100,14 @@ def select_node(cache, test_labels, query, tree, seed,
                      "vote": float(v[order[0]]), "sib_lo": float(sib_lo),
                      "par_lo": float(par_lo), "override": bool(override),
                      "stopped": bool(stop)})
+        if trace:
+            for k, kid in enumerate(kids):   # no RNG: recording only
+                trace_rows.append({
+                    "query": query, "split_at": current, "child": kid,
+                    "vote": float(v[k]), "child_auroc": float(n_auc(kid)),
+                    "is_best": kid == best, "sib_lo": float(sib_lo),
+                    "par_lo": float(par_lo), "override": bool(override),
+                    "decision": "stop" if stop else "descend"})
         if stop:
             break
         current = best
@@ -103,7 +115,8 @@ def select_node(cache, test_labels, query, tree, seed,
     matched = np.isfinite(sel_auc) and sel_auc >= min_auroc
     return {"query": query, "selected": current if matched else None,
             "auroc": float(sel_auc), "matched": bool(matched),
-            "at_root": current == "root", "final": current, "path": path}
+            "at_root": current == "root", "final": current, "path": path,
+            "trace": trace_rows}
 
 
 def compactness(cache, positive, tree, selected):

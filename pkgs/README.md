@@ -1,57 +1,88 @@
-# TreeNeighbor packages
+# MetaArbor packages
 
-Two installable packages built from the validated research code (top-level
-`R/` + `analysis/` stay untouched as the historical record that produced the
-frozen benchmark results):
+MetaArbor (formerly TreeNeighbor; renamed at tag `v0.1-treeneighbor-final`)
+aligns independently constructed cell-type taxonomies across atlases of
+different resolutions, without expression-space integration. Two inference
+modes share one measurement kernel:
+
+- **MetaArbor-Walk** — frozen hierarchical selection: votes navigate, AUROC
+  contrasts decide. Implemented in both packages, cross-language
+  parity-gated.
+- **MetaArbor-Transport** — frozen FUGW with refinement-invariant
+  tree-intrinsic marginals. **Python-only**, regression-gated against the
+  frozen benchmark (not cross-language: there is no R transport
+  implementation to compare).
 
 | Path | What | Ships |
 |---|---|---|
-| `treeneighbor-py/` | **Primary** python package | kernel, trees, frozen walk, refinement-invariant marginals, frozen FUGW (optional `[ot]`), AnnData wrappers |
-| `TreeNeighbor-R/` | R companion | kernel, trees, frozen walk, marginals, simulation — pure R, no python dependency (FUGW is python-only) |
-| `parity/` | cross-language gate | R script that (1) proves the packaged walk reproduces the saved frozen benchmark exactly and (2) exports fixtures |
-| `fixtures/` | parity fixtures | real Allen platform vote caches, trees, similarity, packaged-R walk outputs, simulation inputs/outputs, MINSTD check vector |
+| `python/` | **primary** — `metaarbor` on the import path | kernel, trees, Walk, refinement-invariant marginals, Transport (optional `[ot]`), node-evidence table, AnnData wrappers |
+| `r/` | R companion — `MetaArbor` package, `ma_*` functions | kernel, trees, Walk, marginals, simulation, node-evidence table (walk columns) — pure R |
+| `parity/` | cross-language gate | R script proving the packaged Walk reproduces the saved frozen benchmark exactly, and exporting fixtures |
+| `fixtures/` | parity fixtures (regenerable, gitignored) | real Allen platform vote caches, trees, similarity, packaged-R walk outputs, simulation, MINSTD check vector |
 
-## Cross-language guarantee
+Directory names are lowercase/`r` specifically to avoid case-insensitive
+filesystem collisions (macOS merges `metaarbor/` and `MetaArbor/`).
 
-Both packages draw bootstrap indices from the same portable MINSTD stream
-(exact in R doubles, plain ints in python) with a per-query seed and a
-documented draw order. The chain of custody:
+## Parity scope — what is guaranteed where
 
-1. `parity/01_export_and_gate.R` — packaged R walk must reproduce the saved
-   frozen-benchmark selections/relations **exactly** (GATE PASSED
-   2026-09-02: 23/23 forward, 103/103 reverse identical).
-2. `treeneighbor-py/tests/test_parity.py` — python walk on the exported
-   real caches must match the packaged-R outputs for every query, plus a
-   simulation end-to-end check (HVGs, similarity matrix, selections).
+Both implementations draw bootstrap indices from the same portable MINSTD
+stream (exact in R doubles) with per-query seeds and a documented draw
+order. The chain of custody:
+
+1. `parity/01_export_and_gate.R` — the packaged R Walk must reproduce the
+   saved frozen-benchmark selections/relations **exactly** (23/23 forward,
+   103/103 reverse).
+2. `python/tests/test_parity.py` — the python Walk must match the packaged-R
+   outputs for every query on the real caches, plus a simulation
+   end-to-end check (HVGs, similarity within 1e-9, identical selections).
+3. Transport (python-only) is regression-gated: it must reproduce the
+   frozen battery's platform result (23/23 argmax family, 21 confident, the
+   same two underconfident queries, matching P-Q gap).
+
+Serialization note: vote caches are plain R lists in RDS and plain CSV/NumPy
+arrays on the python side — nothing stores a language or module class path,
+so renames cannot break readability (verified by re-running all gates after
+the rename).
+
+## Node-evidence table
+
+`metaarbor.node_evidence(...)` (python) / `ma_node_evidence(...)` (R) emit
+one row per (query, visited split, child) combining: vote fraction, child
+one-vs-all AUROC, the reverse-fold directional AUROC (when the reverse
+cache is supplied), sibling-contrast bootstrap lower bound, parent-contrast
+bound, override/margin verdicts, the decision, transport-mass share
+(python, when a coupling is supplied), and the query's selected relation.
+Evidence rows re-derive the walk with the same per-query seeds, so recorded
+decisions are exactly the map's decisions.
 
 ## JHPCE installation
 
 Python (primary):
 
 ```bash
-module load conda            # or your preferred python >= 3.10 module
-conda create -n treeneighbor python=3.12 -y
-conda activate treeneighbor
-pip install ./treeneighbor-py[all,test]   # anndata + POT
-pytest treeneighbor-py/tests/test_core.py # smoke test (no fixtures needed)
+module load conda            # or any python >= 3.10
+conda create -n metaarbor python=3.12 -y
+conda activate metaarbor
+pip install ./python[all,test]        # anndata + POT
+pytest python/tests/test_core.py      # smoke test (no fixtures needed)
 ```
 
 R companion:
 
 ```bash
 module load R                # >= 4.2
-R CMD INSTALL TreeNeighbor-R
-Rscript TreeNeighbor-R/tests/test_all.R
+R CMD INSTALL r
+Rscript r/tests/test_all.R
 ```
 
-The full parity suite additionally needs `fixtures/` (~60 MB), generated on
-any machine holding the benchmark results by
-`Rscript pkgs/parity/01_export_and_gate.R`.
+The full parity suite additionally needs `fixtures/`, generated on any
+machine holding the benchmark results by
+`Rscript parity/01_export_and_gate.R`.
 
 ## Frozen configurations (do not tune on validation data)
 
 - Walk: alpha 0.05, n_boot 200, min_auroc 0.6, margin 0.01,
   vote_override 0.9, min_compact 0.7.
-- FUGW: cost 1 − S, rho 0.3, alpha 0.9 (design weight), epsilon 0,
+- Transport: cost 1 − S, rho 0.3, alpha 0.9 (design weight), epsilon 0,
   refinement-invariant marginals both sides; argmax-family +
   mass-confidence readouts.

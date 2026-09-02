@@ -17,7 +17,7 @@ import os
 import numpy as np
 import pytest
 
-from treeneighbor import baseline_map, measure, tree_from_levels
+from metaarbor import baseline_map, measure, tree_from_levels
 
 FX = os.path.join(os.path.dirname(__file__), "..", "..", "fixtures")
 

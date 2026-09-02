@@ -8,7 +8,7 @@
 #' Build a tree from a data.frame of level columns, one row per leaf,
 #' ordered coarse -> fine; the last column is the leaf label.
 #' Internal node ids are "level:label" to keep labels unique across levels.
-tn_tree_from_levels <- function(levels_df) {
+ma_tree_from_levels <- function(levels_df) {
   levels_df <- unique(levels_df)
   n_lev <- ncol(levels_df)
   stopifnot(n_lev >= 1, !anyDuplicated(levels_df[[n_lev]]))
@@ -29,17 +29,17 @@ tn_tree_from_levels <- function(levels_df) {
 }
 
 #' Children ids of a node.
-tn_children <- function(tree, id) tree$id[!is.na(tree$parent) & tree$parent == id]
+ma_children <- function(tree, id) tree$id[!is.na(tree$parent) & tree$parent == id]
 
 #' Leaf labels under a node (the node itself if a leaf).
-tn_leaves_under <- function(tree, id) {
+ma_leaves_under <- function(tree, id) {
   if (tree$is_leaf[match(id, tree$id)]) return(id)
   out <- character(0)
-  stack <- tn_children(tree, id)
+  stack <- ma_children(tree, id)
   while (length(stack)) {
     x <- stack[[1]]; stack <- stack[-1]
     if (tree$is_leaf[match(x, tree$id)]) out <- c(out, x)
-    else stack <- c(stack, tn_children(tree, x))
+    else stack <- c(stack, ma_children(tree, x))
   }
   out
 }
@@ -53,13 +53,13 @@ tn_leaves_under <- function(tree, id) {
 #' annotation resolution never buys transport capacity. Single-child chains
 #' pass mass through unchanged. Returns leaf weights (sum to 1); with
 #' `all_nodes = TRUE`, every node's mass, for conservation checks.
-tn_tree_weights <- function(tree, all_nodes = FALSE) {
+ma_tree_weights <- function(tree, all_nodes = FALSE) {
   w <- setNames(numeric(nrow(tree)), tree$id)
   w["root"] <- 1
   queue <- "root"
   while (length(queue)) {
     v <- queue[[1]]; queue <- queue[-1]
-    kids <- tn_children(tree, v)
+    kids <- ma_children(tree, v)
     if (!length(kids)) next
     w[kids] <- w[v] / length(kids)
     queue <- c(queue, kids)
@@ -70,7 +70,7 @@ tn_tree_weights <- function(tree, all_nodes = FALSE) {
 #' Path (hop) distance matrix between leaves — the structure input C^A / C^B
 #' for FUGW (DESIGN.md §3c). Cophenetic alternative: depth-weighted variant
 #' to be added when branch lengths exist.
-tn_leaf_path_dist <- function(tree) {
+ma_leaf_path_dist <- function(tree) {
   leaves <- tree$id[tree$is_leaf]
   anc <- function(id) {
     path <- id

@@ -12,7 +12,7 @@
 # Run: Rscript pkgs/parity/01_export_and_gate.R   (from the repo root)
 
 repo <- normalizePath(file.path(dirname(sub("--file=", "", grep("--file=", commandArgs(FALSE), value = TRUE)[1])), "..", ".."))
-pkgR <- file.path(repo, "pkgs", "TreeNeighbor-R", "R")
+pkgR <- file.path(repo, "pkgs", "r", "R")
 for (f in list.files(pkgR, full.names = TRUE)) source(f)
 fx <- file.path(repo, "pkgs", "fixtures")
 dir.create(fx, showWarnings = FALSE)
@@ -26,15 +26,15 @@ rev_saved <- read.csv(file.path(repo, "results", "wmb_map_cluster_to_subclass.cs
 
 tax_b <- unique(cells_b[, c("class", "subclass", "supertype", "cluster")])
 tax_b <- tax_b[order(tax_b$class, tax_b$subclass, tax_b$supertype, tax_b$cluster), ]
-tree_b <- tn_tree_from_levels(tax_b)
+tree_b <- ma_tree_from_levels(tax_b)
 subclasses <- sort(unique(cells_a$subclass))
-tree_a <- tn_tree_from_levels(data.frame(leaf = subclasses))
+tree_a <- ma_tree_from_levels(data.frame(leaf = subclasses))
 sub_of <- setNames(cells_a$subclass, cells_a$cluster)[!duplicated(cells_a$cluster)]
-cache_b_sub <- tn_aggregate_cache(meas$cache_b, sub_of)
+cache_b_sub <- ma_aggregate_cache(meas$cache_b, sub_of)
 
 ## ---- identity gate --------------------------------------------------------
-fwd <- tn_baseline_map(meas$cache_a, cells_a$subclass, tree_b, sims$S_sub)
-rev <- tn_baseline_map(cache_b_sub, cells_b$cluster, tree_a, t(sims$S_sub))
+fwd <- ma_baseline_map(meas$cache_a, cells_a$subclass, tree_b, sims$S_sub)
+rev <- ma_baseline_map(cache_b_sub, cells_b$cluster, tree_a, t(sims$S_sub))
 same_fwd <- identical(fwd$selected, fwd_saved$selected) &&
             identical(fwd$relation, fwd_saved$relation)
 same_rev <- identical(rev$selected, rev_saved$selected) &&
@@ -77,18 +77,18 @@ wgz(fwd, "walkR_forward.csv.gz")
 wgz(rev, "walkR_reverse.csv.gz")
 
 # MINSTD stream check (seed 42, first 10 raw states; and indices mod 7)
-rng <- tn_minstd_new(42)
-states <- vapply(1:10, function(i) { tn_minstd_index(rng, 7); rng$state }, 0)
-rng2 <- tn_minstd_new(42)
-idx7 <- vapply(1:10, function(i) tn_minstd_index(rng2, 7), 0)
+rng <- ma_minstd_new(42)
+states <- vapply(1:10, function(i) { ma_minstd_index(rng, 7); rng$state }, 0)
+rng2 <- ma_minstd_new(42)
+idx7 <- vapply(1:10, function(i) ma_minstd_index(rng2, 7), 0)
 wgz(data.frame(state = states, idx7 = idx7), "minstd_check.csv.gz")
 
 # simulation fixtures: inputs + package-R measurement + walk outputs
-sim <- tn_simulate_pair(batch_sd = 0.5, seed = 42)
-m2 <- tn_measure(sim$A$counts, sim$A$family, sim$B$counts, sim$B$leaf, n_hvg = 1000)
-tree_bs <- tn_tree_from_levels(data.frame(family = sub("\\..*", "", sim$leaves),
+sim <- ma_simulate_pair(batch_sd = 0.5, seed = 42)
+m2 <- ma_measure(sim$A$counts, sim$A$family, sim$B$counts, sim$B$leaf, n_hvg = 1000)
+tree_bs <- ma_tree_from_levels(data.frame(family = sub("\\..*", "", sim$leaves),
                                           leaf = sim$leaves))
-map_sim <- tn_baseline_map(m2$cache_a, m2$labels_a, tree_bs, m2$costs$S)
+map_sim <- ma_baseline_map(m2$cache_a, m2$labels_a, tree_bs, m2$costs$S)
 wgz(data.frame(gene = rownames(sim$A$counts), sim$A$counts, check.names = FALSE),
     "sim_countsA.csv.gz")
 wgz(data.frame(gene = rownames(sim$B$counts), sim$B$counts, check.names = FALSE),

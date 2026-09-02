@@ -1,4 +1,4 @@
-"""Frozen FUGW estimator with refinement-invariant marginals (NOTES.md
+"""MetaArbor-Transport: the frozen FUGW estimator with refinement-invariant marginals (NOTES.md
 items 14-15; frozen 2026-09-02).
 
 FROZEN configuration: cost = 1 - S (symmetrized MetaNeighbor AUROC),
@@ -6,7 +6,7 @@ rho = 0.3, alpha = 0.9 (design weight: cost = a*M + (1-a)*GW, mapped to
 POT's linear-term coefficient a/(1-a)), epsilon = 0 (mm solver),
 tree-intrinsic recursive marginals on both sides. Readouts: argmax family
 and mass-based confidence categories. Requires the optional `pot`
-dependency (pip install treeneighbor[ot]).
+dependency (pip install metaarbor[ot]).
 """
 from __future__ import annotations
 
