@@ -1,0 +1,18 @@
+# Rebuildable data artifacts (provenance + rebuild scripts documented in
+# data/README.md and pkgs/README.md) — not preserved in git
+data/wmb_cache/
+data/wmb_plilaorb/
+results/wmb_meas.rds
+results/cond_meas_*.rds
+results/wmb_similarity.rds
+pkgs/fixtures/
+figures/tables/fig6_problem/
+figures/tables/fig7_marg_*/
+figures/tables/fig7_marg_intrinsic/
+
+# environments / build junk
+*.Rproj.user
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.DS_Store

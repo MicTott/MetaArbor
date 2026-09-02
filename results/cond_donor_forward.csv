@@ -1,0 +1,24 @@
+"query","selected","auroc","compactness","relation","correct"
+"001 Car3 Glut","0004 Car3 Glut_1",1,1,"leaf",TRUE
+"003 L5/6 IT TPE-ENT Glut","subclass:003 L5/6 IT TPE-ENT Glut",0.988457408732999,1,"family",TRUE
+"004 L6 IT CTX Glut","subclass:004 L6 IT CTX Glut",0.976044418631842,1,"family",TRUE
+"005 L5 IT CTX Glut","subclass:005 L5 IT CTX Glut",0.940796135575045,1,"family",TRUE
+"006 L4/5 IT CTX Glut","subclass:006 L4/5 IT CTX Glut",0.989845552933379,1,"family",TRUE
+"007 L2/3 IT CTX Glut","subclass:007 L2/3 IT CTX Glut",0.99840340218138,1,"family",TRUE
+"022 L5 ET CTX Glut","subclass:022 L5 ET CTX Glut",0.999928699680575,1,"family",TRUE
+"027 L6b CTX Glut","subclass:027 L6b CTX Glut",0.999494621022076,0.99645390070922,"family",TRUE
+"028 L6 CT CTX Glut","subclass:028 L6 CT CTX Glut",0.999110914683618,0.998992950654582,"family",TRUE
+"030 L5 NP CTX Glut","subclass:030 L5 NP CTX Glut",0.999849545101741,0.992015968063872,"family",TRUE
+"036 Vip Gaba","subclass:036 Vip Gaba",0.999592209377243,1,"family",TRUE
+"037 Sncg Gaba","subclass:037 Sncg Gaba",1,1,"family",TRUE
+"039 Lamp5 Gaba","supertype:0148 Lamp5 Gaba_1",0.999345338705277,0.99780701754386,"family",FALSE
+"041 Pvalb chandelier Gaba","0605 Pvalb chandelier Gaba",1,1,"leaf",TRUE
+"042 Pvalb Gaba","subclass:042 Pvalb Gaba",0.999021208956149,0.992156862745098,"family",TRUE
+"043 Sst Gaba","subclass:043 Sst Gaba",0.997883726277571,0.992568125516102,"family",TRUE
+"046 Sst Chodl Gaba","0731 Sst Chodl Gaba_4",1,1,"leaf",TRUE
+"287 Astro-TE NN","5113 Astro-TE NN_3",1,1,"leaf",TRUE
+"294 OPC NN","5146 OPC NN_1",1,1,"leaf",TRUE
+"295 Oligo NN","subclass:295 Oligo NN",0.99999014828069,1,"family",TRUE
+"299 Peri NN","5182 Peri NN",1,1,"leaf",TRUE
+"301 Endo NN","5188 Endo NN",0.999535956680388,0.96551724137931,"leaf",TRUE
+"302 Microglia NN","5190 Microglia NN",0.999989896540575,1,"leaf",TRUE

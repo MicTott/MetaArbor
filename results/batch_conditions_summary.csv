@@ -1,0 +1,4 @@
+"condition","n_clusters","self_rbh","self_rbh_pct","med_self_auroc","sib_margin","fwd_exact","rev_parent","med_fwd_compact","med_rev_compact","wrong_branch","adjacent","premature_stop","unmatched"
+"random",103,103,100,0.998,0.013,"21/23","87/103",1,1,0,5,11,0
+"donor",100,100,100,0.998,0.014,"22/23","83/100",1,1,0,6,11,0
+"platform",103,100,97,0.998,0.012,"21/23","84/103",1,1,0,8,11,0

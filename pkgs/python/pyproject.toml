@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "treeneighbor"
+version = "0.1.0"
+description = "Integration-free alignment of cell-type taxonomies across atlases of different resolutions (MetaNeighbor-derived voting, hierarchical walk estimator, FUGW with refinement-invariant marginals)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Michael Totty" }]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+anndata = ["anndata>=0.9"]
+ot = ["pot>=0.9.4"]
+all = ["anndata>=0.9", "pot>=0.9.4"]
+test = ["pytest>=7"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/treeneighbor"]

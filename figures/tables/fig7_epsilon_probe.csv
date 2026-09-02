@@ -1,0 +1,4 @@
+"epsilon","argmax_correct","confident","med_true_mass","med_eff_leaves","med_eff_ratio"
+0,15,10,1,4.8,1.26
+0.001,15,10,1,4.8,1.29
+0.01,15,10,0.942,7.3,1.79

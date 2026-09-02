@@ -1,0 +1,17 @@
+"condition","direction","outcome","Freq"
+"random half-split","forward","adjacent_same_class",2
+"random half-split","forward","exact",21
+"random half-split","reverse","adjacent_same_class",5
+"random half-split","reverse","exact",87
+"random half-split","reverse","premature_stop",11
+"donor-held-out","forward","adjacent_same_class",1
+"donor-held-out","forward","exact",22
+"donor-held-out","reverse","adjacent_same_class",6
+"donor-held-out","reverse","exact",83
+"donor-held-out","reverse","premature_stop",11
+"10Xv2 vs 10Xv3","forward","adjacent_same_class",1
+"10Xv2 vs 10Xv3","forward","exact",21
+"10Xv2 vs 10Xv3","forward","premature_stop",1
+"10Xv2 vs 10Xv3","reverse","adjacent_same_class",8
+"10Xv2 vs 10Xv3","reverse","exact",84
+"10Xv2 vs 10Xv3","reverse","premature_stop",11

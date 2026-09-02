@@ -1,0 +1,20 @@
+Package: TreeNeighbor
+Title: Integration-Free Alignment of Cell-Type Taxonomies Across Resolutions
+Version: 0.1.0
+Authors@R: person("Michael", "Totty", email = "mictott@gmail.com",
+                  role = c("aut", "cre"))
+Description: Aligns independently constructed cell-type taxonomies across
+    atlases of different resolutions without expression-space integration.
+    Implements a MetaNeighbor-derived voting kernel with an exact vote-cache
+    additivity property, refinement-invariant tree-intrinsic marginals, and
+    the frozen hierarchical walk estimator (votes navigate, AUROC contrasts
+    decide) validated on the Allen whole-mouse-brain PL-ILA-ORB benchmark.
+    Companion to the primary 'treeneighbor' python package, with which it is
+    bit-comparable via a shared portable bootstrap stream. The FUGW transport
+    estimator lives in the python package only.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.2)
+Imports: Matrix, matrixStats, stats
+Suggests: testthat
+RoxygenNote: 7.3.0

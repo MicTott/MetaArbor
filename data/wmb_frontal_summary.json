@@ -1,0 +1,35 @@
+{
+  "total_rows_scanned": 4057701,
+  "cells_kept": 309126,
+  "by_roi_and_method": {
+    "ACA": {
+      "10Xv2": 57465,
+      "10Xv3": 45586
+    },
+    "PL-ILA-ORB": {
+      "10Xv2": 71353,
+      "10Xv3": 35199
+    },
+    "AI": {
+      "10Xv2": 53157,
+      "10Xv3": 46366
+    }
+  },
+  "by_method": {
+    "10Xv2": 181975,
+    "10Xv3": 127151
+  },
+  "n_donors": 25,
+  "level_counts_ACA_PL-ILA-ORB_AI": {
+    "class": 19,
+    "subclass": 107,
+    "supertype": 291,
+    "cluster": 712
+  },
+  "level_counts_ACA_PL-ILA-ORB_only": {
+    "class": 16,
+    "subclass": 74,
+    "supertype": 220,
+    "cluster": 582
+  }
+}

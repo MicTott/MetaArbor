@@ -1,0 +1,4 @@
+exportPattern("^tn_")
+importFrom(Matrix, sparseMatrix)
+importFrom(matrixStats, rowVars)
+importFrom(stats, quantile, rpois, rgamma, rlnorm)

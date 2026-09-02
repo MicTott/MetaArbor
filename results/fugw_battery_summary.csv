@@ -1,0 +1,4 @@
+"condition","n_queries","n_clusters","argmax","confident","underconf","diffuse","cross_family","singleton_ok","n_singletons","med_H_family","med_eff_ratio","pi_gap"
+"random",23,103,23,21,2,0,0,8,8,0,1,1.8e-07
+"donor",23,100,23,21,2,0,0,8,8,0,1,1.1e-08
+"platform",23,103,23,21,2,0,0,8,8,0,1,8.2e-09

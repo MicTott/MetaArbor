@@ -1,0 +1,127 @@
+"direction","query","outcome","true_id","sel_id","x","y","xend","yend"
+"forward: 23 subclasses -> cluster tree","001 Car3 Glut","exact","subclass:001 Car3 Glut","0004 Car3 Glut_1",1,2,1,4
+"forward: 23 subclasses -> cluster tree","003 L5/6 IT TPE-ENT Glut","exact","subclass:003 L5/6 IT TPE-ENT Glut","subclass:003 L5/6 IT TPE-ENT Glut",2.5,2,2.5,2
+"forward: 23 subclasses -> cluster tree","004 L6 IT CTX Glut","exact","subclass:004 L6 IT CTX Glut","subclass:004 L6 IT CTX Glut",9,2,9,2
+"forward: 23 subclasses -> cluster tree","005 L5 IT CTX Glut","exact","subclass:005 L5 IT CTX Glut","subclass:005 L5 IT CTX Glut",16.5,2,16.5,2
+"forward: 23 subclasses -> cluster tree","006 L4/5 IT CTX Glut","exact","subclass:006 L4/5 IT CTX Glut","subclass:006 L4/5 IT CTX Glut",25,2,25,2
+"forward: 23 subclasses -> cluster tree","007 L2/3 IT CTX Glut","exact","subclass:007 L2/3 IT CTX Glut","subclass:007 L2/3 IT CTX Glut",33.5,2,33.5,2
+"forward: 23 subclasses -> cluster tree","022 L5 ET CTX Glut","exact","subclass:022 L5 ET CTX Glut","subclass:022 L5 ET CTX Glut",38.5,2,38.5,2
+"forward: 23 subclasses -> cluster tree","027 L6b CTX Glut","exact","subclass:027 L6b CTX Glut","subclass:027 L6b CTX Glut",42.5,2,42.5,2
+"forward: 23 subclasses -> cluster tree","028 L6 CT CTX Glut","exact","subclass:028 L6 CT CTX Glut","subclass:028 L6 CT CTX Glut",47.5,2,47.5,2
+"forward: 23 subclasses -> cluster tree","030 L5 NP CTX Glut","exact","subclass:030 L5 NP CTX Glut","subclass:030 L5 NP CTX Glut",53.5,2,53.5,2
+"forward: 23 subclasses -> cluster tree","036 Vip Gaba","exact","subclass:036 Vip Gaba","subclass:036 Vip Gaba",59.5,2,59.5,2
+"forward: 23 subclasses -> cluster tree","037 Sncg Gaba","exact","subclass:037 Sncg Gaba","subclass:037 Sncg Gaba",65,2,65,2
+"forward: 23 subclasses -> cluster tree","039 Lamp5 Gaba","adjacent_same_class","subclass:039 Lamp5 Gaba","supertype:0148 Lamp5 Gaba_1",68.5,2,68,3
+"forward: 23 subclasses -> cluster tree","041 Pvalb chandelier Gaba","exact","subclass:041 Pvalb chandelier Gaba","0605 Pvalb chandelier Gaba",71,2,71,4
+"forward: 23 subclasses -> cluster tree","042 Pvalb Gaba","exact","subclass:042 Pvalb Gaba","subclass:042 Pvalb Gaba",75.5,2,75.5,2
+"forward: 23 subclasses -> cluster tree","043 Sst Gaba","exact","subclass:043 Sst Gaba","subclass:043 Sst Gaba",86.5,2,86.5,2
+"forward: 23 subclasses -> cluster tree","046 Sst Chodl Gaba","exact","subclass:046 Sst Chodl Gaba","0731 Sst Chodl Gaba_4",94,2,94,4
+"forward: 23 subclasses -> cluster tree","287 Astro-TE NN","exact","subclass:287 Astro-TE NN","5113 Astro-TE NN_3",95,2,95,4
+"forward: 23 subclasses -> cluster tree","294 OPC NN","exact","subclass:294 OPC NN","5146 OPC NN_1",96,2,96,4
+"forward: 23 subclasses -> cluster tree","295 Oligo NN","exact","subclass:295 Oligo NN","subclass:295 Oligo NN",98.5,2,98.5,2
+"forward: 23 subclasses -> cluster tree","299 Peri NN","exact","subclass:299 Peri NN","5182 Peri NN",101,2,101,4
+"forward: 23 subclasses -> cluster tree","301 Endo NN","premature_stop","subclass:301 Endo NN","class:31 Vascular",102,2,101.5,1
+"forward: 23 subclasses -> cluster tree","302 Microglia NN","exact","subclass:302 Microglia NN","5190 Microglia NN",103,2,103,4
+"reverse: 103 clusters -> subclasses","0004 Car3 Glut_1","exact","0004 Car3 Glut_1","subclass:001 Car3 Glut",1,4,1,2
+"reverse: 103 clusters -> subclasses","0026 L5/6 IT TPE-ENT Glut_2","exact","0026 L5/6 IT TPE-ENT Glut_2","subclass:003 L5/6 IT TPE-ENT Glut",2,4,2.5,2
+"reverse: 103 clusters -> subclasses","0029 L5/6 IT TPE-ENT Glut_3","exact","0029 L5/6 IT TPE-ENT Glut_3","subclass:003 L5/6 IT TPE-ENT Glut",3,4,2.5,2
+"reverse: 103 clusters -> subclasses","0034 L6 IT CTX Glut_1","premature_stop","0034 L6 IT CTX Glut_1",NA,4,4,52,0
+"reverse: 103 clusters -> subclasses","0035 L6 IT CTX Glut_1","exact","0035 L6 IT CTX Glut_1","subclass:004 L6 IT CTX Glut",5,4,9,2
+"reverse: 103 clusters -> subclasses","0036 L6 IT CTX Glut_1","exact","0036 L6 IT CTX Glut_1","subclass:004 L6 IT CTX Glut",6,4,9,2
+"reverse: 103 clusters -> subclasses","0037 L6 IT CTX Glut_1","premature_stop","0037 L6 IT CTX Glut_1",NA,7,4,52,0
+"reverse: 103 clusters -> subclasses","0038 L6 IT CTX Glut_2","premature_stop","0038 L6 IT CTX Glut_2",NA,8,4,52,0
+"reverse: 103 clusters -> subclasses","0041 L6 IT CTX Glut_2","exact","0041 L6 IT CTX Glut_2","subclass:004 L6 IT CTX Glut",9,4,9,2
+"reverse: 103 clusters -> subclasses","0042 L6 IT CTX Glut_2","premature_stop","0042 L6 IT CTX Glut_2",NA,10,4,52,0
+"reverse: 103 clusters -> subclasses","0044 L6 IT CTX Glut_3","adjacent_same_class","0044 L6 IT CTX Glut_3","subclass:005 L5 IT CTX Glut",11,4,16.5,2
+"reverse: 103 clusters -> subclasses","0049 L6 IT CTX Glut_4","premature_stop","0049 L6 IT CTX Glut_4",NA,12,4,52,0
+"reverse: 103 clusters -> subclasses","0053 L6 IT CTX Glut_5","exact","0053 L6 IT CTX Glut_5","subclass:004 L6 IT CTX Glut",13,4,9,2
+"reverse: 103 clusters -> subclasses","0054 L6 IT CTX Glut_5","adjacent_same_class","0054 L6 IT CTX Glut_5","subclass:003 L5/6 IT TPE-ENT Glut",14,4,2.5,2
+"reverse: 103 clusters -> subclasses","0055 L5 IT CTX Glut_1","premature_stop","0055 L5 IT CTX Glut_1",NA,15,4,52,0
+"reverse: 103 clusters -> subclasses","0056 L5 IT CTX Glut_1","exact","0056 L5 IT CTX Glut_1","subclass:005 L5 IT CTX Glut",16,4,16.5,2
+"reverse: 103 clusters -> subclasses","0061 L5 IT CTX Glut_3","exact","0061 L5 IT CTX Glut_3","subclass:005 L5 IT CTX Glut",17,4,16.5,2
+"reverse: 103 clusters -> subclasses","0065 L5 IT CTX Glut_5","adjacent_same_class","0065 L5 IT CTX Glut_5","subclass:003 L5/6 IT TPE-ENT Glut",18,4,2.5,2
+"reverse: 103 clusters -> subclasses","0069 L4/5 IT CTX Glut_1","exact","0069 L4/5 IT CTX Glut_1","subclass:006 L4/5 IT CTX Glut",19,4,25,2
+"reverse: 103 clusters -> subclasses","0072 L4/5 IT CTX Glut_1","exact","0072 L4/5 IT CTX Glut_1","subclass:006 L4/5 IT CTX Glut",20,4,25,2
+"reverse: 103 clusters -> subclasses","0075 L4/5 IT CTX Glut_2","exact","0075 L4/5 IT CTX Glut_2","subclass:006 L4/5 IT CTX Glut",21,4,25,2
+"reverse: 103 clusters -> subclasses","0076 L4/5 IT CTX Glut_2","exact","0076 L4/5 IT CTX Glut_2","subclass:006 L4/5 IT CTX Glut",22,4,25,2
+"reverse: 103 clusters -> subclasses","0078 L4/5 IT CTX Glut_2","exact","0078 L4/5 IT CTX Glut_2","subclass:006 L4/5 IT CTX Glut",23,4,25,2
+"reverse: 103 clusters -> subclasses","0083 L4/5 IT CTX Glut_3","adjacent_same_class","0083 L4/5 IT CTX Glut_3","subclass:003 L5/6 IT TPE-ENT Glut",24,4,2.5,2
+"reverse: 103 clusters -> subclasses","0084 L4/5 IT CTX Glut_3","adjacent_same_class","0084 L4/5 IT CTX Glut_3","subclass:005 L5 IT CTX Glut",25,4,16.5,2
+"reverse: 103 clusters -> subclasses","0090 L4/5 IT CTX Glut_4","exact","0090 L4/5 IT CTX Glut_4","subclass:006 L4/5 IT CTX Glut",26,4,25,2
+"reverse: 103 clusters -> subclasses","0091 L4/5 IT CTX Glut_4","premature_stop","0091 L4/5 IT CTX Glut_4",NA,27,4,52,0
+"reverse: 103 clusters -> subclasses","0094 L4/5 IT CTX Glut_4","adjacent_same_class","0094 L4/5 IT CTX Glut_4","subclass:007 L2/3 IT CTX Glut",28,4,33.5,2
+"reverse: 103 clusters -> subclasses","0096 L4/5 IT CTX Glut_5","exact","0096 L4/5 IT CTX Glut_5","subclass:006 L4/5 IT CTX Glut",29,4,25,2
+"reverse: 103 clusters -> subclasses","0098 L4/5 IT CTX Glut_5","exact","0098 L4/5 IT CTX Glut_5","subclass:006 L4/5 IT CTX Glut",30,4,25,2
+"reverse: 103 clusters -> subclasses","0099 L4/5 IT CTX Glut_5","exact","0099 L4/5 IT CTX Glut_5","subclass:006 L4/5 IT CTX Glut",31,4,25,2
+"reverse: 103 clusters -> subclasses","0104 L2/3 IT CTX Glut_1","exact","0104 L2/3 IT CTX Glut_1","subclass:007 L2/3 IT CTX Glut",32,4,33.5,2
+"reverse: 103 clusters -> subclasses","0105 L2/3 IT CTX Glut_1","exact","0105 L2/3 IT CTX Glut_1","subclass:007 L2/3 IT CTX Glut",33,4,33.5,2
+"reverse: 103 clusters -> subclasses","0106 L2/3 IT CTX Glut_1","exact","0106 L2/3 IT CTX Glut_1","subclass:007 L2/3 IT CTX Glut",34,4,33.5,2
+"reverse: 103 clusters -> subclasses","0109 L2/3 IT CTX Glut_2","exact","0109 L2/3 IT CTX Glut_2","subclass:007 L2/3 IT CTX Glut",35,4,33.5,2
+"reverse: 103 clusters -> subclasses","0351 L5 ET CTX Glut_1","exact","0351 L5 ET CTX Glut_1","subclass:022 L5 ET CTX Glut",36,4,38.5,2
+"reverse: 103 clusters -> subclasses","0352 L5 ET CTX Glut_1","exact","0352 L5 ET CTX Glut_1","subclass:022 L5 ET CTX Glut",37,4,38.5,2
+"reverse: 103 clusters -> subclasses","0361 L5 ET CTX Glut_2","exact","0361 L5 ET CTX Glut_2","subclass:022 L5 ET CTX Glut",38,4,38.5,2
+"reverse: 103 clusters -> subclasses","0362 L5 ET CTX Glut_2","exact","0362 L5 ET CTX Glut_2","subclass:022 L5 ET CTX Glut",39,4,38.5,2
+"reverse: 103 clusters -> subclasses","0377 L5 ET CTX Glut_5","exact","0377 L5 ET CTX Glut_5","subclass:022 L5 ET CTX Glut",40,4,38.5,2
+"reverse: 103 clusters -> subclasses","0379 L5 ET CTX Glut_5","exact","0379 L5 ET CTX Glut_5","subclass:022 L5 ET CTX Glut",41,4,38.5,2
+"reverse: 103 clusters -> subclasses","0421 L6b CTX Glut_1","exact","0421 L6b CTX Glut_1","subclass:027 L6b CTX Glut",42,4,42.5,2
+"reverse: 103 clusters -> subclasses","0430 L6b CTX Glut_3","exact","0430 L6b CTX Glut_3","subclass:027 L6b CTX Glut",43,4,42.5,2
+"reverse: 103 clusters -> subclasses","0433 L6 CT CTX Glut_1","exact","0433 L6 CT CTX Glut_1","subclass:028 L6 CT CTX Glut",44,4,47.5,2
+"reverse: 103 clusters -> subclasses","0436 L6 CT CTX Glut_1","exact","0436 L6 CT CTX Glut_1","subclass:028 L6 CT CTX Glut",45,4,47.5,2
+"reverse: 103 clusters -> subclasses","0439 L6 CT CTX Glut_2","exact","0439 L6 CT CTX Glut_2","subclass:028 L6 CT CTX Glut",46,4,47.5,2
+"reverse: 103 clusters -> subclasses","0440 L6 CT CTX Glut_2","exact","0440 L6 CT CTX Glut_2","subclass:028 L6 CT CTX Glut",47,4,47.5,2
+"reverse: 103 clusters -> subclasses","0441 L6 CT CTX Glut_2","exact","0441 L6 CT CTX Glut_2","subclass:028 L6 CT CTX Glut",48,4,47.5,2
+"reverse: 103 clusters -> subclasses","0445 L6 CT CTX Glut_3","exact","0445 L6 CT CTX Glut_3","subclass:028 L6 CT CTX Glut",49,4,47.5,2
+"reverse: 103 clusters -> subclasses","0449 L6 CT CTX Glut_5","adjacent_same_class","0449 L6 CT CTX Glut_5","subclass:027 L6b CTX Glut",50,4,42.5,2
+"reverse: 103 clusters -> subclasses","0452 L6 CT CTX Glut_5","exact","0452 L6 CT CTX Glut_5","subclass:028 L6 CT CTX Glut",51,4,47.5,2
+"reverse: 103 clusters -> subclasses","0461 L5 NP CTX Glut_2","exact","0461 L5 NP CTX Glut_2","subclass:030 L5 NP CTX Glut",52,4,53.5,2
+"reverse: 103 clusters -> subclasses","0463 L5 NP CTX Glut_2","exact","0463 L5 NP CTX Glut_2","subclass:030 L5 NP CTX Glut",53,4,53.5,2
+"reverse: 103 clusters -> subclasses","0465 L5 NP CTX Glut_3","exact","0465 L5 NP CTX Glut_3","subclass:030 L5 NP CTX Glut",54,4,53.5,2
+"reverse: 103 clusters -> subclasses","0470 L5 NP CTX Glut_4","exact","0470 L5 NP CTX Glut_4","subclass:030 L5 NP CTX Glut",55,4,53.5,2
+"reverse: 103 clusters -> subclasses","0497 Vip Gaba_1","exact","0497 Vip Gaba_1","subclass:036 Vip Gaba",56,4,59.5,2
+"reverse: 103 clusters -> subclasses","0513 Vip Gaba_3","exact","0513 Vip Gaba_3","subclass:036 Vip Gaba",57,4,59.5,2
+"reverse: 103 clusters -> subclasses","0514 Vip Gaba_3","exact","0514 Vip Gaba_3","subclass:036 Vip Gaba",58,4,59.5,2
+"reverse: 103 clusters -> subclasses","0516 Vip Gaba_3","exact","0516 Vip Gaba_3","subclass:036 Vip Gaba",59,4,59.5,2
+"reverse: 103 clusters -> subclasses","0522 Vip Gaba_4","exact","0522 Vip Gaba_4","subclass:036 Vip Gaba",60,4,59.5,2
+"reverse: 103 clusters -> subclasses","0527 Vip Gaba_5","exact","0527 Vip Gaba_5","subclass:036 Vip Gaba",61,4,59.5,2
+"reverse: 103 clusters -> subclasses","0529 Vip Gaba_5","exact","0529 Vip Gaba_5","subclass:036 Vip Gaba",62,4,59.5,2
+"reverse: 103 clusters -> subclasses","0533 Vip Gaba_6","premature_stop","0533 Vip Gaba_6",NA,63,4,52,0
+"reverse: 103 clusters -> subclasses","0547 Sncg Gaba_6","exact","0547 Sncg Gaba_6","subclass:037 Sncg Gaba",64,4,65,2
+"reverse: 103 clusters -> subclasses","0553 Sncg Gaba_3","exact","0553 Sncg Gaba_3","subclass:037 Sncg Gaba",65,4,65,2
+"reverse: 103 clusters -> subclasses","0560 Sncg Gaba_4","exact","0560 Sncg Gaba_4","subclass:037 Sncg Gaba",66,4,65,2
+"reverse: 103 clusters -> subclasses","0580 Lamp5 Gaba_1","exact","0580 Lamp5 Gaba_1","subclass:039 Lamp5 Gaba",67,4,68.5,2
+"reverse: 103 clusters -> subclasses","0581 Lamp5 Gaba_1","exact","0581 Lamp5 Gaba_1","subclass:039 Lamp5 Gaba",68,4,68.5,2
+"reverse: 103 clusters -> subclasses","0582 Lamp5 Gaba_1","exact","0582 Lamp5 Gaba_1","subclass:039 Lamp5 Gaba",69,4,68.5,2
+"reverse: 103 clusters -> subclasses","0587 Lamp5 Gaba_2","premature_stop","0587 Lamp5 Gaba_2",NA,70,4,52,0
+"reverse: 103 clusters -> subclasses","0605 Pvalb chandelier Gaba","exact","0605 Pvalb chandelier Gaba","subclass:041 Pvalb chandelier Gaba",71,4,71,2
+"reverse: 103 clusters -> subclasses","0607 Pvalb Gaba_1","exact","0607 Pvalb Gaba_1","subclass:042 Pvalb Gaba",72,4,75.5,2
+"reverse: 103 clusters -> subclasses","0618 Pvalb Gaba_3","exact","0618 Pvalb Gaba_3","subclass:042 Pvalb Gaba",73,4,75.5,2
+"reverse: 103 clusters -> subclasses","0619 Pvalb Gaba_3","exact","0619 Pvalb Gaba_3","subclass:042 Pvalb Gaba",74,4,75.5,2
+"reverse: 103 clusters -> subclasses","0620 Pvalb Gaba_8","exact","0620 Pvalb Gaba_8","subclass:042 Pvalb Gaba",76,4,75.5,2
+"reverse: 103 clusters -> subclasses","0621 Pvalb Gaba_3","exact","0621 Pvalb Gaba_3","subclass:042 Pvalb Gaba",75,4,75.5,2
+"reverse: 103 clusters -> subclasses","0624 Pvalb Gaba_4","exact","0624 Pvalb Gaba_4","subclass:042 Pvalb Gaba",77,4,75.5,2
+"reverse: 103 clusters -> subclasses","0625 Pvalb Gaba_5","exact","0625 Pvalb Gaba_5","subclass:042 Pvalb Gaba",79,4,75.5,2
+"reverse: 103 clusters -> subclasses","0628 Pvalb Gaba_4","exact","0628 Pvalb Gaba_4","subclass:042 Pvalb Gaba",78,4,75.5,2
+"reverse: 103 clusters -> subclasses","0631 Sst Gaba_13","exact","0631 Sst Gaba_13","subclass:043 Sst Gaba",82,4,86.5,2
+"reverse: 103 clusters -> subclasses","0638 Sst Gaba_1","exact","0638 Sst Gaba_1","subclass:043 Sst Gaba",80,4,86.5,2
+"reverse: 103 clusters -> subclasses","0641 Sst Gaba_12","exact","0641 Sst Gaba_12","subclass:043 Sst Gaba",81,4,86.5,2
+"reverse: 103 clusters -> subclasses","0664 Sst Gaba_4","exact","0664 Sst Gaba_4","subclass:043 Sst Gaba",83,4,86.5,2
+"reverse: 103 clusters -> subclasses","0665 Sst Gaba_11","exact","0665 Sst Gaba_11","subclass:043 Sst Gaba",87,4,86.5,2
+"reverse: 103 clusters -> subclasses","0666 Sst Gaba_4","exact","0666 Sst Gaba_4","subclass:043 Sst Gaba",84,4,86.5,2
+"reverse: 103 clusters -> subclasses","0668 Sst Gaba_4","exact","0668 Sst Gaba_4","subclass:043 Sst Gaba",85,4,86.5,2
+"reverse: 103 clusters -> subclasses","0669 Sst Gaba_4","exact","0669 Sst Gaba_4","subclass:043 Sst Gaba",86,4,86.5,2
+"reverse: 103 clusters -> subclasses","0673 Sst Gaba_16","exact","0673 Sst Gaba_16","subclass:043 Sst Gaba",90,4,86.5,2
+"reverse: 103 clusters -> subclasses","0675 Sst Gaba_5","premature_stop","0675 Sst Gaba_5",NA,88,4,52,0
+"reverse: 103 clusters -> subclasses","0677 Sst Gaba_5","exact","0677 Sst Gaba_5","subclass:043 Sst Gaba",89,4,86.5,2
+"reverse: 103 clusters -> subclasses","0688 Sst Gaba_7","exact","0688 Sst Gaba_7","subclass:043 Sst Gaba",91,4,86.5,2
+"reverse: 103 clusters -> subclasses","0695 Sst Gaba_10","exact","0695 Sst Gaba_10","subclass:043 Sst Gaba",93,4,86.5,2
+"reverse: 103 clusters -> subclasses","0697 Sst Gaba_8","exact","0697 Sst Gaba_8","subclass:043 Sst Gaba",92,4,86.5,2
+"reverse: 103 clusters -> subclasses","0731 Sst Chodl Gaba_4","exact","0731 Sst Chodl Gaba_4","subclass:046 Sst Chodl Gaba",94,4,94,2
+"reverse: 103 clusters -> subclasses","5113 Astro-TE NN_3","exact","5113 Astro-TE NN_3","subclass:287 Astro-TE NN",95,4,95,2
+"reverse: 103 clusters -> subclasses","5146 OPC NN_1","exact","5146 OPC NN_1","subclass:294 OPC NN",96,4,96,2
+"reverse: 103 clusters -> subclasses","5150 COP NN","adjacent_same_class","5150 COP NN","subclass:294 OPC NN",97,4,96,2
+"reverse: 103 clusters -> subclasses","5152 COP NN","premature_stop","5152 COP NN",NA,98,4,52,0
+"reverse: 103 clusters -> subclasses","5155 MFOL NN","exact","5155 MFOL NN","subclass:295 Oligo NN",99,4,98.5,2
+"reverse: 103 clusters -> subclasses","5158 MOL NN","exact","5158 MOL NN","subclass:295 Oligo NN",100,4,98.5,2
+"reverse: 103 clusters -> subclasses","5182 Peri NN","exact","5182 Peri NN","subclass:299 Peri NN",101,4,101,2
+"reverse: 103 clusters -> subclasses","5188 Endo NN","exact","5188 Endo NN","subclass:301 Endo NN",102,4,102,2
+"reverse: 103 clusters -> subclasses","5190 Microglia NN","exact","5190 Microglia NN","subclass:302 Microglia NN",103,4,103,2
