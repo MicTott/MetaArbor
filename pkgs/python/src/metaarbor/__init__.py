@@ -32,7 +32,7 @@ from .tree import (ancestors, leaf_path_dist, leaves_under, tree_from_levels,
                    tree_weights)
 from .walk import baseline_map, compactness, select_node
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 __all__ = [
     "measure", "vote_cache", "aggregate_cache", "leaf_costs", "auroc",

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 (2026-09-03) — patristic structure metric becomes the Transport
+default
+
+On cross-taxonomy amygdala pairs, patristic and chord metrics score
+near-identically and both edge out hop; Allen (shared taxonomy) cannot
+separate them. `fugw_map` now builds patristic structure per atlas when
+expression is supplied (`expr_a`/`expr_b`); explicit CA/CB still win;
+without expression it falls back to hop with a warning
+(`structure="hop"` for silent hop).
+
 ## 0.2.1 (2026-09-03) — molecular structure metrics as a first-class
 Transport option
 

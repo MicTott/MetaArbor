@@ -101,22 +101,38 @@ def solve(M, CA, CB, wA, wB, alpha=FROZEN["alpha"], rho=FROZEN["rho"],
 
 
 def fugw_map(S, tree_a, tree_b, row_names, col_names, CA=None, CB=None,
+             structure="patristic", expr_a=None, expr_b=None,
              **overrides):
     """The frozen pipeline: intrinsic marginals from each tree alone,
     structure distances, solve, and per-query argmax-family + confidence
     read-outs. `S` symmetrized AUROC (rows = source populations = tree_a
     leaves, cols = target leaves = tree_b leaves).
 
-    Structure defaults to tree HOP distances (the frozen configuration).
-    Pass `CA` / `CB` (arrays over row_names / col_names) to substitute a
-    molecular metric per atlas — build them with
-    `branch_fit.structure_matrices(..., kind="chord"|"patristic")`, each
-    atlas from its own expression only. On the Allen benchmark all three
-    structure metrics scored identically (the benchmark is saturated
-    under a shared taxonomy); on depth-mismatched cross-taxonomy pairs
-    they are expected to differ, which is the prespecified comparison."""
+    Structure metric (0.3.0 default: PATRISTIC — on cross-taxonomy
+    amygdala pairs patristic and chord score near-identically and both
+    edge out hop; Allen cannot separate them under its shared taxonomy):
+      - expr_a/expr_b given (dicts: counts, labels, optional lib) ->
+        `structure` ("patristic" | "chord") is built per atlas from its
+        OWN expression via branch_fit.structure_matrices;
+      - CA/CB given explicitly -> used as-is (overrides `structure`);
+      - neither -> falls back to tree hop distances with a UserWarning
+        (pass structure="hop" to request hop silently)."""
     params = dict(FROZEN)
     params.update(overrides)
+    if CA is None and CB is None and structure in ("patristic", "chord") \
+            and expr_a is not None and expr_b is not None:
+        from .branch_fit import structure_matrices
+        CA, _ = structure_matrices(expr_a["counts"], expr_a["labels"],
+                                   tree_a, list(row_names), kind=structure,
+                                   lib=expr_a.get("lib"))
+        CB, _ = structure_matrices(expr_b["counts"], expr_b["labels"],
+                                   tree_b, list(col_names), kind=structure,
+                                   lib=expr_b.get("lib"))
+    elif CA is None and CB is None and structure != "hop":
+        import warnings
+        warnings.warn("no expression supplied: falling back to tree hop "
+                      "distances (pass structure='hop' to silence, or "
+                      "expr_a/expr_b for the patristic default)")
     if CA is None:
         CAh, la = leaf_path_dist(tree_a)
         ra = [la.index(r) for r in row_names]

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "metaarbor"
-version = "0.2.1"
+version = "0.3.0"
 description = "Integration-free alignment of cell-type taxonomies across atlases of different resolutions (MetaNeighbor-derived voting, hierarchical walk estimator, FUGW with refinement-invariant marginals)"
 readme = "README.md"
 requires-python = ">=3.10"

@@ -104,3 +104,37 @@ def test_structure_override_and_helpers():
                      [lb.index(c) for c in cols])]
     same = fugw_map(S, ta, tb, qn, cols, CB=CBh, rho=1.0, alpha=0.5)
     assert np.allclose(same["pi"], hop["pi"], atol=1e-10)
+
+
+def test_patristic_default_with_expression():
+    import warnings
+    from metaarbor import tree_from_levels
+    from metaarbor.branch_fit import structure_matrices
+    from metaarbor.fugw import fugw_map
+
+    rs = np.random.RandomState(9)
+    ta = tree_from_levels([("A", "a1"), ("A", "a2"), ("B", "b1")],
+                          ["fam", "leaf"])
+    tb = tree_from_levels([("X", "x1"), ("X", "x2"), ("Y", "y1"),
+                           ("Y", "y2")], ["fam", "leaf"])
+    qn, cols = ["a1", "a2", "b1"], ["x1", "x2", "y1", "y2"]
+    S = 0.5 + 0.4 * rs.rand(3, 4)
+    ea = {"counts": rs.poisson(3.0, size=(150, 300)).astype(float),
+          "labels": np.repeat(qn, 50)}
+    eb = {"counts": rs.poisson(3.0, size=(200, 300)).astype(float),
+          "labels": np.repeat(cols, 50)}
+    auto = fugw_map(S, ta, tb, qn, cols, expr_a=ea, expr_b=eb,
+                    rho=1.0, alpha=0.5)
+    CA, _ = structure_matrices(ea["counts"], ea["labels"], ta, qn,
+                               kind="patristic")
+    CB, _ = structure_matrices(eb["counts"], eb["labels"], tb, cols,
+                               kind="patristic")
+    manual = fugw_map(S, ta, tb, qn, cols, CA=CA, CB=CB,
+                      rho=1.0, alpha=0.5)
+    assert np.allclose(auto["pi"], manual["pi"], atol=1e-10)
+    # no expression: warns and falls back to hop; structure="hop" silent
+    with pytest.warns(UserWarning):
+        fugw_map(S, ta, tb, qn, cols, rho=1.0, alpha=0.5)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        fugw_map(S, ta, tb, qn, cols, structure="hop", rho=1.0, alpha=0.5)
