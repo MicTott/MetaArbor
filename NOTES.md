@@ -422,6 +422,48 @@ the figure work itself:
     is pairwise amygdala analysis with no further metric or estimator
     development.
 
+19. **Molecular branch lengths (phylogram mode) — prespecified visualization
+    experiment (2026-09-02).** Target-atlas-only, rank-based pseudobulk
+    Spearman distances (10Xv3, own HVGs, full-gene libs); nonnegative
+    path-incidence least squares on the FIXED curated topology with unary
+    chains collapsed pre-fit (their split is unidentifiable; chain nodes
+    coincide geometrically — topological equivalence in metric form) and a
+    documented equal-split convention for the degree-2-root confound
+    (irrelevant for Allen, root degree ~16). Toy validation: exact
+    patristic recovery. Allen result: **Pearson r = 0.886, normalized
+    stress = 0.173**, bootstrap-stable (20 cell resamples: edge-length
+    correlation 0.998 [0.997-0.998], median CV of larger edges 2.5%).
+    Verdict per the prespecified rule: good enough to OFFER
+    `length_by="molecular"` on `plot_alignment_tree` (fit stats shown with
+    the figure), with depth remaining the default; the 17% residual stress
+    is itself a finding — the curated topology is mostly but not fully
+    additive in transcriptomic geometry, consistent with the IT continuum.
+    The phylogram immediately separates trivial from substantive depth
+    differences: Lamp5's supertype-vs-subclass gap nearly collapses
+    (molecularly tiny) while Endo's class-vs-subclass gap stays long (the
+    Peri/Endo split is real distance). Axis relabeled "annotation depth"
+    on the default cladogram with the non-molecular caveat. Inference
+    untouched (structural: branch_fit never calls Walk or Transport).
+    On the corrected phylogram the 7 topologically equivalent placements
+    collapse to points; the two real depth differences carry measured
+    magnitudes (Lamp5 supertype split ~0.19 normalized units; Endo
+    class-to-subclass ~0.36).
+
+    **Locked four-arm Transport comparison (prespecified for AFTER the
+    amygdala primary analysis; user, 2026-09-02):** (1) hop/depth FUGW —
+    the current frozen model; (2) raw-metric FUGW — within-atlas chord
+    distances, no imposed tree metric; (3) patristic FUGW — NNLS distances
+    constrained to the supplied topology; (4) molecular-only UOT — no GW
+    term. Each atlas selects its own HVGs and builds its own distance
+    matrix independently (GW needs no shared feature set); distance
+    matrices normalized before comparison; intrinsic marginals,
+    optimization settings and readouts identical across arms. Readout
+    logic: patristic > raw => topology genuinely regularizes; patristic
+    ~= raw => topology adds little beyond distances+marginals; both > hop
+    => annotation depth was the wrong structural metric; UOT ~= all =>
+    the GW component contributes little. Explicitly NOT a way to revise
+    the primary amygdala result if the frozen model struggles.
+
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
 siblings inside the margin one level above truth), fig2 (error topology on

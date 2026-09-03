@@ -68,7 +68,8 @@ def _backbone(ax, tree, coords, nodes=None, color="#cccccc", lw=0.6):
 
 
 def plot_alignment_tree(summary_rows, tree, collapse=True, label=True,
-                        orient="vertical", figsize=None):
+                        orient="vertical", length_by="depth",
+                        node_positions=None, figsize=None):
     """The primary biological result plot: query labels attached to their
     selected nodes on the gray target hierarchy. Walk (circle) and
     Transport (diamond) side by side, combined into one square when they
@@ -78,6 +79,23 @@ def plot_alignment_tree(summary_rows, tree, collapse=True, label=True,
     are kept); taxonomy order is never changed."""
     plt = _mpl()
     coords0, leaf_order = tree_layout(tree)
+    if length_by == "molecular":
+        if node_positions is None:
+            raise ValueError("length_by='molecular' needs node_positions "
+                             "from branch_fit.fit_branch_lengths")
+        coords0 = {v: (x, float(node_positions[v]))
+                   for v, (x, _) in coords0.items()}
+    elif length_by == "none":
+        from .branch_fit import _collapse_chains
+        red_parent, node_map = _collapse_chains(tree)
+        def rdepth(kv):
+            d = 0
+            while kv != "root":
+                d += 1
+                kv = red_parent[kv]
+            return d
+        coords0 = {v: (x, float(rdepth(node_map[v])) if v != "root" else 0.0)
+                   for v, (x, _) in coords0.items()}
     if orient == "horizontal":
         coords = {k: (y, x) for k, (x, y) in coords0.items()}
     else:
@@ -159,14 +177,18 @@ def plot_alignment_tree(summary_rows, tree, collapse=True, label=True,
     ax.legend(handles=handles, fontsize=6, loc="upper right", frameon=False)
     depth_max = max(xy[1 if orient == "vertical" else 0]
                     for xy in coords.values())
+    axis_label = {"depth": "annotation depth (curatorial level, not molecular distance)",
+                  "molecular": "cumulative fitted transcriptomic distance (median leaf pair = 1)",
+                  "none": "chain-collapsed topology (equal edges)"}[length_by]
+    pad = 0.6 if length_by != "molecular" else 0.12 * depth_max
     if orient == "vertical":
-        ax.set_ylim(depth_max + 0.6, -0.4)
+        ax.set_ylim(depth_max + pad, -pad * 0.6)
         ax.set_xticks([])
-        ax.set_ylabel("tree depth")
+        ax.set_ylabel(axis_label, fontsize=8)
     else:
-        ax.set_xlim(-0.4, depth_max + 2.5)
+        ax.set_xlim(-pad * 0.6, depth_max + pad + 2)
         ax.set_yticks([])
-        ax.set_xlabel("tree depth")
+        ax.set_xlabel(axis_label, fontsize=8)
     ax.set_title("MetaArbor alignment: queries at their selected target nodes")
     fig.tight_layout()
     return fig, ax

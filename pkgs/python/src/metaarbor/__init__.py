@@ -13,6 +13,7 @@ from .kernel import (aggregate_cache, auroc, leaf_costs, lognorm, measure,
                      rank_normalize, variable_genes, vote_cache)
 from .accessors import (family_mass, node_auroc_matrix,
                         vote_fraction_matrix, walk_traces, write_csv)
+from .branch_fit import fit_branch_lengths, pseudobulk_distances
 from .bundle import result_bundle
 from .evidence import node_evidence
 from .plots import (classify_outcome, plot_alignment_tree,
@@ -39,5 +40,6 @@ __all__ = [
     "walk_traces", "write_csv", "result_bundle",
     "plot_alignment_tree", "plot_evidence_heatmap", "plot_transport_heatmap",
     "plot_query_path", "plot_error_tree", "classify_outcome", "tree_layout",
+    "fit_branch_lengths", "pseudobulk_distances",
     "Minstd", "__version__",
 ]
