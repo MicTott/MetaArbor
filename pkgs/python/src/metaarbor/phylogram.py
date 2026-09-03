@@ -136,7 +136,13 @@ def plot_alignment_phylogram(summary_rows, tree, node_positions=None,
                            label="Walk"),
                 plt.Line2D([], [], marker="D", ls="", color="grey",
                            label="Transport")]
-    ax.legend(handles=handles, fontsize=6, loc="lower left", frameon=False)
+    fig.legend(handles=handles, fontsize=6.5, ncol=3, frameon=False,
+               loc="upper center", bbox_to_anchor=(0.5, 0.0))
+    fig.text(0.02, -0.045,
+             "Horizontal position = root-to-node distance; the patristic "
+             "distance between two nodes is the full path through their "
+             "common ancestor (tips at similar x need not be similar).",
+             fontsize=6.5, style="italic", color="#333333")
     ax.set_xlim(-0.02 * xmax, margin_x + 0.45 * xmax)
     ax.set_ylim(n + 1, 0)
     ax.set_yticks([])
@@ -148,3 +154,16 @@ def plot_alignment_phylogram(summary_rows, tree, node_positions=None,
     ax.set_title("MetaArbor alignment phylogram")
     fig.tight_layout()
     return fig, ax
+
+
+def to_ete4(tree, edge_lengths=None):
+    """The tree as an `ete4.Tree` (optional dependency: install the `ete`
+    extra — ete4 + PyQt6; static `render()` works headlessly with
+    QT_QPA_PLATFORM=offscreen, and `explore()` opens the Qt-free
+    interactive web explorer)."""
+    try:
+        from ete4 import Tree as EteTree
+    except ImportError as e:
+        raise ImportError("to_ete4 needs the `ete` extra: "
+                          "pip install metaarbor[ete]") from e
+    return EteTree(to_newick(tree, edge_lengths), parser=1)

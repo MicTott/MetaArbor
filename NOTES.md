@@ -486,9 +486,15 @@ the figure work itself:
     taxonomy order on y, collision-free aligned label margin with dotted
     leaders) — replaces the old top-down tree as the bundle's primary
     figure; `to_newick(tree, edge_lengths)` exports the fitted tree for
-    external renderers (ete3/ggtree/iTOL — chosen over an in-package ete3
-    dependency because its Qt rendering stack is hostile to headless
-    cluster use; ete2 is python-2-only and dead). 14/14 tests.
+    external renderers. **Correction after user challenge:** ete4 (4.4.0)
+    installs Qt-free and its static render() works headlessly with PyQt6 +
+    QT_QPA_PLATFORM=offscreen (verified: 103-leaf Allen tree round-tripped
+    and rendered to SVG) — so `to_ete4()` + the optional `[ete]` extra
+    (ete4 + PyQt6) are now in the package; the matplotlib phylogram stays
+    the zero-Qt default. Legend moved outside the tree; caption states
+    that horizontal position is root-to-node distance and pairwise
+    patristic distance is the complete path between two nodes. 14/14
+    tests.
 
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
