@@ -16,6 +16,7 @@ from .accessors import (family_mass, node_auroc_matrix,
 from .branch_fit import fit_branch_lengths, pseudobulk_distances
 from .bundle import result_bundle
 from .evidence import node_evidence
+from .fugw import MassCollapsedError, molecular_only
 from .infer_tree import (annotate_star_relations, infer_tree, is_star_tree,
                          star_tree)
 from .phylogram import (plot_alignment_phylogram,
@@ -30,7 +31,7 @@ from .tree import (ancestors, leaf_path_dist, leaves_under, tree_from_levels,
                    tree_weights)
 from .walk import baseline_map, compactness, select_node
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "measure", "vote_cache", "aggregate_cache", "leaf_costs", "auroc",
@@ -48,5 +49,5 @@ __all__ = [
     "infer_tree", "star_tree", "is_star_tree", "annotate_star_relations",
     "plot_alignment_phylogram", "plot_harmonized_phylogram",
     "to_newick", "to_ete4",
-    "Minstd", "__version__",
+    "Minstd", "MassCollapsedError", "molecular_only", "__version__",
 ]

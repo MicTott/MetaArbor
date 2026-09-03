@@ -560,6 +560,36 @@ the figure work itself:
     baseline; a Pvalb family node appears only if those types form a
     reproducible clade — its absence would itself be a finding.
 
+24. **FUGW parameter-contract bug (v1) and versioned correction (v2)
+    (2026-09-03, from the amygdala Yu-Allen zero-mass collapse).** The
+    cluster session's diagnosis is confirmed algebraically: the design
+    objective alpha*M + (1-alpha)*GW + rho*R, divided by (1-alpha) to
+    reach POT's GW-coefficient-1 form, requires rho -> rho/(1-alpha)
+    (and epsilon likewise). The v1 wrapper scaled only alpha, so at the
+    frozen alpha=0.9 the marginal penalty ran at ONE-TENTH the intended
+    strength — mass destruction 10x cheaper than the design objective
+    specifies. On adverse geometry (Yu-Allen inhibitory pair) the solver
+    trajectory collapses to zero mass (nonconvex: trajectory, not proven
+    global optimum). metaarbor 0.2.0 ships the versioned correction:
+    `solve(convention="design-v2")` co-scales alpha/rho/epsilon
+    (default); `"pot-v1"` reproduces the released behavior verbatim;
+    alpha=1 replaced by explicit `molecular_only()`; zero-mass/NaN now
+    raises MassCollapsedError (interpretable diagnostic incl. POT's
+    internal NaN-in-coupling path) instead of propagating NaN. Contract
+    tests pin v2==v1-with-coscaled-rho equivalence, the alpha=0
+    invariance, the molecular-only identity, and the guard; a
+    skip-guarded test awaits the anonymised fugw_nan_fixture.npz in
+    pkgs/fixtures for exact collapse reproduction. **Allen revalidation
+    under v2 at the frozen design weights (POT reg_m = 3.0): argmax
+    23/23 in ALL three battery conditions; confident 21 -> 20 with the
+    entire delta on the deep-layer IT continuum (004 L6 IT joins 003/005
+    as underconfident); zero cross-family.** Status per protocol: the
+    released frozen v1 amygdala result stands ("estimator failed to
+    converge" on Yu-Allen, both directions); v2 adoption + Yu-Allen
+    rerun is the cluster session's decision now that Allen validation
+    passes. Note: the research-repo R wrapper (R/fugw.R, frozen
+    historical record) shares the v1 convention and is left untouched.
+
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
 siblings inside the margin one level above truth), fig2 (error topology on
