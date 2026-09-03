@@ -18,10 +18,10 @@ live in [pkgs/](pkgs/README.md)** — the primary standalone python package
 
 ```bash
 # python (primary) — from a clone or directly from GitHub
-pip install "metaarbor[all] @ git+https://github.com/USER/metaarbor#subdirectory=pkgs/python"
+pip install "metaarbor[all] @ git+https://github.com/MicTott/MetaArbor#subdirectory=pkgs/python"
 
 # or from a clone
-git clone https://github.com/USER/metaarbor && cd metaarbor
+git clone https://github.com/MicTott/MetaArbor && cd metaarbor
 pip install "./pkgs/python[all]"       # [viz] plots, [ot] Transport, [ete] ete4
 python -m pytest pkgs/python/tests -q  # 10 pass; 4 parity tests skip without fixtures
 

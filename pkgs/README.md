@@ -63,7 +63,7 @@ Python (primary):
 module load conda            # or any python >= 3.10
 conda create -n metaarbor python=3.12 -y
 conda activate metaarbor
-git clone https://github.com/USER/metaarbor
+git clone https://github.com/MicTott/MetaArbor
 pip install "./metaarbor/pkgs/python[all,test]"   # anndata + POT + matplotlib
 python -m pytest metaarbor/pkgs/python/tests -q   # 10 pass, 4 parity skips
 ```
