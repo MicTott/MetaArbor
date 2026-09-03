@@ -496,6 +496,24 @@ the figure work itself:
     patristic distance is the complete path between two nodes. 14/14
     tests.
 
+21. **Two packaged phylogram views with a fixed visual grammar (user
+    spec, 2026-09-02).** (1) `plot_harmonized_phylogram` — the PRIMARY
+    biological result, one method at a time: every reference leaf labeled
+    at its terminal branch, every query attached at its inferred node,
+    color = dataset only, marker shape = relation class computed on the
+    chain-collapsed topology (equal / parent-child / broader ancestor —
+    unary annotation levels do not count as depth), line style =
+    confidence class (solid / dashed / dotted stub ending before the tree
+    for unmatched), width+opacity = quantitative support, internal-node
+    assignments lightly shade their descendant clade. Answers "where does
+    every type from both datasets fit." (2) `plot_alignment_phylogram` —
+    the method-comparison view (Walk circle vs Transport diamond, merged
+    when equivalent, orange same-branch connectors, red reserved for
+    genuine branch conflicts). Grammar rule enforced: color never encodes
+    both dataset and agreement in the same view. Both wired into
+    result_bundle (harmonized walk always; harmonized transport when a
+    coupling is supplied). 14/14 tests.
+
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
 siblings inside the margin one level above truth), fig2 (error topology on

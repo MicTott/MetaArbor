@@ -9,7 +9,7 @@ import os
 import numpy as np
 
 from .accessors import walk_traces, write_csv
-from .phylogram import plot_alignment_phylogram
+from .phylogram import plot_alignment_phylogram, plot_harmonized_phylogram
 from .plots import (plot_alignment_tree, plot_evidence_heatmap,
                     plot_query_path, plot_transport_heatmap)
 from .summary import alignment_summary, transport_summary, walk_summary
@@ -47,6 +47,14 @@ def result_bundle(cache, test_labels, tree, S_dir, out_dir, prefix="metaarbor",
     fig, ax = plot_alignment_phylogram(rows, tree)
     figures["alignment_phylogram"] = (fig, ax)
     save("alignment_phylogram", fig)
+
+    fig, ax = plot_harmonized_phylogram(rows, tree, method="walk")
+    figures["harmonized_walk"] = (fig, ax)
+    save("harmonized_walk", fig)
+    if pi is not None:
+        fig, ax = plot_harmonized_phylogram(rows, tree, method="transport")
+        figures["harmonized_transport"] = (fig, ax)
+        save("harmonized_transport", fig)
 
     fig, ax = plot_evidence_heatmap(
         cache, test_labels, tree, family_of_leaf=family_of_leaf,
