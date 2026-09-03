@@ -41,22 +41,40 @@ Given K ≥ 3 independently constructed atlas/donor trees, produce:
    the negative set and resolution): support is counted from calibrated
    per-pair DECISIONS (reciprocal matches with bootstrap support), not
    from pooled scores.
-4. **Candidate meta-clades**:
-   a. seed with reciprocal, bootstrap-supported pairwise node matches;
-   b. expand each seed across the remaining datasets via the pairwise
-      decisions;
-   c. retain a group only if its membership is INVARIANT when re-seeded
-      from each constituent node (cycle consistency builds candidates);
-   d. hand surviving candidates to greedy selection (ancestry consistency
-      decides which can coexist).
+4. **Candidate meta-clades** (corrected after review):
+   a. RECIPROCITY: canonicalize unary-equivalent nodes WITHIN each tree
+      (chain collapse), then a reciprocal match is mutual selection —
+      A_i -> B_j and B_j -> A_i — between canonical nodes. Cross-atlas
+      leaf-set equality is impossible (disjoint cells and labels) and is
+      neither required nor referenced.
+   b. build the candidate graph from reciprocal, bootstrap-supported
+      edges; MISSING datasets are permitted — a meta-clade needs
+      agreement only among ELIGIBLE OBSERVED datasets, plus ancestry
+      compatibility. Every stable unmatched node enters as a SINGLETON
+      candidate (the route to private branches).
+   c. seed invariance is a VALIDATION DIAGNOSTIC reported per candidate,
+      not an absolute all-pairs requirement (one underpowered dataset
+      must not fragment a real meta-clade).
+   d. hand candidates to hierarchical greedy selection (step 6).
 5. **Ancestry-poset compatibility**: a meta-clade set is compatible iff
    the induced partial order is tree-like — for every pair (M1, M2) the
    relation (ancestor / descendant / disjoint) agrees across every source
    tree where both have members, and no pair interleaves. Violations are
    emitted to the conflict graph.
-6. **Greedy backbone**: rank candidates by support (below), accept in
-   order iff ancestry-compatible with everything accepted; where support
-   fails, stop resolving — **polytomies, never forced binary splits**.
+6. **Greedy backbone — hierarchical, not globally sorted** (corrected):
+   global support sorting is pathological (1/1 eligible outranks 5/6) and
+   cannot guarantee a parent exists before its children. Process
+   ANCESTORS BEFORE DESCENDANTS, ranking candidates WITHIN each parent
+   context. Candidate classes are separated up front:
+     - BACKBONE candidate: supported by >= 2 datasets with sufficient
+       eligible-donor support;
+     - PRIVATE candidate: stable within one dataset AND no correspondence
+       elsewhere AND high predicted detection power in the adequately
+       powered others (all three required);
+     - UNKNOWN elsewhere: other datasets lacked detection power — never
+       counted against, never called private.
+   Accept in order iff ancestry-compatible; where support fails, stop
+   resolving — **polytomies, never forced binary splits**.
 7. **Support denominator = ELIGIBLE donors**, with an explicit detection
    model. v1: donor d is eligible for M iff d has ≥ floor cells in M's
    parent context. v1.5 (probabilistic): with expected prevalence p_M and
@@ -91,13 +109,20 @@ Given K ≥ 3 independently constructed atlas/donor trees, produce:
 5. Leave-one-donor-out stability (consensus analog of the batch battery).
 6. Name-permutation invariance (unit test).
 7. Allen pseudo-donors (donors × platforms; curated taxonomy strictly
-   held out as truth). Baselines: pooled Bonsai, majority-rule consensus,
-   ECLAIR, scTree, treeArches/scHPL, CellHint.
+   held out as truth) — scored by clade PRECISION/RECALL, quartet
+   agreement and topology distance, NOT exact tree equality (honest
+   polytomies may legitimately beat the fully resolved truth). Donor
+   leaves come from INDEPENDENT per-donor clustering — reusing identical
+   curated cluster labels in every donor makes correspondence
+   artificially easy, even after name permutation. Baselines: pooled
+   Bonsai, majority-rule consensus, ECLAIR, scTree, treeArches/scHPL,
+   CellHint.
 
 ## Module map (this package)
 
 - `simulate.py` — multi-donor generator for scenarios 1-4 (implemented).
-- `eligibility.py` — v1 floor + v1.5 probabilistic model (implemented).
+- `eligibility.py` — v1 floor; v2 Beta-binomial LOO posterior model
+  with closed-form P(detect) and lower credible bounds (implemented).
 - `poset.py` — ancestry-relation extraction + compatibility checker
   (implemented; conflicts emitted, not raised).
 - `candidates.py` — pairwise decisions → seed-invariant candidate groups
