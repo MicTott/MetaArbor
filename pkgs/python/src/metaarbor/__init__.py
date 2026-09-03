@@ -16,6 +16,7 @@ from .accessors import (family_mass, node_auroc_matrix,
 from .branch_fit import fit_branch_lengths, pseudobulk_distances
 from .bundle import result_bundle
 from .evidence import node_evidence
+from .phylogram import plot_alignment_phylogram, to_newick
 from .plots import (classify_outcome, plot_alignment_tree,
                     plot_error_tree, plot_evidence_heatmap,
                     plot_query_path, plot_transport_heatmap, tree_layout)
@@ -41,5 +42,6 @@ __all__ = [
     "plot_alignment_tree", "plot_evidence_heatmap", "plot_transport_heatmap",
     "plot_query_path", "plot_error_tree", "classify_outcome", "tree_layout",
     "fit_branch_lengths", "pseudobulk_distances",
+    "plot_alignment_phylogram", "to_newick",
     "Minstd", "__version__",
 ]

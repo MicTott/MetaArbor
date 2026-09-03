@@ -56,3 +56,29 @@ def test_chord_distance_is_metric_on_ranks():
         for j in range(3):
             for k in range(3):
                 assert D[i, j] <= D[i, k] + D[k, j] + 1e-12
+
+
+def test_phylogram_and_newick():
+    import pytest
+    pytest.importorskip("matplotlib")
+    import tempfile, os
+    from metaarbor import plot_alignment_phylogram, to_newick
+    fit = fit_branch_lengths(TREE, toy_D(), LEAVES)
+    rows = [{"query": "Q1", "walk_selected": "fam:A1",
+             "transport_node": "fam:A1", "agreement": "agree",
+             "walk_decision_support": 0.9, "transport_mass": 0.95},
+            {"query": "Q2", "walk_selected": "a3",
+             "transport_node": "fam:A2",
+             "agreement": "topologically_equivalent",
+             "walk_decision_support": 0.8, "transport_mass": 0.9}]
+    fig, ax = plot_alignment_phylogram(rows, TREE,
+                                       node_positions=fit["positions"])
+    with tempfile.TemporaryDirectory() as td:
+        p = os.path.join(td, "p.png")
+        fig.savefig(p)
+        assert os.path.getsize(p) > 0
+    nwk = to_newick(TREE, fit["edge_lengths"])
+    assert nwk.endswith(";") and nwk.count("(") == nwk.count(")")
+    for leaf in LEAVES:
+        assert leaf in nwk
+    assert ":" in nwk  # branch lengths attached

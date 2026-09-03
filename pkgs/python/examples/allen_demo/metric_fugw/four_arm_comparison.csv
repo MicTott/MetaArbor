@@ -1,0 +1,5 @@
+arm,argmax_family,confident,singletons,median_eff_leaves,pq_gap
+hop,23/23,21,8/8,3.61,8.2e-09
+raw_metric,23/23,21,8/8,3.37,1.8e-08
+patristic,23/23,21,8/8,3.64,3.8e-09
+uot,23/23,19,8/8,3.71,0.0e+00

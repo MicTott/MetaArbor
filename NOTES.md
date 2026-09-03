@@ -464,6 +464,32 @@ the figure work itself:
     the GW component contributes little. Explicitly NOT a way to revise
     the primary amygdala result if the frozen model struggles.
 
+20. **Four-arm Transport comparison executed on Allen (prespecified
+    extension, 2026-09-02, examples/metric_fugw_experiment.py) + phylogram
+    presentation view.** Arms with identical intrinsic marginals, rho=0.3,
+    alpha=0.9, eps=0, chord distances, independent per-atlas HVGs;
+    patristic fits A r=0.744 (shallow 2-level source tree), B r=0.890.
+    Result: hop / raw-metric / patristic all **23/23 argmax, 21 confident,
+    8/8 singletons**; molecular-only UOT 23/23 argmax but **19 confident**.
+    Reading per the locked logic table: on this compatible-hierarchy,
+    saturated benchmark the structural METRIC is inert (patristic ~= raw
+    ~= hop) — capacity (refinement-invariant marginals) dominates — while
+    the GW term itself still buys 2 commitment points regardless of metric
+    (consistent with item 14). The comparison has no discriminating power
+    under a shared taxonomy; its real test is the amygdala extension,
+    where the arms can separate. Certified: the metric arms do not degrade
+    anything, so they are safe to carry as prespecified extension arms.
+    The frozen hop model remains the amygdala primary configuration.
+
+    Presentation: `plot_alignment_phylogram` — standard left-to-right
+    rectangular phylogram (molecular distance or annotation depth on x,
+    taxonomy order on y, collision-free aligned label margin with dotted
+    leaders) — replaces the old top-down tree as the bundle's primary
+    figure; `to_newick(tree, edge_lengths)` exports the fitted tree for
+    external renderers (ete3/ggtree/iTOL — chosen over an in-package ete3
+    dependency because its Qt rendering stack is hostile to headless
+    cluster use; ete2 is python-2-only and dead). 14/14 tests.
+
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
 siblings inside the margin one level above truth), fig2 (error topology on
