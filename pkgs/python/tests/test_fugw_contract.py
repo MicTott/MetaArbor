@@ -1,7 +1,7 @@
 """FUGW contract tests (single, mathematically correct parameterization):
 the co-scaling algebra pinned against a direct POT call, the explicit
 molecular-only mode, finiteness of returned couplings, the zero-mass
-guard, and the anonymised Yu-Allen regression fixture."""
+guard."""
 import numpy as np
 import pytest
 
