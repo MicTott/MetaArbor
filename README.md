@@ -1,20 +1,39 @@
 # MetaArbor (research repository)
 
-**The framework is now named MetaArbor** (renamed from TreeNeighbor at tag
-`v0.1-treeneighbor-final`; the historical name remains throughout this
-research repo's frozen analysis record). Installable packages live in
-[pkgs/](pkgs/README.md): the primary python package (`metaarbor`:
-kernel, MetaArbor-Walk, refinement-invariant marginals, MetaArbor-Transport,
-AnnData API) and the pure-R companion (`MetaArbor`). Walk/kernel are
-cross-language parity-gated; Transport is python-only, regression-gated.
+**MetaArbor** aligns independently constructed cell-type taxonomies across
+atlases of different resolutions, without expression-space integration.
+Two frozen inference modes share one MetaNeighbor-derived voting kernel:
+**MetaArbor-Walk** (hierarchical selection: votes navigate, AUROC contrasts
+decide) and **MetaArbor-Transport** (fused unbalanced Gromov-Wasserstein
+with refinement-invariant tree-intrinsic marginals). Validated on the Allen
+whole-mouse-brain PL-ILA-ORB benchmark across three batch conditions.
 
-An integration-free framework for aligning independently constructed cell-type
-taxonomies across atlases of different resolutions, using MetaNeighbor-derived
-molecular evidence with either direct hierarchical selection (interpretable
-baseline) or MetaNeighbor-informed fused unbalanced Gromov–Wasserstein
-transport (the ambitious estimator, kept only if it beats the baseline on
-held-out hierarchy recovery). See [DESIGN.md](DESIGN.md) for the full
-specification and [NOTES.md](NOTES.md) for prototype findings that revised it.
+Formerly TreeNeighbor (renamed at tag `v0.1-treeneighbor-final`; the old
+name persists in the frozen analysis record). This top level is the
+research repo that produced the frozen results; **installable packages
+live in [pkgs/](pkgs/README.md)** — the primary standalone python package
+(`metaarbor`) and the deferred pure-R companion (`MetaArbor`).
+
+## Install
+
+```bash
+# python (primary) — from a clone or directly from GitHub
+pip install "metaarbor[all] @ git+https://github.com/USER/metaarbor#subdirectory=pkgs/python"
+
+# or from a clone
+git clone https://github.com/USER/metaarbor && cd metaarbor
+pip install "./pkgs/python[all]"       # [viz] plots, [ot] Transport, [ete] ete4
+python -m pytest pkgs/python/tests -q  # 10 pass; 4 parity tests skip without fixtures
+
+# R companion
+R CMD INSTALL pkgs/r
+```
+
+JHPCE specifics, the cross-language parity chain, and frozen configurations
+are documented in [pkgs/README.md](pkgs/README.md). The 48 MB
+`data/wmb_frontal_cell_metadata.csv` is versioned for provenance; all
+larger artifacts are gitignored and rebuildable via documented scripts
+(see [data/README.md](data/README.md)).
 
 ## Status
 

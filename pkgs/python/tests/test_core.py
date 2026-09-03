@@ -76,6 +76,8 @@ def test_tree_weights_leak_criteria():
 
 
 def test_minstd_matches_r_stream():
+    if not os.path.exists(os.path.join(FX, "minstd_check.csv.gz")):
+        pytest.skip("parity fixtures not present")
     hdr, rows = rcsv("minstd_check.csv.gz")
     r_states = [int(float(r[hdr.index("state")])) for r in rows]
     r_idx7 = [int(float(r[hdr.index("idx7")])) for r in rows]

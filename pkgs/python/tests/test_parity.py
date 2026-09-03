@@ -20,6 +20,10 @@ import pytest
 from metaarbor import baseline_map, measure, tree_from_levels
 
 FX = os.path.join(os.path.dirname(__file__), "..", "..", "fixtures")
+pytestmark = pytest.mark.skipif(
+    not os.path.exists(os.path.join(FX, "cacheA_V.csv.gz")),
+    reason="parity fixtures not present (generate with "
+           "pkgs/parity/01_export_and_gate.R)")
 
 
 def rcsv(name):
