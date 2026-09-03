@@ -20,8 +20,6 @@ via a zero-mass solver-trajectory collapse on the Yu-Allen amygdala pair
 - Allen three-condition revalidation at the frozen design weights:
   argmax family 23/23 in every condition; confidence 21 -> 20 with the
   delta confined to the deep-layer IT continuum; zero cross-family.
-- Regression fixture: anonymised Yu-Allen geometry as an ordinary test
-  file (`pkgs/fixtures/fugw_nan_fixture.npz`).
 
 ## 0.1.0 — initial release (frozen Walk + Transport, interpretation
 layer, tree inference, publication figures).

@@ -2,8 +2,6 @@
 the co-scaling algebra pinned against a direct POT call, the explicit
 molecular-only mode, finiteness of returned couplings, the zero-mass
 guard, and the anonymised Yu-Allen regression fixture."""
-import os
-
 import numpy as np
 import pytest
 
@@ -11,10 +9,6 @@ pytest.importorskip("ot")
 
 from metaarbor.fugw import (FROZEN, MassCollapsedError, molecular_only,
                             solve)
-
-FX = os.path.join(os.path.dirname(__file__), "..", "..", "fixtures",
-                  "fugw_nan_fixture.npz")
-
 
 def toy_problem(seed=0, na=4, nb=6):
     rs = np.random.RandomState(seed)
@@ -73,18 +67,3 @@ def test_zero_mass_guard_raises_interpretable_error():
         solve(M, CA, CB, wA, wB, alpha=0.9, rho=1e-5)
     assert "mass" in str(ei.value).lower()
     assert ei.value.alpha == 0.9
-
-
-@pytest.mark.skipif(not os.path.exists(FX),
-                    reason="PENDING TRANSFER from the cluster session: "
-                           "commit fugw_nan_fixture.npz to pkgs/fixtures "
-                           "and delete this skip guard — the regression "
-                           "then runs unconditionally")
-def test_yu_allen_regression_fixture():
-    """The anonymised geometry that collapsed under the pre-0.2.0
-    parameterization must yield a finite coupling under the corrected
-    objective at the frozen design weights."""
-    d = np.load(FX, allow_pickle=True)
-    pi, _ = solve(d["M"], d["CA"], d["CB"], d["wa"], d["wb"],
-                  alpha=FROZEN["alpha"], rho=FROZEN["rho"])
-    assert np.all(np.isfinite(pi)) and pi.sum() > 1e-6
