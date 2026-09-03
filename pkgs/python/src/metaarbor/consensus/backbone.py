@@ -42,9 +42,15 @@ Eligibility calls per (dataset, candidate), all RAW rows emitted:
                           probability >= POWER) and absent
   unknown                 unpowered; excluded from the denominator
 
-Singletons become PRIVATE only when at least one other dataset was
-powered to detect them (and stability >= STABILITY_FLOOR); otherwise
-UNKNOWN. Private subtrees keep their complete internal topology
+Singletons: AFFILIATE first — a singleton whose one-way selection lands
+exactly on a spoken-for member of an accepted, ancestry-compatible
+meta-clade that has NO member in the singleton's own dataset attaches to
+that meta-clade as an asymmetric affiliate (it plausibly IS the missing
+member; this removes the duplicate-private residual). If the landing
+clade already holds a distinct member in the singleton's dataset, the
+landing is absorption and evaluation proceeds: PRIVATE only when at
+least one other dataset was powered to detect it (and stability >=
+STABILITY_FLOOR); otherwise UNKNOWN. Private subtrees keep their complete internal topology
 (`subtree_parent`): absorbed never means discarded.
 
 Refused merge edges are classified by ancestry analysis:
@@ -181,8 +187,11 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
         for n_ in nodes_k:
             if n_ not in has_child:
                 terminal_in.add((k, n_))
-    # nodes spoken for by multi-dataset candidates
+    # nodes spoken for by multi-dataset candidates (and which candidate)
     spoken_for = {(ds, n_) for c in candidates if c["kind"] == "multi"
+                  for ds, n_ in c["members"].items()}
+    node_owner = {(ds, n_): ci for ci, c in enumerate(candidates)
+                  if c["kind"] == "multi"
                   for ds, n_ in c["members"].items()}
     # per (ds, node): any FREE canonical node strictly below it?
     has_free_below = {}
@@ -232,6 +241,7 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
     accepted, rejected, unknown_out = [], [], []
     accepted_members = []           # list of member dicts, accept order
     node_list = []
+    affiliates = []
     eligibility_table = []
     ids = {}
     processed = set()
@@ -293,6 +303,31 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
                           else None)
                 reason = None if status else "insufficient_support"
             elif supp == 1:
+                # affiliate check: does the singleton's one-way walk land
+                # on an accepted meta-clade missing a member in the
+                # singleton's own dataset?
+                (sk, snode), = c["members"].items()
+                affiliate_target = None
+                if selections is not None:
+                    for d in keys:
+                        if d == sk:
+                            continue
+                        sel = selections.get((sk, d), {}).get(snode)
+                        v = sel.get("selected") if sel else None
+                        oi = node_owner.get((d, v)) if v else None
+                        if oi is not None and oi in ids and \
+                                sk not in candidates[oi]["members"]:
+                            ok_rel, _ = pair_relation(
+                                c["members"], candidates[oi]["members"],
+                                trees)
+                            affiliate_target = ids[oi]
+                            break
+                if affiliate_target is not None:
+                    affiliates.append({
+                        "dataset": sk, "node": snode,
+                        "attached_to": affiliate_target,
+                        "candidate_id": c["candidate_id"]})
+                    continue
                 powered_others = sum(r["call"] == "private_or_absent"
                                      for r in rows)
                 if powered_others >= 1 and stab >= frozen[
@@ -345,8 +380,14 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
         order_round += 1
         if order_round > n + 2:
             break
+    for aff in affiliates:      # attach aliases onto their target nodes
+        for nd in node_list:
+            if nd["id"] == aff["attached_to"]:
+                nd.setdefault("affiliates", []).append(
+                    {"dataset": aff["dataset"], "node": aff["node"]})
     return {"nodes": node_list, "rejected": rejected,
             "unknown": unknown_out, "conflicts": conflicts,
+            "affiliates": affiliates,
             "eligibility_table": eligibility_table,
             "frozen": dict(frozen)}
 

@@ -15,3 +15,5 @@ from .poset import compatible, pair_relation, relation
 from .simulate import latent_tree, scenario, simulate_donors
 
 from . import diagnostics  # noqa: F401
+from .harmonize import harmonize
+from .plot_reconciled import plot_reconciled_tree
