@@ -129,3 +129,39 @@ Given K ≥ 3 independently constructed atlas/donor trees, produce:
   (contracts stubbed; consumes frozen `metaarbor` pairwise API).
 - `backbone.py` — greedy ancestry-compatible selection + polytomy
   emission + provenance/naming table (contracts stubbed).
+
+## Gate results and rule-correction log (2026-09-02)
+
+All four simulation gates PASS end-to-end (simulate -> pairwise ->
+candidates -> hierarchical greedy backbone; examples/consensus_gates.py;
+figures in examples/consensus_demo/):
+
+- batch: 16/16 truth nodes (4 families 3/3 + 12 leaves), 0 conflicts.
+- missing_unique: F4 backbone at (2,3) with d1 = powered absence; P1
+  private.
+- resolution_imbalance: families 4/4 at 3/3; flat d0 = 16
+  unresolved_in_dataset rows; 8 weak twins honestly unknown, ZERO
+  spurious privates; support fully abundance-invariant.
+- rare_private (FLAGSHIP): F1.rare = private, parent = F1's meta-clade;
+  d0 powered absence at 1.000; d1 honestly unknown at power 0.854; F1
+  unfragmented at 3/3.
+
+The unresolved_in_dataset rule was corrected TWICE by the gates (frozen
+thresholds untouched; both corrections structural):
+1. Original parent-containment form made private detection impossible in
+   principle (any subtype's walk lands in its family) — caught by the
+   flagship.
+2. Landing-based revision let weak reciprocity-failure twins be
+   mis-called private — caught by resolution_imbalance.
+Final form: unresolved iff (a) parent member terminal in the dataset's
+canonical tree, or (b) FREE (unclaimed) canonical structure exists below
+the parent there. Landings remain asymmetric evidence only.
+
+KNOWN RESIDUAL (for review, not silently fixed): a reciprocity-failure
+twin whose latent counterpart is claimed by a sibling meta-clade can
+surface as a duplicate private branch (e.g. d0|F1.s2 beside the accepted
+F1.s2 meta-clade). Proposed refinement: a singleton whose one-way
+selection lands exactly on a spoken-for member of an ancestry-compatible
+sibling meta-clade should attach as an asymmetric affiliate of that
+meta-clade rather than becoming private. Awaiting review before
+implementation.

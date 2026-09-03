@@ -8,6 +8,10 @@ from .eligibility import (call, call_v2, eligible_v1, eligible_v15,
                           p_detect, p_detect_posterior,
                           prevalence_lower, prevalence_posterior,
                           support)
-from .candidates import canonical_nodes, pairwise_decisions
+from .backbone import (FROZEN, classify_edge_conflicts, greedy_backbone,
+                       provenance_table)
+from .candidates import candidate_groups, canonical_nodes, pairwise_decisions
 from .poset import compatible, pair_relation, relation
 from .simulate import latent_tree, scenario, simulate_donors
+
+from . import diagnostics  # noqa: F401
