@@ -15,8 +15,8 @@ modes share one measurement kernel:
 
 | Path | What | Ships |
 |---|---|---|
-| `python/` | **primary** — `metaarbor` on the import path | kernel, trees, Walk, refinement-invariant marginals, Transport (optional `[ot]`), node-evidence table, AnnData wrappers |
-| `r/` | R companion — `MetaArbor` package, `ma_*` functions | kernel, trees, Walk, marginals, simulation, node-evidence table (walk columns) — pure R |
+| `python/` | **primary, standalone** — `metaarbor` | kernel, trees, Walk, refinement-invariant marginals, Transport (`[ot]`), interpretation layer (summaries, agreement categories, accessors), packaged plots + result bundle (`[viz]`), AnnData wrappers |
+| `r/` | R companion (DEFERRED) — `MetaArbor`, `ma_*` | kernel, trees, Walk, marginals, simulation; a numeric interpretation layer exists in-tree but is unvalidated and deferred until the R package is built out later |
 | `parity/` | cross-language gate | R script proving the packaged Walk reproduces the saved frozen benchmark exactly, and exporting fixtures |
 | `fixtures/` | parity fixtures (regenerable, gitignored) | real Allen platform vote caches, trees, similarity, packaged-R walk outputs, simulation, MINSTD check vector |
 

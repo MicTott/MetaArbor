@@ -381,6 +381,33 @@ the figure work itself:
     the selected relation; evidence rows re-derive the walk with the same
     per-query seeds, so recorded decisions are exactly the map's.
 
+18. **Interpretation & visualization layer built and FROZEN (2026-09-02);
+    python is the standalone primary (user decision — R deferred).**
+    Additive only: no estimator, threshold, RNG or frozen preset changed;
+    the walk gained recording-only decision-support stats (fraction of the
+    decisive test's existing bootstrap draws agreeing with the decision),
+    verified non-interfering by the identity gate. New python surface:
+    `walk_summary` / `transport_summary` / `alignment_summary` (one row per
+    query; six documented threshold-free agreement categories), accessors
+    (`vote_fraction_matrix`, `node_auroc_matrix` — documented as an
+    interpretability view with size/saturation biases, `family_mass`,
+    `walk_traces`, `write_csv`), five packaged matplotlib plots
+    (`plot_alignment_tree`, `plot_evidence_heatmap`,
+    `plot_transport_heatmap`, `plot_query_path`, benchmark-only
+    `plot_error_tree` + `classify_outcome`), and `result_bundle` (table +
+    figures in one call, PNG+PDF, native objects returned). Gates: walk
+    summary selections identical to the saved frozen benchmark;
+    row-normalized transport mass sums to 1 for every massed query;
+    summaries and categories deterministic; both benchmark directions
+    render (vignette `examples/allen_interpretation.py` = the render gate;
+    outputs in examples/allen_demo). Allen agreement: 14 agree + 9
+    same_branch_different_depth + 0 conflicting — the 9 are node-identity
+    chain-collapse effects (Walk selects a singleton subclass's leaf,
+    Transport names the subclass node), reported as-is rather than
+    threshold-smoothed. 11/11 python tests pass. The R numeric
+    interpretation code written earlier in the session remains in-tree but
+    is unvalidated and deferred with the rest of the R package.
+
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
 siblings inside the margin one level above truth), fig2 (error topology on

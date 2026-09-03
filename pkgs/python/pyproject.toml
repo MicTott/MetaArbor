@@ -18,7 +18,8 @@ dependencies = [
 [project.optional-dependencies]
 anndata = ["anndata>=0.9"]
 ot = ["pot>=0.9.4"]
-all = ["anndata>=0.9", "pot>=0.9.4"]
+viz = ["matplotlib>=3.7"]
+all = ["anndata>=0.9", "pot>=0.9.4", "matplotlib>=3.7"]
 test = ["pytest>=7"]
 
 [tool.hatch.build.targets.wheel]

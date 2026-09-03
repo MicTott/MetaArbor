@@ -86,20 +86,28 @@ def select_node(cache, test_labels, query, tree, seed,
         override = v[order[0]] >= vote_override
         if override:
             stop = False
+            sib_delta = sib_gt_margin = par_gt0 = np.nan
         else:
             d_sib = _boot_delta(n_scores(best), n_scores(second),
                                 positive, rng, n_boot)
             sib_lo = np.quantile(d_sib, alpha)
+            sib_gt_margin = float((d_sib > margin).mean())  # recording only
+            sib_delta = float(d_sib.mean())                 # recording only
+            par_gt0 = np.nan
             concentrated = sib_lo > margin
             if current != "root" and concentrated:
                 d_par = _boot_delta(n_scores(current), n_scores(best),
                                     positive, rng, n_boot)
                 par_lo = np.quantile(d_par, alpha)
+                par_gt0 = float((d_par > 0).mean())         # recording only
             stop = (not concentrated) or (not np.isnan(par_lo) and par_lo > 0)
         path.append({"id": current if stop else best,
                      "vote": float(v[order[0]]), "sib_lo": float(sib_lo),
                      "par_lo": float(par_lo), "override": bool(override),
-                     "stopped": bool(stop)})
+                     "stopped": bool(stop), "sib_delta": float(sib_delta),
+                     "sib_gt_margin": float(sib_gt_margin),
+                     "par_gt0": float(par_gt0),
+                     "best": best, "second": second})
         if trace:
             for k, kid in enumerate(kids):   # no RNG: recording only
                 trace_rows.append({

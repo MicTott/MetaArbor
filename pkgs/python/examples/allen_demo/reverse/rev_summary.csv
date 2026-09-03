@@ -1,0 +1,104 @@
+query,walk_selected,walk_depth,walk_parent,walk_auroc,walk_best_sib_auroc,walk_second_sib_auroc,walk_sib_delta,walk_vote,walk_override,walk_decision_support,walk_relation,transport_family,transport_node,transport_mass,transport_eff_leaves,transport_bin,agreement
+0004 Car3 Glut_1,001 Car3 Glut,1,root,1.0,1.0,0.4214797097597706,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0026 L5/6 IT TPE-ENT Glut_2,003 L5/6 IT TPE-ENT Glut,1,root,0.9387570112669714,0.9387570112669714,0.30897246395254363,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0029 L5/6 IT TPE-ENT Glut_3,003 L5/6 IT TPE-ENT Glut,1,root,0.9742966566696203,0.9742966566696203,0.9431616795037829,nan,0.9411764705882353,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0034 L6 IT CTX Glut_1,,nan,,nan,0.9494688130753705,0.9531014621178555,-0.003440611923398808,0.8166666666666667,False,1.0,discordant,,,nan,nan,unmatched,both_unmatched
+0035 L6 IT CTX Glut_1,004 L6 IT CTX Glut,1,root,0.9461173081017937,0.9461173081017937,0.9049189844416344,0.041081061951534596,0.7049180327868853,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0036 L6 IT CTX Glut_1,004 L6 IT CTX Glut,1,root,0.9784030790185699,0.9784030790185699,0.919480024625324,0.058583923018848606,0.7450980392156863,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0037 L6 IT CTX Glut_1,,nan,,nan,0.953264537803844,0.9502781416096812,0.003066302470709429,0.7692307692307693,False,0.91,discordant,,,nan,nan,unmatched,both_unmatched
+0038 L6 IT CTX Glut_2,,nan,,nan,0.9360976016956535,0.9645455271333585,-0.028706528919020938,0.5396039603960396,False,1.0,discordant,,,nan,nan,unmatched,both_unmatched
+0041 L6 IT CTX Glut_2,004 L6 IT CTX Glut,1,root,0.9883375178457146,0.9883375178457146,0.8560653276227047,0.13232509107468127,0.89,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0042 L6 IT CTX Glut_2,,nan,,nan,0.9349163159676873,0.9364037633628404,-0.0010692207226817645,0.8166666666666667,False,0.88,discordant,,,nan,nan,unmatched,both_unmatched
+0044 L6 IT CTX Glut_3,005 L5 IT CTX Glut,1,root,0.9574161876879139,0.9574161876879139,0.8456002124010649,0.11184724195542926,0.508130081300813,False,1.0,discordant,,,nan,nan,unmatched,walk_only
+0049 L6 IT CTX Glut_4,,nan,,nan,0.9553409420815794,0.9347431140223544,0.02065446840071128,0.84375,False,0.06000000000000005,discordant,,,nan,nan,unmatched,both_unmatched
+0053 L6 IT CTX Glut_5,004 L6 IT CTX Glut,1,root,0.9458919398701927,0.9458919398701927,0.854795449461994,0.09075306324639337,0.8407079646017699,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0054 L6 IT CTX Glut_5,003 L5/6 IT TPE-ENT Glut,1,root,0.9114579024555334,0.9114579024555334,0.8033801710558752,0.10822244366729757,0.7816091954022989,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0055 L5 IT CTX Glut_1,,nan,,nan,0.9657489046423473,0.9596408703785753,0.006423590803918673,0.58,False,0.775,discordant,,,nan,nan,unmatched,both_unmatched
+0056 L5 IT CTX Glut_1,005 L5 IT CTX Glut,1,root,0.9678723241488498,0.9678723241488498,0.6992241029495896,0.2686549617581124,0.7556818181818182,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0061 L5 IT CTX Glut_3,005 L5 IT CTX Glut,1,root,0.8936451901890995,0.8936451901890995,0.8130912084453161,0.08106563037214595,0.5466666666666666,False,1.0,discordant,,,nan,nan,unmatched,walk_only
+0065 L5 IT CTX Glut_5,003 L5/6 IT TPE-ENT Glut,1,root,0.9899825235071137,0.9899825235071137,0.8984992369418598,nan,0.9866666666666667,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0069 L4/5 IT CTX Glut_1,006 L4/5 IT CTX Glut,1,root,0.9457207630748657,0.9457207630748657,0.7057558836025268,nan,0.9761904761904762,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0072 L4/5 IT CTX Glut_1,006 L4/5 IT CTX Glut,1,root,0.9716400827056565,0.9716400827056565,0.6923664648254813,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0075 L4/5 IT CTX Glut_2,006 L4/5 IT CTX Glut,1,root,0.9250189989387182,0.9250189989387182,0.882483089282826,nan,0.9939393939393939,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0076 L4/5 IT CTX Glut_2,006 L4/5 IT CTX Glut,1,root,0.8854891913198623,0.8854891913198623,0.9467641384174931,nan,0.9,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0078 L4/5 IT CTX Glut_2,006 L4/5 IT CTX Glut,1,root,0.9467008812090779,0.9467008812090779,0.9384935755427559,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0083 L4/5 IT CTX Glut_3,003 L5/6 IT TPE-ENT Glut,1,root,0.96771765798024,0.96771765798024,0.7619222863205358,nan,0.9924242424242424,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0084 L4/5 IT CTX Glut_3,005 L5 IT CTX Glut,1,root,0.8792375572293605,0.8792375572293605,0.8288768276473194,0.05082676795648107,0.4633333333333333,False,1.0,discordant,,,nan,nan,unmatched,walk_only
+0090 L4/5 IT CTX Glut_4,006 L4/5 IT CTX Glut,1,root,0.8714818780928479,0.8714818780928479,0.8018973398559305,0.06776620074440633,0.7142857142857143,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0091 L4/5 IT CTX Glut_4,,nan,,nan,0.8567232806577069,0.863051740264855,-0.00677737655688475,0.5133333333333333,False,0.995,discordant,,,nan,nan,unmatched,both_unmatched
+0094 L4/5 IT CTX Glut_4,007 L2/3 IT CTX Glut,1,root,0.9305041977560686,0.9305041977560686,0.8386398226393117,0.09232903347215965,0.6509433962264151,False,1.0,discordant,,,nan,nan,unmatched,walk_only
+0096 L4/5 IT CTX Glut_5,006 L4/5 IT CTX Glut,1,root,0.9763392901097819,0.9763392901097819,0.8002798700339684,nan,0.98,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0098 L4/5 IT CTX Glut_5,006 L4/5 IT CTX Glut,1,root,0.8987680805210277,0.8987680805210277,0.8393046630873386,0.05918747142837352,0.827027027027027,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0099 L4/5 IT CTX Glut_5,006 L4/5 IT CTX Glut,1,root,0.9036800911649323,0.9036800911649323,0.8579990255550123,0.04594768197161276,0.8070175438596491,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0104 L2/3 IT CTX Glut_1,007 L2/3 IT CTX Glut,1,root,0.9709348913418029,0.9709348913418029,0.8394209496690563,nan,0.9875776397515528,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0105 L2/3 IT CTX Glut_1,007 L2/3 IT CTX Glut,1,root,0.9892207536241211,0.9892207536241211,0.7684405821118852,nan,0.9945054945054945,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0106 L2/3 IT CTX Glut_1,007 L2/3 IT CTX Glut,1,root,0.970279131590607,0.970279131590607,0.8083878550681829,nan,0.9866666666666667,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0109 L2/3 IT CTX Glut_2,007 L2/3 IT CTX Glut,1,root,0.9658882242898637,0.9658882242898637,0.7786612021857924,nan,0.96,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0351 L5 ET CTX Glut_1,022 L5 ET CTX Glut,1,root,0.9954931765318239,0.9954931765318239,0.2326306543697848,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0352 L5 ET CTX Glut_1,022 L5 ET CTX Glut,1,root,0.9763814689804363,0.9763814689804363,0.382494728449978,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0361 L5 ET CTX Glut_2,022 L5 ET CTX Glut,1,root,0.9787957124334598,0.9787957124334598,0.28706643151087596,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0362 L5 ET CTX Glut_2,022 L5 ET CTX Glut,1,root,0.9667216081701248,0.9667216081701248,0.8712688255445673,nan,0.9777777777777777,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0377 L5 ET CTX Glut_5,022 L5 ET CTX Glut,1,root,0.9863862691996563,0.9863862691996563,0.21345219492832632,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0379 L5 ET CTX Glut_5,022 L5 ET CTX Glut,1,root,0.9717959750528253,0.9717959750528253,0.1674583361734033,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0421 L6b CTX Glut_1,027 L6b CTX Glut,1,root,0.9956306485911749,0.9956306485911749,0.7081045200811947,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0430 L6b CTX Glut_3,027 L6b CTX Glut,1,root,0.9997477182323687,0.9997477182323687,0.8229166306675559,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0433 L6 CT CTX Glut_1,028 L6 CT CTX Glut,1,root,0.9839163343671541,0.9839163343671541,0.6180753704524197,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0436 L6 CT CTX Glut_1,028 L6 CT CTX Glut,1,root,0.9484150543986609,0.9484150543986609,0.7329857726579038,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0439 L6 CT CTX Glut_2,028 L6 CT CTX Glut,1,root,0.9694709592402255,0.9694709592402255,0.6736376110471151,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0440 L6 CT CTX Glut_2,028 L6 CT CTX Glut,1,root,0.9432846140678105,0.9432846140678105,0.7863798551350041,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0441 L6 CT CTX Glut_2,028 L6 CT CTX Glut,1,root,0.9682376429929341,0.9682376429929341,0.6867936203997759,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0445 L6 CT CTX Glut_3,028 L6 CT CTX Glut,1,root,0.9161446236754246,0.9161446236754246,0.4086349161707069,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0449 L6 CT CTX Glut_5,027 L6b CTX Glut,1,root,0.9857381332559152,0.9857381332559152,0.9004481782551894,0.0851271161453041,0.5,False,1.0,discordant,,,nan,nan,unmatched,walk_only
+0452 L6 CT CTX Glut_5,028 L6 CT CTX Glut,1,root,0.9456584453305765,0.9456584453305765,0.9339132575198149,nan,0.97,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0461 L5 NP CTX Glut_2,030 L5 NP CTX Glut,1,root,0.9785346167305081,0.9785346167305081,0.20810908991229965,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0463 L5 NP CTX Glut_2,030 L5 NP CTX Glut,1,root,0.9877551220180703,0.9877551220180703,0.44071184549272197,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0465 L5 NP CTX Glut_3,030 L5 NP CTX Glut,1,root,0.9944412445232117,0.9944412445232117,0.33479594348446806,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0470 L5 NP CTX Glut_4,030 L5 NP CTX Glut,1,root,0.9504736024844721,0.9504736024844721,0.8855935127674258,0.06528385955831607,0.7380952380952381,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0497 Vip Gaba_1,036 Vip Gaba,1,root,0.9693011983304161,0.9693011983304161,0.9691828300957155,nan,0.9183673469387755,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0513 Vip Gaba_3,036 Vip Gaba,1,root,0.9881486508371057,0.9881486508371057,0.16822083240150223,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0514 Vip Gaba_3,036 Vip Gaba,1,root,0.9762361775073639,0.9762361775073639,0.9789946400115892,nan,0.9166666666666666,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0516 Vip Gaba_3,036 Vip Gaba,1,root,0.9805920483179134,0.9805920483179134,0.20497531282505027,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0522 Vip Gaba_4,036 Vip Gaba,1,root,0.9783688875512853,0.9783688875512853,0.9180161329271354,nan,0.9836065573770492,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0527 Vip Gaba_5,036 Vip Gaba,1,root,0.9969507220316998,0.9969507220316998,0.2294740248308855,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0529 Vip Gaba_5,036 Vip Gaba,1,root,0.9855687505357484,0.9855687505357484,0.978873378742821,nan,0.9818181818181818,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0533 Vip Gaba_6,,nan,,nan,0.9718815270819919,0.9898491606074407,-0.018157866066240556,0.7297297297297297,False,1.0,discordant,,,nan,nan,unmatched,both_unmatched
+0547 Sncg Gaba_6,037 Sncg Gaba,1,root,0.9976761121871616,0.9976761121871616,0.2407692659640989,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0553 Sncg Gaba_3,037 Sncg Gaba,1,root,0.9955825285101529,0.9955825285101529,0.1664446785072736,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0560 Sncg Gaba_4,037 Sncg Gaba,1,root,0.9986781109662466,0.9986781109662466,0.4624237449096206,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0580 Lamp5 Gaba_1,039 Lamp5 Gaba,1,root,0.9974833622142663,0.9974833622142663,0.2717601218130647,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0581 Lamp5 Gaba_1,039 Lamp5 Gaba,1,root,0.9812621801904392,0.9812621801904392,0.31700204141149024,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0582 Lamp5 Gaba_1,039 Lamp5 Gaba,1,root,0.9908350819982719,0.9908350819982719,0.23564779065394806,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0587 Lamp5 Gaba_2,,nan,,nan,0.9579254754319915,0.9654189593590115,-0.007406337484313158,0.43333333333333335,False,1.0,discordant,,,nan,nan,unmatched,both_unmatched
+0605 Pvalb chandelier Gaba,041 Pvalb chandelier Gaba,1,root,1.0,1.0,0.32691604178559,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0607 Pvalb Gaba_1,042 Pvalb Gaba,1,root,0.9641585947236198,0.9641585947236198,0.18454538860718595,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0618 Pvalb Gaba_3,042 Pvalb Gaba,1,root,0.9654398059407511,0.9654398059407511,0.38518959773685674,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0619 Pvalb Gaba_3,042 Pvalb Gaba,1,root,0.9875416664487928,0.9875416664487928,0.16732941324474018,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0620 Pvalb Gaba_8,042 Pvalb Gaba,1,root,0.9921375883073767,0.9921375883073767,0.041789035493315946,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0621 Pvalb Gaba_3,042 Pvalb Gaba,1,root,0.9660835326953748,0.9660835326953748,0.902884487588435,nan,0.9912280701754386,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0624 Pvalb Gaba_4,042 Pvalb Gaba,1,root,0.9459472302679218,0.9459472302679218,0.10663694786386677,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0625 Pvalb Gaba_5,042 Pvalb Gaba,1,root,0.9556332709081314,0.9556332709081314,0.036178336040724686,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0628 Pvalb Gaba_4,042 Pvalb Gaba,1,root,0.9659668609632492,0.9659668609632492,0.9211156254557387,nan,0.9921875,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0631 Sst Gaba_13,043 Sst Gaba,1,root,0.9827336969985186,0.9827336969985186,0.1465173404222509,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0638 Sst Gaba_1,043 Sst Gaba,1,root,0.9473064722716993,0.9473064722716993,0.9234832489443032,0.023903332449416618,0.8793103448275862,False,1.0,leaf,,,nan,nan,unmatched,walk_only
+0641 Sst Gaba_12,043 Sst Gaba,1,root,0.9485196687370601,0.9485196687370601,0.920788474810214,nan,0.9523809523809523,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0664 Sst Gaba_4,043 Sst Gaba,1,root,0.9966450033421114,0.9966450033421114,0.11736045678207017,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0665 Sst Gaba_11,043 Sst Gaba,1,root,0.982237492331811,0.982237492331811,0.0526080362620135,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0666 Sst Gaba_4,043 Sst Gaba,1,root,0.9784790513833992,0.9784790513833992,0.16457628458498025,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0668 Sst Gaba_4,043 Sst Gaba,1,root,0.9817216592655063,0.9817216592655063,0.20598011569529182,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0669 Sst Gaba_4,043 Sst Gaba,1,root,0.9927603577670402,0.9927603577670402,0.08589775881566773,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0673 Sst Gaba_16,043 Sst Gaba,1,root,0.9673244978572191,0.9673244978572191,0.24335432902743676,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0675 Sst Gaba_5,,nan,,nan,0.9409719855497239,0.9335423624838116,0.007587609058687206,0.6470588235294118,False,0.775,discordant,,,nan,nan,unmatched,both_unmatched
+0677 Sst Gaba_5,043 Sst Gaba,1,root,0.9539735698769009,0.9539735698769009,0.18781453656770455,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0688 Sst Gaba_7,043 Sst Gaba,1,root,0.9636769333100608,0.9636769333100608,0.330094206556248,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0695 Sst Gaba_10,043 Sst Gaba,1,root,0.961753175992188,0.961753175992188,0.9819172473004656,nan,0.987012987012987,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0697 Sst Gaba_8,043 Sst Gaba,1,root,0.9518486199987073,0.9518486199987073,0.918482968133928,nan,0.9,True,nan,leaf,,,nan,nan,unmatched,walk_only
+0731 Sst Chodl Gaba_4,046 Sst Chodl Gaba,1,root,1.0,1.0,0.4199554291753337,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+5113 Astro-TE NN_3,287 Astro-TE NN,1,root,1.0,1.0,0.4236261261261261,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+5146 OPC NN_1,294 OPC NN,1,root,1.0,1.0,0.18967496184709298,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+5150 COP NN,294 OPC NN,1,root,0.9779836923424047,0.9779836923424047,0.9662851200919673,nan,0.916083916083916,True,nan,leaf,,,nan,nan,unmatched,walk_only
+5152 COP NN,,nan,,nan,0.9734303113605559,0.9607468071702652,0.012708722295401178,0.8771929824561403,False,0.14500000000000002,discordant,,,nan,nan,unmatched,both_unmatched
+5155 MFOL NN,295 Oligo NN,1,root,0.9990774468355349,0.9990774468355349,0.36574725105240236,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+5158 MOL NN,295 Oligo NN,1,root,0.9948694185989267,0.9948694185989267,0.24131664451336582,nan,0.9966666666666667,True,nan,leaf,,,nan,nan,unmatched,walk_only
+5182 Peri NN,299 Peri NN,1,root,0.999996307783193,0.999996307783193,0.5227524245557033,nan,1.0,True,nan,leaf,,,nan,nan,unmatched,walk_only
+5188 Endo NN,301 Endo NN,1,root,0.9985489587948604,0.9985489587948604,0.9433348102200562,nan,0.9733333333333334,True,nan,leaf,,,nan,nan,unmatched,walk_only
+5190 Microglia NN,302 Microglia NN,1,root,0.9999884310540048,0.9999884310540048,0.8759458228720524,nan,0.9966666666666667,True,nan,leaf,,,nan,nan,unmatched,walk_only

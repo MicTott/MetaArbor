@@ -42,3 +42,29 @@ mapping = ma.baseline_map(m["cache_a"], labels_a, tree_b, S_dir)
 AnnData wrappers: `metaarbor.anndata_api.measure_adata` /
 `tree_from_obs`. FUGW: `metaarbor.fugw.fugw_map` (frozen configuration
 as defaults).
+
+## Interpretation layer (frozen)
+
+One-command result bundle on any aligned pair:
+
+```python
+from metaarbor import result_bundle
+out = result_bundle(cache, labels, tree, S_dir, out_dir="results/",
+                    pi=fit["pi"], pi_rows=rows, pi_cols=cols,
+                    family_of_leaf=fam)   # omit pi for Walk-only
+```
+
+writes the one-row-per-query alignment summary (Walk selection/depth,
+stopping-split sibling AUROCs and ΔAUROC, bootstrap decision support,
+Transport argmax family/mass/effective-leaves/confidence bin, and the
+six-way agreement category), the annotated alignment tree, the evidence
+heatmap, the transport heatmap, and query-path diagnostics for
+disagreements — PNG + PDF, native matplotlib objects returned.
+
+Accessors: `vote_fraction_matrix`, `node_auroc_matrix` (interpretability
+view — raw node AUROC is size-biased and saturates; it never replaces the
+sibling-relative Walk decision), `family_mass`, `walk_traces`.
+Benchmark-only: `plot_error_tree` + `classify_outcome`.
+
+Vignette: `examples/allen_interpretation.py` runs the full workflow on the
+Allen benchmark fixtures (forward with Transport, reverse Walk-only).

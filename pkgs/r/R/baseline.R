@@ -63,7 +63,7 @@ ma_select_node <- function(cache, test_labels, query, tree, seed,
     votes <- child_votes(kids)
     ord <- order(-votes)                    # stable; kids sorted => ties match py
     best <- kids[ord[1]]; second <- kids[ord[2]]
-    sib_lo <- par_lo <- NA_real_
+    sib_lo <- par_lo <- sib_delta <- sib_gt_margin <- par_gt0 <- NA_real_
     override <- votes[ord[1]] >= vote_override
     if (override) {
       stop_here <- FALSE
@@ -71,18 +71,23 @@ ma_select_node <- function(cache, test_labels, query, tree, seed,
       d_sib <- ma_boot_delta(node_scores(best), node_scores(second),
                              positive, rng, n_boot)
       sib_lo <- unname(quantile(d_sib, alpha))
+      sib_gt_margin <- mean(d_sib > margin)   # recording only
+      sib_delta <- mean(d_sib)                # recording only
       concentrated <- sib_lo > margin
       if (current != "root" && concentrated) {
         d_par <- ma_boot_delta(node_scores(current), node_scores(best),
                                positive, rng, n_boot)
         par_lo <- unname(quantile(d_par, alpha))
+        par_gt0 <- mean(d_par > 0)            # recording only
       }
       stop_here <- !concentrated || (!is.na(par_lo) && par_lo > 0)
     }
     path <- rbind(path, data.frame(
       id = if (stop_here) current else best,
       vote = votes[ord[1]], sib_lo = sib_lo, par_lo = par_lo,
-      override = override, stopped = stop_here))
+      override = override, stopped = stop_here, sib_delta = sib_delta,
+      sib_gt_margin = sib_gt_margin, par_gt0 = par_gt0,
+      best = best, second = second, row.names = NULL))
     if (trace) {
       kid_auc <- vapply(kids, node_auc, numeric(1))
       trace_rows[[length(trace_rows) + 1L]] <- data.frame(
