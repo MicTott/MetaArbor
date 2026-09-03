@@ -127,3 +127,45 @@ def fit_branch_lengths(tree, D, leaves):
     lengths = {e: float(b[e_ix[e]]) for e in edges}
     return {"positions": positions, "edge_lengths": lengths,
             "pearson_r": r, "stress": stress, "scale": scale}
+
+
+def patristic_matrix(tree, positions, leaves):
+    """Pairwise patristic distances between `leaves` from fitted cumulative
+    root positions (path through the LCA)."""
+    P = np.zeros((len(leaves), len(leaves)))
+    anc = {l: [l] + ancestors(tree, l) for l in leaves}
+    for a in range(len(leaves)):
+        sa = anc[leaves[a]]
+        seta = set(sa)
+        for b_ in range(a):
+            lca = next(x for x in anc[leaves[b_]] if x in seta)
+            P[a, b_] = P[b_, a] = (positions[leaves[a]] +
+                                   positions[leaves[b_]] -
+                                   2 * positions[lca])
+    return P
+
+
+def structure_matrices(counts, labels, tree, leaves, kind="chord",
+                       lib=None, n_hvg=2000, assume_log=False):
+    """One atlas's GW structure matrix over `leaves`, from ITS OWN
+    expression only (never cross-atlas — that would be circular).
+
+    kind:
+      "chord"     raw within-atlas chord distances between rank-based
+                  pseudobulks (no tree metric imposed)
+      "patristic" chord distances NNLS-projected onto the supplied
+                  topology (fitted branch lengths -> patristic matrix)
+    Returns (C, fit_stats_or_None).
+    """
+    D, dl = pseudobulk_distances(counts, labels, lib=lib, n_hvg=n_hvg,
+                                 assume_log=assume_log)
+    ix = [dl.index(l) for l in leaves]
+    D = D[np.ix_(ix, ix)]
+    if kind == "chord":
+        return D, None
+    if kind == "patristic":
+        fit = fit_branch_lengths(tree, D, list(leaves))
+        P = patristic_matrix(tree, fit["positions"], list(leaves))
+        return P * fit["scale"], {"pearson_r": fit["pearson_r"],
+                                  "stress": fit["stress"]}
+    raise ValueError(f"unknown kind {kind!r} (chord|patristic)")

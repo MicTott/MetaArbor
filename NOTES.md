@@ -530,6 +530,66 @@ the figure work itself:
     (editable text), size hierarchy, journal-width presets, `save_pub`
     (vector PDF + 600 dpi PNG). Numeric layer untouched; 14/14 tests.
 
+23. **Star-tree catch (user, from the JHPCE amygdala runs) and the
+    tree-inference layer (2026-09-02).** Flat single-level label sets had
+    been represented as star trees (root -> every label): Walk then has no
+    candidate family node, so a distributed-but-coherent signal (e.g. 95%
+    across three Pvalb leaves) is reported "discordant" — meaning "no
+    family was ever constructed," not "biologically incoherent" — and the
+    GW term is geometrically empty (all hop distances equal). The running
+    amygdala jobs are relabeled the FLAT/STAR BASELINE; their discordant
+    counts are not the primary result. Fix is layered, estimator frozen:
+    new `metaarbor.infer_tree` — prespecified builder (pseudobulk ->
+    atlas-own HVGs -> chord distances -> UPGMA -> Felsenstein cell-
+    bootstrap clade support -> collapse below 0.7 into polytomies ->
+    neutral n## IDs, never names from another atlas) with an explicit
+    tree policy: curated tree used as supplied; flat labels -> INFER by
+    default; star only by explicit `star_tree()` request; <3 labels ->
+    error, never a silent star. `annotate_star_relations` adds the
+    `distributed_no_target_clade` note on star targets at the
+    interpretation layer (raw outputs unchanged). Validation: simulation
+    (3/3 latent families recovered with support >= 0.7; iid noise
+    collapses to <= 1 internal node; policy tests) and the Allen gate —
+    inferred-from-flat 10Xv3 tree vs held-out curated truth: **class
+    level 6/6 multi-leaf groups exact (median Jaccard 1.00); subclass
+    6/15 exact, median best-Jaccard 0.80** (near-misses expected to
+    concentrate on the IT continuum, consistent with every prior result;
+    Walk tolerates imperfect internals by stopping higher). Amygdala
+    rerun protocol: infer Yu + Hochgerner trees with this frozen builder,
+    rerun identical frozen Walk/Transport, compare against the star
+    baseline; a Pvalb family node appears only if those types form a
+    reproducible clade — its absence would itself be a finding.
+
+24. **FUGW parameter-contract bug (v1) and versioned correction (v2)
+    (2026-09-03, from the amygdala Yu-Allen zero-mass collapse).** The
+    cluster session's diagnosis is confirmed algebraically: the design
+    objective alpha*M + (1-alpha)*GW + rho*R, divided by (1-alpha) to
+    reach POT's GW-coefficient-1 form, requires rho -> rho/(1-alpha)
+    (and epsilon likewise). The v1 wrapper scaled only alpha, so at the
+    frozen alpha=0.9 the marginal penalty ran at ONE-TENTH the intended
+    strength — mass destruction 10x cheaper than the design objective
+    specifies. On adverse geometry (Yu-Allen inhibitory pair) the solver
+    trajectory collapses to zero mass (nonconvex: trajectory, not proven
+    global optimum). metaarbor 0.2.0 ships the versioned correction:
+    `solve(convention="design-v2")` co-scales alpha/rho/epsilon
+    (default); `"pot-v1"` reproduces the released behavior verbatim;
+    alpha=1 replaced by explicit `molecular_only()`; zero-mass/NaN now
+    raises MassCollapsedError (interpretable diagnostic incl. POT's
+    internal NaN-in-coupling path) instead of propagating NaN. Contract
+    tests pin v2==v1-with-coscaled-rho equivalence, the alpha=0
+    invariance, the molecular-only identity, and the guard; a
+    skip-guarded test awaits the anonymised fugw_nan_fixture.npz in
+    pkgs/fixtures for exact collapse reproduction. **Allen revalidation
+    under v2 at the frozen design weights (POT reg_m = 3.0): argmax
+    23/23 in ALL three battery conditions; confident 21 -> 20 with the
+    entire delta on the deep-layer IT continuum (004 L6 IT joins 003/005
+    as underconfident); zero cross-family.** Status per protocol: the
+    released frozen v1 amygdala result stands ("estimator failed to
+    converge" on Yu-Allen, both directions); v2 adoption + Yu-Allen
+    rerun is the cluster session's decision now that Allen validation
+    passes. Note: the research-repo R wrapper (R/fugw.R, frozen
+    historical record) shares the v1 convention and is left untouched.
+
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
 siblings inside the margin one level above truth), fig2 (error topology on
