@@ -514,6 +514,22 @@ the figure work itself:
     result_bundle (harmonized walk always; harmonized transport when a
     coupling is supplied). 14/14 tests.
 
+22. **Publication figure system (2026-09-02, after user rejected the
+    draft aesthetics).** Diagnosis of the failure: inverted ink hierarchy —
+    annotation ROUTING (23 diagonals across the canvas) was the most
+    salient element; accent color flooded lines/markers/labels/shading;
+    4.6pt tips; default matplotlib everything. Redesign: gutter-track
+    architecture (annotations in aligned vertical tracks BESIDE the tree,
+    never across it): tree | tip labels | structure strip | annotation
+    lanes | aligned label column with dotted leaders and collision nudge.
+    Harmonized view = clade brackets in non-overlapping computed lanes
+    (bracket = the clade statement; shading eliminated); comparison view =
+    gutter dumbbells (21 merged navy squares + exactly two orange
+    dumbbells on Allen — Lamp5 and Endo — zero red). New
+    `metaarbor.style`: Okabe-Ito palette, Helvetica/Arial, pdf.fonttype 42
+    (editable text), size hierarchy, journal-width presets, `save_pub`
+    (vector PDF + 600 dpi PNG). Numeric layer untouched; 14/14 tests.
+
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
 siblings inside the margin one level above truth), fig2 (error topology on
