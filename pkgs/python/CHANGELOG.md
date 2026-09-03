@@ -1,27 +1,27 @@
 # Changelog
 
-## 0.2.0 (2026-09-03) — FUGW parameter-contract correction (versioned)
+## 0.2.0 (2026-09-03) — FUGW parameterization fix
 
-- `fugw.solve` gains an explicit `convention` parameter:
-  - `"design-v2"` (new default): the design objective
-    `alpha*M + (1-alpha)*GW + rho*R (+ eps*H)` is mapped to POT with the
-    WHOLE objective divided by `(1-alpha)`: `alpha/(1-alpha)`,
-    `rho/(1-alpha)`, `epsilon/(1-alpha)`.
-  - `"pot-v1"`: the released 0.1.0 behavior (only alpha scaled),
-    preserved verbatim so every frozen result reproduces.
-  Rationale: v1 silently weakened mass relaxation by `(1-alpha)`; at the
-  frozen `alpha=0.9` mass destruction was 10x cheaper than the design
-  objective intends. Diagnosed via zero-mass collapse on the Yu-Allen
-  amygdala pair (solver-trajectory collapse; FUGW is nonconvex, so this
-  is not a proof about the global optimum).
-- `alpha=1` is no longer accepted by `solve`; the explicit
-  `molecular_only()` mode replaces that endpoint.
-- Zero-mass/NaN outcomes now raise `MassCollapsedError` (an interpretable
-  "mass collapsed" diagnostic with alpha, effective reg_m and last mass)
-  instead of propagating NaN couplings.
-- The released frozen amygdala result is unchanged: the v1 frozen
-  implementation undergoes zero-mass collapse on Yu-Allen, reported as
-  "estimator failed to converge" in both directions.
+The design objective `alpha*M + (1-alpha)*GW + rho*R (+ eps*H)` maps to
+POT's GW-coefficient-1 form by dividing the WHOLE objective by
+`(1-alpha)`; earlier releases co-scaled only `alpha`, silently weakening
+mass relaxation by `(1-alpha)` (10x at the frozen alpha=0.9). Diagnosed
+via a zero-mass solver-trajectory collapse on the Yu-Allen amygdala pair
+(FUGW is nonconvex; no claim about the global optimum).
+
+- `fugw.solve` now implements the mathematically correct co-scaling as
+  its ONLY behavior. Analyses produced under the previous
+  parameterization are preserved by git history (tag `v0.4-release-ready`
+  and earlier), not by an API option.
+- `alpha=1` is rejected; the explicit `molecular_only()` mode replaces
+  that endpoint.
+- Zero-mass/NaN outcomes raise `MassCollapsedError` (interpretable
+  diagnostic) instead of propagating NaN couplings.
+- Allen three-condition revalidation at the frozen design weights:
+  argmax family 23/23 in every condition; confidence 21 -> 20 with the
+  delta confined to the deep-layer IT continuum; zero cross-family.
+- Regression fixture: anonymised Yu-Allen geometry as an ordinary test
+  file (`pkgs/fixtures/fugw_nan_fixture.npz`).
 
 ## 0.1.0 — initial release (frozen Walk + Transport, interpretation
 layer, tree inference, publication figures).

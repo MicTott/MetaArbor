@@ -14,10 +14,10 @@ import numpy as np
 
 from .tree import leaf_path_dist, leaves_under, tree_weights
 
-# The frozen v1 battery/benchmark results were produced under the
-# "pot-v1" convention (rho NOT co-scaled): reproduce them by passing
-# convention="pot-v1". Under the corrected "design-v2" contract the same
-# design weights map to POT reg_m = 0.3 / (1 - 0.9) = 3.0.
+# Design weights; under the correct objective these map to POT
+# reg_m = 0.3 / (1 - 0.9) = 3.0. Results published before metaarbor
+# 0.2.0 used a mis-scaled parameterization and are reproducible from git
+# history (tag v0.4-release-ready and earlier), not from this API.
 FROZEN = {"rho": 0.3, "alpha": 0.9, "epsilon": 0.0}
 
 
@@ -54,41 +54,33 @@ def molecular_only(M, wA, wB, rho):
 
 
 def solve(M, CA, CB, wA, wB, alpha=FROZEN["alpha"], rho=FROZEN["rho"],
-          epsilon=FROZEN["epsilon"], convention="design-v2"):
+          epsilon=FROZEN["epsilon"]):
     """Fused unbalanced GW via POT. Returns (pi, pq_gap).
 
-    Parameter contract (v2, versioned correction — see CHANGELOG):
-    the design objective is the convex-weighted
+    The design objective is the convex-weighted
         alpha * <M, pi> + (1 - alpha) * GW + rho * KL(marginals) [+ eps H].
-    POT parameterizes with the GW coefficient fixed at 1, so the WHOLE
-    objective is divided by (1 - alpha):
+    POT fixes the GW coefficient at 1, so the whole objective is divided
+    by (1 - alpha):
         alpha_pot = alpha / (1 - alpha)
-        reg_m_pot = rho / (1 - alpha)          <- v1 failed to co-scale
-        eps_pot   = epsilon / (1 - alpha)      <- likewise
-    The v1 wrapper scaled only alpha, silently weakening mass relaxation
-    by (1 - alpha) — at alpha 0.9, mass destruction was 10x cheaper than
-    the design objective intends (diagnosed via the Yu-Allen zero-mass
-    collapse; see NOTES). `convention="pot-v1"` reproduces the released
-    v1 behavior exactly (rho/epsilon passed through unscaled), preserving
-    every frozen result.
+        reg_m_pot = rho / (1 - alpha)
+        eps_pot   = epsilon / (1 - alpha)
+    This co-scaling is the ONLY behavior. (Releases before metaarbor
+    0.2.0 failed to co-scale rho/epsilon, silently weakening mass
+    relaxation by (1 - alpha); analyses produced under that
+    parameterization are preserved by the git history, tag
+    v0.4-release-ready and earlier, not by this API.)
 
-    alpha == 1 is no longer reachable here: use `molecular_only()`.
-    A zero-mass/NaN outcome raises MassCollapsedError instead of
-    propagating NaN couplings.
+    alpha == 1 has no GW term: use `molecular_only()`. A zero-mass/NaN
+    outcome raises MassCollapsedError (solver-trajectory collapse; FUGW
+    is nonconvex, so this is not a claim about the global optimum).
     """
     import ot
     if alpha >= 1.0:
         raise ValueError("alpha=1 has no GW term: use molecular_only()")
     if alpha < 0:
         raise ValueError("alpha must be in [0, 1)")
-    if convention == "design-v2":
-        scale = 1.0 / (1.0 - alpha)
-        alpha_pot, rho_pot, eps_pot = alpha * scale, rho * scale,             epsilon * scale
-    elif convention == "pot-v1":
-        alpha_pot = alpha / (1.0 - alpha) if alpha > 0 else 0.0
-        rho_pot, eps_pot = rho, epsilon
-    else:
-        raise ValueError(f"unknown convention {convention!r}")
+    scale = 1.0 / (1.0 - alpha)
+    alpha_pot, rho_pot, eps_pot = alpha * scale, rho * scale,         epsilon * scale
     solver = "mm" if eps_pot == 0 else "sinkhorn_log"
     try:
         ps, pf, _ = ot.gromov.fused_unbalanced_gromov_wasserstein(
@@ -99,9 +91,6 @@ def solve(M, CA, CB, wA, wB, alpha=FROZEN["alpha"], rho=FROZEN["rho"],
             max_iter=500, tol=1e-8, max_iter_ot=1000, tol_ot=1e-8,
             log=True)
     except (ValueError, ZeroDivisionError, FloatingPointError) as e:
-        # POT surfaces the zero-mass trajectory differently across
-        # versions (NaN-in-coupling ValueError, or division inside the
-        # renormalisation); all mean the same interpretable thing
         if "nan" in str(e).lower() or "division" in str(e).lower():
             raise MassCollapsedError(alpha, rho_pot, 0.0) from e
         raise
@@ -128,7 +117,7 @@ def fugw_map(S, tree_a, tree_b, row_names, col_names, **overrides):
     wB = tree_weights(tree_b)
     pi, gap = solve(1 - np.asarray(S), CA, CB,
                     [wA[r] for r in row_names], [wB[c] for c in col_names],
-                    **params)  # convention passes through via overrides
+                    **params)
     return {"pi": pi, "pq_gap": gap, "rows": list(row_names),
             "cols": list(col_names), "params": params}
 
