@@ -291,15 +291,30 @@ def candidate_groups(decisions, trees):
                              if red_parent[k].get(c) == v)
             return out
 
-        for n in nodes:
+        def depth_of(n):
+            d, p = 0, red_parent[k].get(n)
+            while p not in (None, "root"):
+                d += 1
+                p = red_parent[k].get(p)
+            return d
+
+        # top-down: a node that goes unresolved (its subtree contains a
+        # matched descendant) remains a valid scan point for its OWN
+        # unmatched children — otherwise leaves hanging between an
+        # unresolved internal and the matched region below it would be
+        # silently dropped from the candidate pool entirely
+        unresolved_k = set()
+        for n in sorted(nodes, key=depth_of):
             if n in matched_k:
                 continue
             p = red_parent[k].get(n)
-            parent_ok = p == "root" or p in matched_k
+            parent_ok = (p == "root" or p in matched_k or
+                         p in unresolved_k)
             if not parent_ok:
                 continue                      # absorbed by an ancestor
             sub = subtree_canon(n)
             if any(x in matched_k for x in sub):
+                unresolved_k.add(n)
                 unresolved[k].append(n)
                 continue
             anc_node, anc_gi = nearest_matched_ancestor(k, n)

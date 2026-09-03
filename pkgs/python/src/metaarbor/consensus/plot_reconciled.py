@@ -85,8 +85,9 @@ def plot_reconciled_tree(harm, trees, dataset_names=None, figsize=None):
                   for i, k in enumerate(keys)}
         names = dataset_names or {k: k for k in keys}
         n_nodes = len(harm["tree"])
+        row_h = 0.30 if n_nodes <= 70 else 0.17
         figsize = figsize or (5 + 4.5 * len(keys),
-                              max(6, 0.30 * n_nodes + 1.5))
+                              max(6, row_h * n_nodes + 1.5))
         fig, axes = plt.subplots(
             1, len(keys) + 1, figsize=figsize,
             width_ratios=[1] * len(keys) + [1.8])

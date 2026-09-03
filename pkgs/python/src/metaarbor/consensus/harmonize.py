@@ -54,7 +54,10 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
     nodes = {}
     for nd in bb["nodes"]:
         aliases = sorted(nd["members"].values())
-        aliases += sorted(f'{a["node"]}' for a in nd.get("affiliates", []))
+        # affiliates ride as VISIBLY MARKED aliases and never count as
+        # reciprocal support (support tuples derive from members only)
+        aliases += sorted(f'\u2248 {a["node"]}'
+                          for a in nd.get("affiliates", []))
         nodes[nd["id"]] = {
             "parent": nd["parent"], "status": nd["status"],
             "members": dict(nd["members"]), "aliases": aliases,
@@ -88,6 +91,48 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
                       "members": {ds: node}, "aliases": [node],
                       "display": _display([node]),
                       "support": (1, 1), "subtree_parent": None}
+
+    # expand consolidated subtrees ("absorbed is never discarded" applies
+    # to the ASSEMBLED tree too): every private node and every
+    # single-atlas node whose candidate absorbed a subtree gets its full
+    # internal topology as expanded child nodes
+    def expand(uid, ds, root_node, sub_nodes):
+        rp, _ = _collapse_chains(trees[ds])
+        sub = set(sub_nodes)
+        idmap = {root_node: uid}
+        k = 0
+        for x in sorted(sub):
+            if x == root_node:
+                continue
+            k += 1
+            xid = f"{uid}.{k:02d}"
+            idmap[x] = xid
+        for x, xid in idmap.items():
+            if x == root_node:
+                continue
+            p = rp.get(x)
+            while p not in (None, "root") and p not in sub:
+                p = rp.get(p)
+            nodes[xid] = {"parent": idmap.get(p, uid),
+                          "status": nodes[uid]["status"],
+                          "members": {ds: x}, "aliases": [x],
+                          "display": _display([x]), "support": (1, 1),
+                          "subtree_parent": None, "expanded": True}
+
+    for nd in bb["nodes"]:
+        sp = nd.get("subtree_parent")
+        if sp and len(sp) > 1:
+            (ds, root_node), = nd["members"].items()
+            expand(nd["id"], ds, root_node, sp.keys())
+    for u in bb["unknown"]:
+        c = u["candidate"]
+        sub = c.get("provenance", {}).get("subtree_nodes") or []
+        if len(sub) > 1:
+            (ds, root_node), = c["members"].items()
+            uid = [i for i, nd in nodes.items()
+                   if nd["members"].get(ds) == root_node]
+            if uid:
+                expand(uid[0], ds, root_node, sub)
 
     children = {i: [] for i in nodes}
     roots = []

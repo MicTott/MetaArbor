@@ -1,0 +1,31 @@
+cluster,curated_subclass,verdict,located_as,predicted_parent,inferred_v3_clade,clade_size,clade_subclass_purity,walk_selected_in_v2,walk_support,candidate_kind,assembly_parent
+0026 L5/6 IT TPE-ENT Glut_2,003 L5/6 IT TPE-ENT Glut,consistent_coarse,node,n72 [5 subclasses],n01,2,0.5,v2|003 L5/6 IT TPE-ENT Glut,1.0,private_subtree,MA-U0003
+0029 L5/6 IT TPE-ENT Glut_3,003 L5/6 IT TPE-ENT Glut,consistent_coarse,node,n72 [5 subclasses],n72,34,0.38,v2|003 L5/6 IT TPE-ENT Glut,0.941,private_subtree,MA-C0001
+0034 L6 IT CTX Glut_1,004 L6 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n29,3,1.0,n01,1.0,private_subtree,MA-U0008
+0035 L6 IT CTX Glut_1,004 L6 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n02,2,1.0,v2|004 L6 IT CTX Glut,1.0,private_subtree,MA-U0004
+0036 L6 IT CTX Glut_1,004 L6 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n29,3,1.0,n01,1.0,private_subtree,MA-U0008
+0037 L6 IT CTX Glut_1,004 L6 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n29,3,1.0,n01,0.89,private_subtree,MA-U0008
+0042 L6 IT CTX Glut_2,004 L6 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n30,3,1.0,n14,1.0,private_subtree,MA-C0001
+0044 L6 IT CTX Glut_3,004 L6 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n31,3,0.67,n11,1.0,private_subtree,MA-U0013.02
+0049 L6 IT CTX Glut_4,004 L6 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n72,34,0.38,v2|003 L5/6 IT TPE-ENT Glut,0.955,private_subtree,MA-C0001
+0053 L6 IT CTX Glut_5,004 L6 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n02,2,1.0,v2|004 L6 IT CTX Glut,1.0,private_subtree,MA-U0004
+0054 L6 IT CTX Glut_5,004 L6 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n01,2,0.5,v2|003 L5/6 IT TPE-ENT Glut,0.995,private_subtree,MA-U0003
+0055 L5 IT CTX Glut_1,005 L5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n31,3,0.67,n14,1.0,private_subtree,MA-U0013.02
+0056 L5 IT CTX Glut_1,005 L5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n31,3,0.67,n11,1.0,private_subtree,MA-U0013.02
+0061 L5 IT CTX Glut_3,005 L5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n04,2,0.5,n11,0.985,private_subtree,MA-U0013.01
+0065 L5 IT CTX Glut_5,005 L5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n72,34,0.38,v2|003 L5/6 IT TPE-ENT Glut,0.987,private_subtree,MA-C0001
+0075 L4/5 IT CTX Glut_2,006 L4/5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n06,2,1.0,v2|006 L4/5 IT CTX Glut,0.994,private_subtree,MA-U0009.01
+0076 L4/5 IT CTX Glut_2,006 L4/5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n32,3,1.0,v2|006 L4/5 IT CTX Glut,0.9,private_subtree,MA-U0009
+0078 L4/5 IT CTX Glut_2,006 L4/5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n06,2,1.0,v2|006 L4/5 IT CTX Glut,1.0,private_subtree,MA-U0009.01
+0083 L4/5 IT CTX Glut_3,006 L4/5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n72,34,0.38,v2|003 L5/6 IT TPE-ENT Glut,0.992,private_subtree,MA-C0001
+0084 L4/5 IT CTX Glut_3,006 L4/5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n04,2,0.5,v2|005 L5 IT CTX Glut,1.0,private_subtree,MA-U0013.01
+0090 L4/5 IT CTX Glut_4,006 L4/5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n07,2,1.0,n11,1.0,private_subtree,MA-U0005
+0091 L4/5 IT CTX Glut_4,006 L4/5 IT CTX Glut,consistent_coarse,node,n72 [5 subclasses],n07,2,1.0,n11,1.0,private_subtree,MA-U0005
+0094 L4/5 IT CTX Glut_4,006 L4/5 IT CTX Glut,wrong_lineage,node,n50,n08,2,0.5,v2|007 L2/3 IT CTX Glut,1.0,private_subtree,MA-U0027
+0421 L6b CTX Glut_1,027 L6b CTX Glut,wrong_lineage,node,n64,n64,10,0.8,v2|027 L6b CTX Glut,1.0,private_subtree,MA-C0007
+0430 L6b CTX Glut_3,027 L6b CTX Glut,wrong_lineage,node,n64,n64,10,0.8,v2|027 L6b CTX Glut,1.0,private_subtree,MA-C0007
+0470 L5 NP CTX Glut_4,030 L5 NP CTX Glut,root,node,ROOT,n45,4,1.0,v2|030 L5 NP CTX Glut,1.0,private_subtree,ROOT
+0497 Vip Gaba_1,036 Vip Gaba,consistent_coarse,node,n65 [2 subclasses],n15,2,0.5,v2|036 Vip Gaba,0.918,private_subtree,MA-C0028
+0533 Vip Gaba_6,036 Vip Gaba,consistent_coarse,node,n65 [2 subclasses],n57,7,1.0,n04,1.0,private_subtree,MA-C0019
+0587 Lamp5 Gaba_2,039 Lamp5 Gaba,wrong_lineage,node,n65,n15,2,0.5,n08,1.0,private_subtree,MA-C0028
+5188 Endo NN,301 Endo NN,consistent_coarse,node,n44 [3 subclasses],n28,2,0.5,v2|301 Endo NN,0.973,private_subtree,MA-C0011

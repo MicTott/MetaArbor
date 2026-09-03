@@ -211,3 +211,26 @@ def test_integration_with_pairwise_layer():
     priv = [c for c in out["candidates"] if c["kind"] == "private_subtree"]
     assert any("P1" in c["members"]["d2"] for c in priv
                if "d2" in c["members"])
+
+
+def test_unmatched_leaf_under_unresolved_internal_not_dropped():
+    """Completeness: a leaf hanging between an unresolved internal (one
+    with matched descendants) and the matched region below must still
+    become a private candidate — previously it was silently dropped
+    because its parent was neither root nor matched."""
+    rows_a = [("A|G", "A|F1", "A|F1.a"), ("A|G", "A|F1", "A|F1.b"),
+              ("A|G", "A|x", "A|x"),
+              ("A|G2", "A|F2", "A|F2.a"), ("A|G2", "A|F2", "A|F2.b")]
+    trees = {"A": tree_from_levels(rows_a, ["super", "family", "leaf"]),
+             "B": toy_tree("B", {"F1": ["F1.x", "F1.y"],
+                                 "F2": ["F2.x", "F2.y"]})}
+    matches = {("A", "B"): [M("A|F1.a", "B|F1.x"), M("A|F1.b", "B|F1.y"),
+                            M("A|F2.a", "B|F2.x"), M("A|F2.b", "B|F2.y")]}
+    dec = {"matches": matches, "selections": empty_selections(matches),
+           "unmatched": {}}
+    out = candidate_groups(dec, trees)
+    # G has matched descendants -> unresolved internal, and its unmatched
+    # child x is still surfaced as a private candidate
+    assert "super:A|G" in out["unresolved_internals"]["A"]
+    assert any(c["members"] == {"A": "A|x"} for c in out["candidates"]
+               if c["kind"] == "private_subtree")
