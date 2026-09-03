@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.1 (2026-09-03) — molecular structure metrics as a first-class
+Transport option
+
+- `fugw_map(..., CA=, CB=)` accepts per-atlas structure matrices
+  (default remains tree hop distance — the frozen configuration).
+- `structure_matrices(counts, labels, tree, leaves, kind="chord"|
+  "patristic")` builds them from each atlas's own expression (chord
+  pseudobulk distances, or their NNLS patristic projection onto the
+  supplied topology); `patristic_matrix` promoted from the experiment
+  script into the package.
+- Allen evidence to date: all structure metrics score identically under
+  a shared taxonomy (saturated benchmark); the discriminating comparison
+  on depth-mismatched cross-taxonomy pairs is prespecified in NOTES.
+
 ## 0.2.0 (2026-09-03) — FUGW parameterization fix
 
 The design objective `alpha*M + (1-alpha)*GW + rho*R (+ eps*H)` maps to

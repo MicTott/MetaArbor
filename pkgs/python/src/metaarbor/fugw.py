@@ -100,19 +100,35 @@ def solve(M, CA, CB, wA, wB, alpha=FROZEN["alpha"], rho=FROZEN["rho"],
     return pi, float(np.abs(np.asarray(ps) - np.asarray(pf)).sum())
 
 
-def fugw_map(S, tree_a, tree_b, row_names, col_names, **overrides):
-    """The frozen pipeline: intrinsic marginals from each tree alone, path
-    distances as structure, solve, and per-query argmax-family + confidence
+def fugw_map(S, tree_a, tree_b, row_names, col_names, CA=None, CB=None,
+             **overrides):
+    """The frozen pipeline: intrinsic marginals from each tree alone,
+    structure distances, solve, and per-query argmax-family + confidence
     read-outs. `S` symmetrized AUROC (rows = source populations = tree_a
-    leaves, cols = target leaves = tree_b leaves)."""
+    leaves, cols = target leaves = tree_b leaves).
+
+    Structure defaults to tree HOP distances (the frozen configuration).
+    Pass `CA` / `CB` (arrays over row_names / col_names) to substitute a
+    molecular metric per atlas — build them with
+    `branch_fit.structure_matrices(..., kind="chord"|"patristic")`, each
+    atlas from its own expression only. On the Allen benchmark all three
+    structure metrics scored identically (the benchmark is saturated
+    under a shared taxonomy); on depth-mismatched cross-taxonomy pairs
+    they are expected to differ, which is the prespecified comparison."""
     params = dict(FROZEN)
     params.update(overrides)
-    CA, la = leaf_path_dist(tree_a)
-    CB, lb = leaf_path_dist(tree_b)
-    ra = [la.index(r) for r in row_names]
-    cb = [lb.index(c) for c in col_names]
-    CA = CA[np.ix_(ra, ra)]
-    CB = CB[np.ix_(cb, cb)]
+    if CA is None:
+        CAh, la = leaf_path_dist(tree_a)
+        ra = [la.index(r) for r in row_names]
+        CA = CAh[np.ix_(ra, ra)]
+    else:
+        CA = np.asarray(CA)
+    if CB is None:
+        CBh, lb = leaf_path_dist(tree_b)
+        cb = [lb.index(c) for c in col_names]
+        CB = CBh[np.ix_(cb, cb)]
+    else:
+        CB = np.asarray(CB)
     wA = tree_weights(tree_a)
     wB = tree_weights(tree_b)
     pi, gap = solve(1 - np.asarray(S), CA, CB,

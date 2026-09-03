@@ -67,3 +67,40 @@ def test_zero_mass_guard_raises_interpretable_error():
         solve(M, CA, CB, wA, wB, alpha=0.9, rho=1e-5)
     assert "mass" in str(ei.value).lower()
     assert ei.value.alpha == 0.9
+
+
+def test_structure_override_and_helpers():
+    """CA/CB overrides flow through fugw_map; structure_matrices builds
+    chord and patristic metrics from one atlas's own expression; hop
+    default is unchanged when overrides are absent."""
+    from metaarbor import tree_from_levels
+    from metaarbor.branch_fit import structure_matrices
+    from metaarbor.fugw import fugw_map
+
+    rs = np.random.RandomState(7)
+    rows_a = [("A", "a1"), ("A", "a2"), ("B", "b1")]
+    rows_b = [("X", "x1"), ("X", "x2"), ("Y", "y1"), ("Y", "y2")]
+    ta = tree_from_levels(rows_a, ["fam", "leaf"])
+    tb = tree_from_levels(rows_b, ["fam", "leaf"])
+    qn, cols = ["a1", "a2", "b1"], ["x1", "x2", "y1", "y2"]
+    S = 0.5 + 0.4 * rs.rand(3, 4)
+
+    counts = rs.poisson(3.0, size=(200, 300)).astype(float)
+    labels = np.repeat(cols, 50)
+    Cc, st = structure_matrices(counts, labels, tb, cols, kind="chord",
+                                n_hvg=200)
+    assert Cc.shape == (4, 4) and st is None and np.allclose(Cc, Cc.T)
+    Cp, fit = structure_matrices(counts, labels, tb, cols,
+                                 kind="patristic", n_hvg=200)
+    assert Cp.shape == (4, 4) and 0 <= fit["stress"]
+
+    hop = fugw_map(S, ta, tb, qn, cols, rho=1.0, alpha=0.5)
+    chord = fugw_map(S, ta, tb, qn, cols, CB=Cc, rho=1.0, alpha=0.5)
+    assert np.all(np.isfinite(chord["pi"]))
+    # overriding CB with actual hop distances reproduces the default
+    from metaarbor.tree import leaf_path_dist
+    CBh, lb = leaf_path_dist(tb)
+    CBh = CBh[np.ix_([lb.index(c) for c in cols],
+                     [lb.index(c) for c in cols])]
+    same = fugw_map(S, ta, tb, qn, cols, CB=CBh, rho=1.0, alpha=0.5)
+    assert np.allclose(same["pi"], hop["pi"], atol=1e-10)
