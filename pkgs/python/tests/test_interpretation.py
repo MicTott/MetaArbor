@@ -35,6 +35,9 @@ def synth_measurement(seed=3, n_per=40, n_genes=120):
 
 def test_agreement_semantics():
     assert agreement("fam:A1", "fam:A1", TREE) == "agree"
+    # unary chain: fam:A2 -> a3, identical leaf sets => equivalent, not depth
+    assert agreement("a3", "fam:A2", TREE) == "topologically_equivalent"
+    assert agreement("fam:A2", "a3", TREE) == "topologically_equivalent"
     assert agreement("cls:A", "fam:A1", TREE) == "same_branch_different_depth"
     assert agreement("fam:A1", "cls:A", TREE) == "same_branch_different_depth"
     assert agreement("fam:A1", "fam:B1", TREE) == "conflicting_branch"

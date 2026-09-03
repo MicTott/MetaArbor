@@ -10,7 +10,11 @@ Walk rows re-derive the walk with the same per-query seeds as
 Agreement categories (documented, threshold-free — estimator vs estimator,
 no ground truth involved):
   agree                        same selected node
-  same_branch_different_depth  one selection is an ancestor of the other
+  topologically_equivalent     different node ids with IDENTICAL descendant
+                               leaf sets (unary-chain collapse) — a notation
+                               artifact, not a disagreement
+  same_branch_different_depth  one selection is a proper ancestor of the
+                               other (genuinely different depth)
   conflicting_branch           selections on disjoint branches
   walk_only                    Walk matched; Transport has no mass
   transport_only               Transport has mass; Walk unmatched
@@ -126,7 +130,9 @@ def transport_summary(pi, row_names, col_names, family_of_leaf, tree=None):
 
 
 def agreement(walk_selected, transport_node, tree):
-    """The documented six-way category for one query."""
+    """The documented agreement category for one query. Raw node identities
+    are preserved in the summary columns; this category only interprets
+    them."""
     w, t = walk_selected, transport_node
     if w is None and t is None:
         return "both_unmatched"
@@ -136,6 +142,8 @@ def agreement(walk_selected, transport_node, tree):
         return "walk_only"
     if w == t:
         return "agree"
+    if leaves_under(tree, w) == leaves_under(tree, t):
+        return "topologically_equivalent"
     if w in ancestors(tree, t) or t in ancestors(tree, w):
         return "same_branch_different_depth"
     return "conflicting_branch"

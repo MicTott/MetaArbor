@@ -408,6 +408,20 @@ the figure work itself:
     interpretation code written earlier in the session remains in-tree but
     is unvalidated and deferred with the rest of the R package.
 
+    **Addendum (user review):** a `topologically_equivalent` category was
+    added, defined strictly by identical descendant leaf sets — raw node
+    identities preserved, combined symbol with a distinct dashed outline.
+    The user's arithmetic predicted all 9 same-branch cases were chain
+    collapse; the leaf-set check confirmed 7 (singleton subclasses) and
+    correctly kept Lamp5 (supertype ⊂ subclass) and Endo (class ⊃ subclass)
+    as genuine depth differences. Final Allen agreement: **14 agree + 7
+    topologically equivalent + 2 same-branch depth differences + 0
+    conflicts** — both methods choose compatible branches for all 23
+    queries. Alignment tree gained greedy label repulsion and an
+    orient="horizontal" option. Interpretation layer re-frozen; next step
+    is pairwise amygdala analysis with no further metric or estimator
+    development.
+
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
 siblings inside the margin one level above truth), fig2 (error topology on

@@ -13,6 +13,7 @@ from .tree import ancestors, leaves_under
 
 AGREEMENT_COLORS = {
     "agree": "#2b8cbe",
+    "topologically_equivalent": "#2b8cbe",   # same evidence, distinct outline
     "same_branch_different_depth": "#fdae61",
     "conflicting_branch": "#d7191c",
     "walk_only": "#984ea3",
@@ -67,7 +68,7 @@ def _backbone(ax, tree, coords, nodes=None, color="#cccccc", lw=0.6):
 
 
 def plot_alignment_tree(summary_rows, tree, collapse=True, label=True,
-                        figsize=None):
+                        orient="vertical", figsize=None):
     """The primary biological result plot: query labels attached to their
     selected nodes on the gray target hierarchy. Walk (circle) and
     Transport (diamond) side by side, combined into one square when they
@@ -76,7 +77,11 @@ def plot_alignment_tree(summary_rows, tree, collapse=True, label=True,
     leaves that carry no selection (ancestor spine and internal structure
     are kept); taxonomy order is never changed."""
     plt = _mpl()
-    coords, leaf_order = tree_layout(tree)
+    coords0, leaf_order = tree_layout(tree)
+    if orient == "horizontal":
+        coords = {k: (y, x) for k, (x, y) in coords0.items()}
+    else:
+        coords = coords0
     placed = set()
     for r in summary_rows:
         for k in ("walk_selected", "transport_node"):
@@ -88,45 +93,80 @@ def plot_alignment_tree(summary_rows, tree, collapse=True, label=True,
                 if tree["children"][v] or v in placed}
     else:
         keep = set(coords)
-    n_leaf = len([v for v in keep if not tree["children"][v]]) or len(leaf_order)
-    figsize = figsize or (max(8, 0.16 * len(leaf_order)), 6.5)
+    figsize = figsize or ((max(8, 0.16 * len(leaf_order)), 6.5)
+                          if orient == "vertical"
+                          else (8.5, max(6, 0.16 * len(leaf_order))))
     fig, ax = plt.subplots(figsize=figsize)
     _backbone(ax, tree, coords, keep)
+    labels_todo = []
     for r in summary_rows:
-        col = AGREEMENT_COLORS.get(r.get("agreement", "walk_only"), "#000000")
+        cat = r.get("agreement", "walk_only")
+        col = AGREEMENT_COLORS.get(cat, "#000000")
         w, t = r.get("walk_selected"), r.get("transport_node")
         wa = r.get("walk_decision_support")
         wa = 1.0 if wa is None or (isinstance(wa, float) and np.isnan(wa)) else wa
         ta = r.get("transport_mass", 1.0) or 0.0
-        if w and t and w == t:
+        combined = w and t and (w == t or cat == "topologically_equivalent")
+        if combined:
             x, y = coords[w]
             ax.scatter([x], [y], marker="s", s=46, color=col,
-                       alpha=max(0.35, wa), zorder=3)
+                       alpha=max(0.35, wa), zorder=3,
+                       edgecolor="#08306b" if cat == "topologically_equivalent"
+                       else "none",
+                       linewidth=1.2,
+                       linestyle="--" if cat == "topologically_equivalent"
+                       else "-")
         else:
+            dx = (0.18, 0) if orient == "vertical" else (0, 0.18)
             if w and t and coords.get(w) and coords.get(t):
                 ax.plot([coords[w][0], coords[t][0]],
                         [coords[w][1], coords[t][1]],
                         color=col, lw=0.7, alpha=0.6, zorder=2)
             if w:
-                ax.scatter([coords[w][0] - 0.18], [coords[w][1]], marker="o",
-                           s=38, color=col, alpha=max(0.35, wa), zorder=3)
+                ax.scatter([coords[w][0] - dx[0]], [coords[w][1] - dx[1]],
+                           marker="o", s=38, color=col,
+                           alpha=max(0.35, wa), zorder=3)
             if t:
-                ax.scatter([coords[t][0] + 0.18], [coords[t][1]], marker="D",
-                           s=34, color=col, alpha=max(0.35, ta), zorder=3)
+                ax.scatter([coords[t][0] + dx[0]], [coords[t][1] + dx[1]],
+                           marker="D", s=34, color=col,
+                           alpha=max(0.35, ta), zorder=3)
         if label and w:
-            ax.annotate(_short(r["query"]), coords[w], textcoords="offset points",
-                        xytext=(3, 6), fontsize=6, color="#222222")
-    handles = [plt.Line2D([], [], marker="s", ls="", color=c, label=k)
+            labels_todo.append((coords[w], _short(r["query"])))
+    # greedy label repulsion: sort along the taxonomy axis; when neighbors
+    # crowd, cycle through offset tiers instead of overplotting
+    axis0 = 0 if orient == "vertical" else 1
+    labels_todo.sort(key=lambda p: (p[0][axis0], p[0][1 - axis0]))
+    tiers = [(3, 6), (3, 14), (3, -10), (3, 22)] if orient == "vertical" \
+        else [(6, 2), (34, 2), (62, 2), (90, 2)]
+    min_gap = max(1.5, 0.02 * len(leaf_order))
+    prev_pos, tier = None, 0
+    for (xy, txt) in labels_todo:
+        if prev_pos is not None and abs(xy[axis0] - prev_pos) < min_gap:
+            tier = (tier + 1) % len(tiers)
+        else:
+            tier = 0
+        prev_pos = xy[axis0]
+        ax.annotate(txt, xy, textcoords="offset points",
+                    xytext=tiers[tier], fontsize=6, color="#222222")
+    handles = [plt.Line2D([], [], marker="s", ls="", color=c,
+                          markeredgecolor="#08306b" if k == "topologically_equivalent" else "none",
+                          label=k)
                for k, c in AGREEMENT_COLORS.items()]
     handles += [plt.Line2D([], [], marker="o", ls="", color="grey",
                            label="Walk"),
                 plt.Line2D([], [], marker="D", ls="", color="grey",
                            label="Transport")]
     ax.legend(handles=handles, fontsize=6, loc="upper right", frameon=False)
-    depth_max = max(y for _, y in coords.values())
-    ax.set_ylim(depth_max + 0.6, -0.4)
-    ax.set_xticks([])
-    ax.set_ylabel("tree depth")
+    depth_max = max(xy[1 if orient == "vertical" else 0]
+                    for xy in coords.values())
+    if orient == "vertical":
+        ax.set_ylim(depth_max + 0.6, -0.4)
+        ax.set_xticks([])
+        ax.set_ylabel("tree depth")
+    else:
+        ax.set_xlim(-0.4, depth_max + 2.5)
+        ax.set_yticks([])
+        ax.set_xlabel("tree depth")
     ax.set_title("MetaArbor alignment: queries at their selected target nodes")
     fig.tight_layout()
     return fig, ax
