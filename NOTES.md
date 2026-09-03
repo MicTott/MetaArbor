@@ -530,6 +530,36 @@ the figure work itself:
     (editable text), size hierarchy, journal-width presets, `save_pub`
     (vector PDF + 600 dpi PNG). Numeric layer untouched; 14/14 tests.
 
+23. **Star-tree catch (user, from the JHPCE amygdala runs) and the
+    tree-inference layer (2026-09-02).** Flat single-level label sets had
+    been represented as star trees (root -> every label): Walk then has no
+    candidate family node, so a distributed-but-coherent signal (e.g. 95%
+    across three Pvalb leaves) is reported "discordant" — meaning "no
+    family was ever constructed," not "biologically incoherent" — and the
+    GW term is geometrically empty (all hop distances equal). The running
+    amygdala jobs are relabeled the FLAT/STAR BASELINE; their discordant
+    counts are not the primary result. Fix is layered, estimator frozen:
+    new `metaarbor.infer_tree` — prespecified builder (pseudobulk ->
+    atlas-own HVGs -> chord distances -> UPGMA -> Felsenstein cell-
+    bootstrap clade support -> collapse below 0.7 into polytomies ->
+    neutral n## IDs, never names from another atlas) with an explicit
+    tree policy: curated tree used as supplied; flat labels -> INFER by
+    default; star only by explicit `star_tree()` request; <3 labels ->
+    error, never a silent star. `annotate_star_relations` adds the
+    `distributed_no_target_clade` note on star targets at the
+    interpretation layer (raw outputs unchanged). Validation: simulation
+    (3/3 latent families recovered with support >= 0.7; iid noise
+    collapses to <= 1 internal node; policy tests) and the Allen gate —
+    inferred-from-flat 10Xv3 tree vs held-out curated truth: **class
+    level 6/6 multi-leaf groups exact (median Jaccard 1.00); subclass
+    6/15 exact, median best-Jaccard 0.80** (near-misses expected to
+    concentrate on the IT continuum, consistent with every prior result;
+    Walk tolerates imperfect internals by stopping higher). Amygdala
+    rerun protocol: infer Yu + Hochgerner trees with this frozen builder,
+    rerun identical frozen Walk/Transport, compare against the star
+    baseline; a Pvalb family node appears only if those types form a
+    reproducible clade — its absence would itself be a finding.
+
 Figure inventory: fig1 (six annotated walks — the Endo page shows a miss
 mechanism end-to-end: root override at vote 0.98, then saturated vascular
 siblings inside the margin one level above truth), fig2 (error topology on

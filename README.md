@@ -14,6 +14,15 @@ research repo that produced the frozen results; **installable packages
 live in [pkgs/](pkgs/README.md)** — the primary standalone python package
 (`metaarbor`) and the deferred pure-R companion (`MetaArbor`).
 
+## Tree policy
+
+MetaArbor aligns trees. A supplied curated hierarchy is used as-is; **flat
+single-level labels get a hierarchy inferred by default**
+(`metaarbor.infer_tree`: pseudobulk chord distances, UPGMA, bootstrap clade
+support, polytomy collapse, neutral internal IDs); a star representation
+(labels with no relationships) is produced only by explicit
+`star_tree()` request and is reported as the flat baseline.
+
 ## Install
 
 ```bash

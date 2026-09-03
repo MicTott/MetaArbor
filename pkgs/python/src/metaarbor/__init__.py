@@ -16,6 +16,8 @@ from .accessors import (family_mass, node_auroc_matrix,
 from .branch_fit import fit_branch_lengths, pseudobulk_distances
 from .bundle import result_bundle
 from .evidence import node_evidence
+from .infer_tree import (annotate_star_relations, infer_tree, is_star_tree,
+                         star_tree)
 from .phylogram import (plot_alignment_phylogram,
                         plot_harmonized_phylogram, to_ete4, to_newick)
 from .plots import (classify_outcome, plot_alignment_tree,
@@ -43,6 +45,7 @@ __all__ = [
     "plot_alignment_tree", "plot_evidence_heatmap", "plot_transport_heatmap",
     "plot_query_path", "plot_error_tree", "classify_outcome", "tree_layout",
     "fit_branch_lengths", "pseudobulk_distances",
+    "infer_tree", "star_tree", "is_star_tree", "annotate_star_relations",
     "plot_alignment_phylogram", "plot_harmonized_phylogram",
     "to_newick", "to_ete4",
     "Minstd", "__version__",
