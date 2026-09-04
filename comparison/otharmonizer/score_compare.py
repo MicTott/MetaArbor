@@ -208,6 +208,12 @@ runs = [("MetaArbor", "primary",
 runs += [("OTHarmonizer", f"{o}_r{r}",
           os.path.join(OTH, f"oth_tree_{o}_r{r}.json"))
          for o in ("v2f", "v3f") for r in range(5)]
+runs += [("MetaArbor", f"seed{s}",
+          os.path.join(MA, f"metaarbor_tree_seed{s}.json"))
+         for s in (313, 499, 631, 757, 877, 1013, 1151, 1291, 1433,
+                   1567)]
+runs += [("OTHarmonizer", t, os.path.join(OTH, f"oth_tree_{t}.json"))
+         for t in ("seeded_v2f_a", "seeded_v3f_a")]
 leafsets = json.load(open(os.path.join(MA, "input_tree_leafsets.json")))
 for method, tag, path in runs:
     if not os.path.exists(path):
@@ -227,7 +233,12 @@ for method, tag, path in runs:
 
 print("\n===== stability (per-cluster predicted-set agreement) =====")
 stab_rows = []
-pairs = [(("MetaArbor", "primary"), ("MetaArbor", "seed977"))]
+ma_runs = [k for k in verd if k[0] == "MetaArbor"]
+pairs = [(ma_runs[i], ma_runs[j]) for i in range(len(ma_runs))
+         for j in range(i + 1, len(ma_runs))]
+seeded = [k for k in verd if k[1].startswith("seeded_")]
+if len(seeded) == 2:
+    pairs.append((seeded[0], seeded[1]))
 reps = {o: [("OTHarmonizer", f"{o}_r{r}") for r in range(5)
             if ("OTHarmonizer", f"{o}_r{r}") in verd]
         for o in ("v2f", "v3f")}
@@ -235,22 +246,30 @@ for o, rr in reps.items():                     # within-order (sampling)
     pairs += [(rr[i], rr[j]) for i in range(len(rr))
               for j in range(i + 1, len(rr))]
 pairs += [(a, b) for a in reps["v2f"] for b in reps["v3f"]]  # between
-within, between = [], []
+within, between, ma_ag = [], [], []
 for a, b in pairs:
     if a in verd and b in verd:
         full, _ = agreement(verd[a], verd[b])
         stab_rows.append({"a": "/".join(a), "b": "/".join(b),
                           "verdict_and_set": round(full, 4)})
-        if a[0] == b[0] == "OTHarmonizer":
+        if a[0] == b[0] == "MetaArbor":
+            ma_ag.append(full)
+        elif "seeded" in a[1] or "seeded" in b[1]:
+            print(f"OTHarmonizer SEEDED between-order (pure order "
+                  f"effect): {full:.3f}")
+        elif a[0] == b[0] == "OTHarmonizer":
             (within if a[1][:3] == b[1][:3] else between).append(full)
-        else:
-            print(f"{a} vs {b}: agreement {full:.3f}")
+if ma_ag:
+    print(f"MetaArbor cross-seed agreement ({len(verd) and len(ma_ag)}"
+          f" pairs over {sum(1 for k in verd if k[0]=='MetaArbor')} "
+          f"seeds): mean {np.mean(ma_ag):.3f} "
+          f"(range {min(ma_ag):.3f}-{max(ma_ag):.3f})")
 if within:
     print(f"OTHarmonizer within-order sampling agreement: "
           f"mean {np.mean(within):.3f} (n={len(within)}, "
           f"range {min(within):.3f}-{max(within):.3f})")
 if between:
-    print(f"OTHarmonizer between-order agreement: "
+    print(f"OTHarmonizer between-order agreement (unseeded): "
           f"mean {np.mean(between):.3f} (n={len(between)}, "
           f"range {min(between):.3f}-{max(between):.3f})")
 
