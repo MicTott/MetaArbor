@@ -32,7 +32,16 @@ from .tree import (ancestors, leaf_path_dist, leaves_under, tree_from_levels,
                    tree_weights)
 from .walk import baseline_map, compactness, select_node
 
-__version__ = "0.3.0"
+# BETA / EXPERIMENTAL: consensus harmonization. harmonize() builds a
+# best-supported reconciled hierarchy across K >= 2 atlases from frozen
+# pairwise Walk evidence (Walk/Transport themselves are never altered).
+# Validated on synthetic gates and the Allen coarse-vs-fine truth case
+# (see examples/ and comparison/); the API surface and output schema may
+# still change. Transport-derived synthesis is not yet available.
+from .consensus.harmonize import harmonize
+from .consensus.plot_reconciled import plot_reconciled_tree
+
+__version__ = "0.4.0"
 
 __all__ = [
     "measure", "vote_cache", "aggregate_cache", "leaf_costs", "auroc",
@@ -51,5 +60,7 @@ __all__ = [
     "infer_tree", "star_tree", "is_star_tree", "annotate_star_relations",
     "plot_alignment_phylogram", "plot_harmonized_phylogram",
     "to_newick", "to_ete4",
-    "Minstd", "MassCollapsedError", "molecular_only", "__version__",
+    "Minstd", "MassCollapsedError", "molecular_only",
+    "harmonize", "plot_reconciled_tree",   # beta/experimental
+    "__version__",
 ]
