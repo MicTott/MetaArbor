@@ -112,6 +112,7 @@ def main(manifest_path):
         for leaf in trees[key]["leaves"]:
             how, mid = placed.get(leaf, ("absent", None))
             nd = nodes.get(mid, {})
+            rej = nd.get("rejection") or {}
             rows.append({
                 "atlas": key,
                 "label": leaf.split("|", 1)[-1],
@@ -123,6 +124,8 @@ def main(manifest_path):
                 "co_members": "; ".join(
                     v for k2, v in nd.get("members", {}).items()
                     if k2 != key),
+                "rejection_reason": rej.get("reason", ""),
+                "rejected_candidate": rej.get("candidate_id", ""),
             })
     with open(os.path.join(out, "provenance.csv"), "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0]))
@@ -189,10 +192,27 @@ def main(manifest_path):
                        zip(*np.unique(datasets[k]["labels"],
                                       return_counts=True))}
                    for k in datasets}, fh)
+    # ---- rejection trace: the previously-missing labels and WHY ----------
+    with open(os.path.join(out, "rejected.json"), "w") as fh:
+        json.dump([{"candidate_id": r["candidate"]["candidate_id"],
+                    "members": r["candidate"]["members"],
+                    "reason": r["reason"],
+                    "support": list(r["support"])}
+                   for r in harm["backbone"]["rejected"]], fh, indent=1)
+    if harm["rejection_fallbacks"]:
+        from collections import Counter
+        byr = Counter(r["reason"] for r in harm["rejection_fallbacks"])
+        print(f"REJECTION FALLBACKS: {len(harm['rejection_fallbacks'])} "
+              f"labels routed to unplaced_single_atlas "
+              f"({dict(byr)}) — full trace in rejected.json + "
+              "provenance.csv rejection_reason column")
+        for r in harm["rejection_fallbacks"]:
+            print(f"  TRACE {r['dataset']}|{r['label'].split('|')[-1]} "
+                  f"<- {r['reason']} ({r['candidate_id']})")
     if harm["repairs"]:
-        print(f"ASSEMBLY REPAIRS: {len(harm['repairs'])} labels "
-              "reinstated as unplaced_single_atlas (upstream loss — "
-              "flagged, excluded from support counts)")
+        print(f"WARNING - TRIPWIRE: {len(harm['repairs'])} labels "
+              "reinstated by the completeness repair AFTER rejection "
+              "routing — an undiagnosed loss pathway; report this")
 
     # ---- tree + figure ---------------------------------------------------
     with open(os.path.join(out, "tree.json"), "w") as fh:

@@ -24,6 +24,75 @@ from .backbone import FROZEN, greedy_backbone
 from .candidates import candidate_groups, canonical_nodes, pairwise_decisions
 
 
+def route_rejected(nodes, trees, rejected, affiliates):
+    """Rejection routes the CLAIM, never its constituent labels.
+
+    A rejected candidate is a failed cross-atlas (or private) claim.
+    Its member labels fall back to their own atlases as explicit
+    `unplaced_single_atlas` nodes that carry the rejection reason
+    verbatim (`insufficient_support` / `no_support` /
+    `ancestry_incompatible`) and the candidate id as provenance —
+    `ancestry_incompatible` is additionally conflict evidence, already
+    recorded by the backbone in its conflict list. Neither category is
+    ever relabeled private. A member already represented elsewhere
+    (another accepted or unknown candidate, an expansion, an affiliate
+    alias) is skipped — no duplicate placement. A rejected consolidated
+    subtree surfaces with its original within-atlas topology preserved.
+
+    Returns the list of fallback placements performed.
+    """
+    from metaarbor.branch_fit import _collapse_chains
+    member_to_id = {}
+    for mid, nd in nodes.items():
+        for ds, m in nd["members"].items():
+            member_to_id.setdefault((ds, m), mid)
+    aff = {(a["dataset"], a["node"]) for a in affiliates}
+    routed, ucount = [], 0
+    for rej in rejected:
+        c = rej["candidate"]
+        reason = rej["reason"]
+        for ds, node in sorted(c["members"].items()):
+            if (ds, node) in member_to_id or (ds, node) in aff:
+                continue                  # represented elsewhere
+            rp, _ = _collapse_chains(trees[ds])
+            p, parent_id = rp.get(node), None
+            while p not in (None, "root"):
+                if (ds, p) in member_to_id:
+                    parent_id = member_to_id[(ds, p)]
+                    break
+                p = rp.get(p)
+            ucount += 1
+            uid = f"MA-X{ucount:04d}"
+            rec = {"reason": reason, "candidate_id": c["candidate_id"]}
+            sub = c.get("provenance", {}).get("subtree_nodes") or []
+            sub_un = sorted(x for x in set(sub) - {node}
+                            if (ds, x) not in member_to_id and
+                            (ds, x) not in aff)
+            idmap = {node: uid}
+            for k, x in enumerate(sub_un, 1):
+                idmap[x] = f"{uid}.{k:02d}"
+            for x, xid in idmap.items():
+                if x == node:
+                    px = parent_id
+                else:
+                    p2 = rp.get(x)
+                    while p2 not in (None, "root") and p2 not in idmap:
+                        p2 = rp.get(p2)
+                    px = idmap.get(p2, uid)
+                nodes[xid] = {"parent": px,
+                              "status": "unplaced_single_atlas",
+                              "members": {ds: x}, "aliases": [x],
+                              "display": _display([x]),
+                              "support": (0, 0), "subtree_parent": None,
+                              "rejection": dict(rec),
+                              **({"expanded": True} if x != node else {})}
+                member_to_id[(ds, x)] = xid
+                routed.append({"dataset": ds, "label": x,
+                               "node_id": xid, "reason": reason,
+                               "candidate_id": c["candidate_id"]})
+    return routed
+
+
 def repair_completeness(nodes, trees, affiliates):
     """COMPLETENESS INVARIANT (core contract, not a display repair):
     every input-tree leaf must occur in the assembly as a member, a
@@ -190,6 +259,10 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
             if uid:
                 expand(uid[0], ds, root_node, sub)
 
+    routed = route_rejected(nodes, trees, bb["rejected"],
+                            bb["affiliates"])
+    # final tripwire: after rejection routing this must find NOTHING;
+    # a nonzero repair count means a new, undiagnosed loss pathway
     repairs = repair_completeness(nodes, trees, bb["affiliates"])
 
     children = {i: [] for i in nodes}
@@ -206,7 +279,7 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
         nd["children"] = children[i]
 
     return {"tree": nodes, "roots": sorted(roots),
-            "repairs": repairs,
+            "rejection_fallbacks": routed, "repairs": repairs,
             "decisions": dec, "candidates": cands, "backbone": bb,
             "conflicts": bb["conflicts"], "affiliates": bb["affiliates"],
             # internal nodes whose descendants matched but which

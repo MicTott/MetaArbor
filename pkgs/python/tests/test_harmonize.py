@@ -166,3 +166,87 @@ def test_repair_reinstates_lost_label_with_input_parentage(private_world):
         p = rp.get(p)
     else:
         assert nd["parent"] is None
+
+
+def _reject(members, reason, cid="cand:9999", sub=None):
+    c = {"members": members, "candidate_id": cid,
+         "provenance": ({"subtree_nodes": sub} if sub else {})}
+    return {"candidate": c, "reason": reason, "support": (0, 2)}
+
+
+def test_rejection_routes_labels_not_claims(private_world):
+    """A rejected claim's unrepresented members surface as
+    unplaced_single_atlas with the reason verbatim, under their own
+    atlas's nearest represented ancestor — never as private."""
+    import copy
+    from metaarbor.consensus.harmonize import (repair_completeness,
+                                               route_rejected)
+    harm, trees = private_world
+    nodes = copy.deepcopy(
+        {i: {k: v for k, v in nd.items() if k != "children"}
+         for i, nd in harm["tree"].items()})
+    # simulate the loss: delete the F2.s2 meta-clade and pretend the
+    # claim was rejected for insufficient support
+    doomed = [i for i, nd in nodes.items()
+              if nd["members"].get("B") == "B|F2.s2"]
+    for i in doomed:
+        for c in [j for j, nd in nodes.items() if nd["parent"] == i]:
+            nodes[c]["parent"] = nodes[i]["parent"]
+        del nodes[i]
+    rej = [_reject({"A": "A|F2.s2", "B": "B|F2.s2"},
+                   "insufficient_support")]
+    routed = route_rejected(nodes, trees, rej, harm["affiliates"])
+    assert sorted(r["label"] for r in routed) == ["A|F2.s2", "B|F2.s2"]
+    for r in routed:
+        nd = nodes[r["node_id"]]
+        assert nd["status"] == "unplaced_single_atlas"   # never private
+        assert nd["rejection"]["reason"] == "insufficient_support"
+        assert nd["rejection"]["candidate_id"] == "cand:9999"
+        assert nd["support"] == (0, 0)
+    # tripwire now finds NOTHING: the source fix precedes it
+    assert repair_completeness(nodes, trees, harm["affiliates"]) == []
+
+
+def test_rejection_no_duplicate_when_represented_elsewhere(private_world):
+    import copy
+    from metaarbor.consensus.harmonize import route_rejected
+    harm, trees = private_world
+    nodes = copy.deepcopy(
+        {i: {k: v for k, v in nd.items() if k != "children"}
+         for i, nd in harm["tree"].items()})
+    n0 = len(nodes)
+    # both members still represented by the accepted assembly: routing
+    # a rejected duplicate claim must place nothing
+    rej = [_reject({"A": "A|F1.s1", "B": "B|F1.s1"},
+                   "ancestry_incompatible")]
+    routed = route_rejected(nodes, trees, rej, harm["affiliates"])
+    assert routed == [] and len(nodes) == n0
+
+
+def test_rejected_subtree_preserves_topology(private_world):
+    """A rejected consolidated subtree (singleton no_support) surfaces
+    with its original within-atlas topology beneath the fallback."""
+    import copy
+    from metaarbor.consensus.harmonize import route_rejected
+    harm, trees = private_world
+    nodes = copy.deepcopy(
+        {i: {k: v for k, v in nd.items() if k != "children"}
+         for i, nd in harm["tree"].items()})
+    # delete B's entire F3 private branch, then reject it as a
+    # no_support private-subtree claim
+    doomed = [i for i, nd in nodes.items()
+              if (nd["members"].get("B") or "").find("F3") >= 0]
+    for i in doomed:
+        del nodes[i]
+    rej = [_reject({"B": "family:B|F3"}, "no_support",
+                   sub=["family:B|F3", "B|F3.s1", "B|F3.s2"])]
+    routed = route_rejected(nodes, trees, rej, harm["affiliates"])
+    assert sorted(r["label"] for r in routed) == \
+        ["B|F3.s1", "B|F3.s2", "family:B|F3"]
+    root_id = next(r["node_id"] for r in routed
+                   if r["label"] == "family:B|F3")
+    kids = {r["label"]: nodes[r["node_id"]]["parent"] for r in routed
+            if r["label"] != "family:B|F3"}
+    assert kids == {"B|F3.s1": root_id, "B|F3.s2": root_id}
+    assert all(nodes[r["node_id"]]["status"] == "unplaced_single_atlas"
+               for r in routed)
