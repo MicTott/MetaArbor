@@ -1,0 +1,16 @@
+method,run,exact,consistent_coarse,wrong_lineage,root,missing,median_coarse_breadth,TEDS,PCBS,AH_F1
+MetaArbor,primary,73,25,4,1,0,5,0.7479,0.9145,0.8998
+MetaArbor,seed977,75,23,4,1,0,5,0.7647,0.9197,0.9052
+OTHarmonizer,default,84,0,6,13,0,0,0.8397,0.8976,0.9073
+OTHarmonizer,v2_first,79,0,3,21,0,0,0.7745,0.8744,0.8561
+OTHarmonizer,v3_first,76,0,4,23,0,0,0.7404,0.8596,0.8454
+OTHarmonizer,v2f_r0,83,0,2,18,0,0,0.8136,0.8913,0.8848
+OTHarmonizer,v2f_r1,78,0,5,20,0,0,0.7712,0.8696,0.8713
+OTHarmonizer,v2f_r2,79,0,8,16,0,0,0.7975,0.9057,0.9355
+OTHarmonizer,v2f_r3,77,0,5,21,0,0,0.7806,0.8593,0.8884
+OTHarmonizer,v2f_r4,79,0,5,19,0,0,0.8159,0.9082,0.8932
+OTHarmonizer,v3f_r0,78,0,5,20,0,0,0.7585,0.8558,0.866
+OTHarmonizer,v3f_r1,78,0,6,19,0,0,0.7669,0.8712,0.8687
+OTHarmonizer,v3f_r2,79,0,3,21,0,0,0.7848,0.8679,0.8495
+OTHarmonizer,v3f_r3,71,0,5,27,0,0,0.7227,0.869,0.8447
+OTHarmonizer,v3f_r4,82,0,5,16,0,0,0.8101,0.886,0.8992
