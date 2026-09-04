@@ -160,11 +160,46 @@ def main(manifest_path):
         fh.write(f"# affiliates_total,{len(harm['affiliates'])}\n")
     print("summary:", summ, "| conflicts:", n_conf)
 
+    # ---- audit inputs: one-way Walk decisions, canonical maps, input
+    # trees, per-label cell counts (everything the offline unanchored-
+    # label audit consumes) ------------------------------------------------
+    from metaarbor.consensus.candidates import canonical_nodes
+
+    def _num(x):
+        return None if x is None or (isinstance(x, float) and
+                                     np.isnan(x)) else float(x)
+
+    sel_out = {}
+    for (ki, kj), recs in harm["decisions"]["selections"].items():
+        sel_out[f"{ki}>{kj}"] = {
+            n: {"selected": r["selected"], "matched": bool(r["matched"]),
+                "support": _num(r["support"])}
+            for n, r in recs.items()}
+    with open(os.path.join(out, "decisions.json"), "w") as fh:
+        json.dump(sel_out, fh)
+    with open(os.path.join(out, "canonical.json"), "w") as fh:
+        json.dump({k: canonical_nodes(trees[k])[1] for k in trees}, fh)
+    with open(os.path.join(out, "input_trees.json"), "w") as fh:
+        json.dump({k: {"parent": trees[k]["parent"],
+                       "children": trees[k]["children"],
+                       "leaves": list(trees[k]["leaves"])}
+                   for k in trees}, fh)
+    with open(os.path.join(out, "cell_counts.json"), "w") as fh:
+        json.dump({k: {str(l): int(n) for l, n in
+                       zip(*np.unique(datasets[k]["labels"],
+                                      return_counts=True))}
+                   for k in datasets}, fh)
+    if harm["repairs"]:
+        print(f"ASSEMBLY REPAIRS: {len(harm['repairs'])} labels "
+              "reinstated as unplaced_single_atlas (upstream loss — "
+              "flagged, excluded from support counts)")
+
     # ---- tree + figure ---------------------------------------------------
     with open(os.path.join(out, "tree.json"), "w") as fh:
         json.dump({i: {"parent": nd["parent"], "status": nd["status"],
                        "members": nd["members"], "aliases": nd["aliases"],
-                       "display": nd["display"]}
+                       "display": nd["display"],
+                       "assembly_repair": bool(nd.get("assembly_repair"))}
                    for i, nd in nodes.items()}, fh, indent=1)
     fig, _ = plot_reconciled_tree(
         harm, trees,

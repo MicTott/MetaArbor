@@ -24,6 +24,62 @@ from .backbone import FROZEN, greedy_backbone
 from .candidates import candidate_groups, canonical_nodes, pairwise_decisions
 
 
+def repair_completeness(nodes, trees, affiliates):
+    """COMPLETENESS INVARIANT (core contract, not a display repair):
+    every input-tree leaf must occur in the assembly as a member, a
+    marked affiliate alias, or an explicitly unplaced single-atlas node.
+
+    Any label the upstream layers lost is reinstated here as an
+    `unplaced_single_atlas` node using its exact input-tree parentage
+    (nearest represented ancestor in that atlas's own tree; root when
+    none), flagged `assembly_repair` and given support (0, 0) so it is
+    excluded from inferred-support counts. The invariant is asserted
+    after repair; a violation past this point is a bug.
+
+    Returns the list of repairs performed (empty when upstream was
+    already complete).
+    """
+    from metaarbor.branch_fit import _collapse_chains
+    represented = {ds: set() for ds in trees}
+    for nd in nodes.values():
+        for ds, m in nd["members"].items():
+            represented.setdefault(ds, set()).add(m)
+    for aff in affiliates:
+        represented.setdefault(aff["dataset"], set()).add(aff["node"])
+    member_to_id = {}
+    for mid, nd in nodes.items():
+        for ds, m in nd["members"].items():
+            member_to_id.setdefault((ds, m), mid)
+    repairs = []
+    for ds in sorted(trees):
+        rp, _ = _collapse_chains(trees[ds])
+        for leaf in trees[ds]["leaves"]:
+            if leaf in represented[ds]:
+                continue
+            p, parent_id = rp.get(leaf), None
+            while p not in (None, "root"):
+                if (ds, p) in member_to_id:
+                    parent_id = member_to_id[(ds, p)]
+                    break
+                p = rp.get(p)
+            rid = f"MA-R{len(repairs) + 1:04d}"
+            nodes[rid] = {"parent": parent_id,
+                          "status": "unplaced_single_atlas",
+                          "members": {ds: leaf}, "aliases": [leaf],
+                          "display": _display([leaf]),
+                          "support": (0, 0), "subtree_parent": None,
+                          "assembly_repair": True}
+            member_to_id[(ds, leaf)] = rid
+            represented[ds].add(leaf)
+            repairs.append({"dataset": ds, "label": leaf,
+                            "node_id": rid, "parent": parent_id})
+    for ds in trees:
+        missing = set(trees[ds]["leaves"]) - represented[ds]
+        assert not missing, \
+            f"completeness invariant violated for {ds}: {sorted(missing)}"
+    return repairs
+
+
 def _display(labels):
     """Modal cleaned name across member labels (dataset prefixes 'ds|'
     stripped); originals are aliases, never destroyed."""
@@ -134,6 +190,8 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
             if uid:
                 expand(uid[0], ds, root_node, sub)
 
+    repairs = repair_completeness(nodes, trees, bb["affiliates"])
+
     children = {i: [] for i in nodes}
     roots = []
     for i, nd in nodes.items():
@@ -148,6 +206,7 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
         nd["children"] = children[i]
 
     return {"tree": nodes, "roots": sorted(roots),
+            "repairs": repairs,
             "decisions": dec, "candidates": cands, "backbone": bb,
             "conflicts": bb["conflicts"], "affiliates": bb["affiliates"],
             # internal nodes whose descendants matched but which

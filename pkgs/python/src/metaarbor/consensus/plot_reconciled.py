@@ -15,7 +15,8 @@ from .diagnostics import _style as pub_style
 DS_COLORS = [OKABE_ITO["blue"], OKABE_ITO["vermillion"],
              OKABE_ITO["green"], OKABE_ITO["purple"]]
 STATUS_MARK = {"backbone": ("o", "full"), "private": ("D", "full"),
-               "single_atlas": ("o", "open")}
+               "single_atlas": ("o", "open"),
+               "unplaced_single_atlas": ("s", "open")}
 
 
 def _layout(parent, children, roots):
@@ -112,11 +113,15 @@ def plot_reconciled_tree(harm, trees, dataset_names=None, figsize=None):
             mark, fill = STATUS_MARK.get(nd["status"], ("s", "full"))
             mcol = (OKABE_ITO["vermillion"] if nd["status"] == "private"
                     else "#4a4a4a")
-            if nd["status"] == "single_atlas":
+            if nd["status"] in ("single_atlas", "unplaced_single_atlas"):
                 ds = next(iter(nd["members"]))
-                ax.scatter([x1], [y1], s=26, marker=mark,
+                mk = "s" if nd["status"] == "unplaced_single_atlas" else mark
+                ax.scatter([x1], [y1], s=26, marker=mk,
                            facecolor="white", edgecolor=colors[ds],
-                           linewidth=1.1, zorder=3)
+                           linewidth=1.1, zorder=3,
+                           linestyle=(":" if nd.get("assembly_repair")
+                                      or nd["status"] ==
+                                      "unplaced_single_atlas" else "-"))
             else:
                 ax.scatter([x1], [y1], s=30, marker=mark, color=mcol,
                            zorder=3)
@@ -148,6 +153,8 @@ def plot_reconciled_tree(harm, trees, dataset_names=None, figsize=None):
                 f"backbone: {sum(nd['status'] == 'backbone' for nd in nodes.values())}   "
                 f"private: {sum(nd['status'] == 'private' for nd in nodes.values())}   "
                 f"single-atlas: {sum(nd['status'] == 'single_atlas' for nd in nodes.values())}   "
+                f"unplaced (assembly repair): "
+                f"{sum(nd['status'] == 'unplaced_single_atlas' for nd in nodes.values())}   "
                 f"affiliate aliases: {len(harm['affiliates'])}   "
                 f"conflicts: {n_conf}   "
                 f"unplaced internal layers: "
