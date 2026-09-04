@@ -1,4 +1,4 @@
-"""MetaArbor-Consensus (EXPERIMENTAL, `consensus-prototype` branch only).
+"""MetaArbor-Consensus (BETA/EXPERIMENTAL).
 
 Consumes the frozen pairwise MetaArbor API; Walk and Transport are never
 altered. See DESIGN.md in this package for the specification, isolation

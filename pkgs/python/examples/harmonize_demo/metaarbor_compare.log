@@ -1,0 +1,3 @@
+dataset-order invariance: structural (sorted keys) — confirmed
+primary (base_seed=211): 169 nodes -> /Users/michael.totty/Documents/metaarbor/pkgs/python/examples/harmonize_demo/metaarbor_tree_primary.json
+seed977 (base_seed=977): 171 nodes -> /Users/michael.totty/Documents/metaarbor/pkgs/python/examples/harmonize_demo/metaarbor_tree_seed977.json

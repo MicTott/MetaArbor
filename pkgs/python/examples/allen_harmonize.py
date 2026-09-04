@@ -55,6 +55,9 @@ print("inferring input trees from expression (curated class labels and "
 inf_a = infer_tree(cA, labA, lib=lA, n_hvg=2000, n_boot=50, seed=0)
 inf_b = infer_tree(cB, labB, lib=lB, n_hvg=2000, n_boot=50, seed=0)
 trees = {"v2": inf_a["tree"], "v3": inf_b["tree"]}
+stability = {("v2", n): float(v) for n, v in inf_a["support"].items()}
+stability.update({("v3", n): float(v)
+                  for n, v in inf_b["support"].items()})
 print(f"  v2 tree: {inf_a['provenance']['n_internal_kept']} supported "
       f"internals over {inf_a['provenance']['n_labels']} subclass leaves")
 print(f"  v3 tree: {inf_b['provenance']['n_internal_kept']} supported "
@@ -64,7 +67,8 @@ datasets = {
     "v2": {"counts": cA, "labels": labA, "gene_names": genes, "lib": lA},
     "v3": {"counts": cB, "labels": labB, "gene_names": genes, "lib": lB},
 }
-harm = harmonize(datasets, trees, n_hvg=1000, n_boot=200)
+harm = harmonize(datasets, trees, n_hvg=1000, n_boot=200,
+                 stability=stability)
 nodes = harm["tree"]
 by_status = {}
 for nd in nodes.values():

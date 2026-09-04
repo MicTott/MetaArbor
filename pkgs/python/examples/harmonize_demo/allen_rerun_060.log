@@ -1,0 +1,8 @@
+inferring input trees from expression (curated class labels and cluster->subclass nesting held out of construction)
+  v2 tree: 19 supported internals over 23 subclass leaves
+  v3 tree: 77 supported internals over 103 cluster leaves
+nodes: {'backbone': 24, 'private': 2, 'single_atlas': 146, 'unplaced_single_atlas': 2} (of which expanded-subtree: 99) | affiliates: 0 | genuine conflicts: 2 | unplaced internals: 24
+ALL-cluster placement (n = 103): exact 71 | consistent-coarse 27 | wrong-lineage 4 | root 1 | missing 0
+clusters located via affiliate alias: 0 (marked with '≈' in aliases; excluded from reciprocal support by construction)
+wrote figure, allen_confusion.csv, allen_misplacements.csv -> /Users/michael.totty/Documents/metaarbor/pkgs/python/examples/harmonize_demo
+HOLDOUT CONFIRMED: construction consumed expression and each atlas's own label column only; curated class labels and the curated cluster->subclass nesting appear exclusively in the scoring block of this script.

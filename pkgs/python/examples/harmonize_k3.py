@@ -63,6 +63,7 @@ def main(manifest_path):
     os.makedirs(out, exist_ok=True)
 
     datasets, trees, label_col = {}, {}, {}
+    stability = {}
     for key, spec in mf["atlases"].items():
         counts = np.asarray(mmread(rp(spec["counts"])).todense()).T
         with open(rp(spec["cells"])) as fh:
@@ -86,12 +87,14 @@ def main(manifest_path):
         print(f"[{key}] {inf['provenance']['n_internal_kept']} supported "
               "internal clades")
         trees[key] = inf["tree"]
+        for node_id, supp in inf["support"].items():
+            stability[(key, node_id)] = float(supp)
         datasets[key] = {"counts": counts, "labels": labels,
                          "gene_names": genes,
                          **({"lib": lib} if lib is not None else {})}
 
     harm = harmonize(datasets, trees, n_hvg=mf.get("n_hvg", 1000),
-                     n_boot=mf.get("n_boot", 200))
+                     n_boot=mf.get("n_boot", 200), stability=stability)
     nodes = harm["tree"]
 
     # ---- provenance: every original leaf label -> consensus node ----------
@@ -176,7 +179,10 @@ def main(manifest_path):
     for (ki, kj), recs in harm["decisions"]["selections"].items():
         sel_out[f"{ki}>{kj}"] = {
             n: {"selected": r["selected"], "matched": bool(r["matched"]),
-                "support": _num(r["support"])}
+                "support": _num(r["support"]),
+                "compactness": r.get("compactness"),
+                "relation": r.get("relation"),
+                "gated_selected": r.get("gated_selected")}
             for n, r in recs.items()}
     with open(os.path.join(out, "decisions.json"), "w") as fh:
         json.dump(sel_out, fh)

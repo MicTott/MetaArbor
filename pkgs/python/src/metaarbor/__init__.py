@@ -41,7 +41,7 @@ from .walk import baseline_map, compactness, select_node
 from .consensus.harmonize import harmonize
 from .consensus.plot_reconciled import plot_reconciled_tree
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 __all__ = [
     "measure", "vote_cache", "aggregate_cache", "leaf_costs", "auroc",

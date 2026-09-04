@@ -31,9 +31,11 @@ def route_rejected(nodes, trees, rejected, affiliates):
     Its member labels fall back to their own atlases as explicit
     `unplaced_single_atlas` nodes that carry the rejection reason
     verbatim (`insufficient_support` / `no_support` /
-    `ancestry_incompatible`) and the candidate id as provenance —
-    `ancestry_incompatible` is additionally conflict evidence, already
-    recorded by the backbone in its conflict list. Neither category is
+    `ancestry_incompatible` / `ancestry_cycle`) and the candidate id as
+    provenance — `ancestry_incompatible` and `ancestry_cycle` are
+    additionally conflict evidence, already recorded by the backbone in
+    its conflict list. Fallback placement is topologically ordered
+    (parents before children by input-tree depth). Neither category is
     ever relabeled private. A member already represented elsewhere
     (another accepted or unknown candidate, an expansion, an affiliate
     alias) is skipped — no duplicate placement. A rejected consolidated
@@ -47,49 +49,65 @@ def route_rejected(nodes, trees, rejected, affiliates):
         for ds, m in nd["members"].items():
             member_to_id.setdefault((ds, m), mid)
     aff = {(a["dataset"], a["node"]) for a in affiliates}
-    routed, ucount = [], 0
+
+    def depth(ds, node):
+        rp, _ = _collapse_chains(trees[ds])
+        d, p = 0, rp.get(node)
+        while p not in (None, "root"):
+            d += 1
+            p = rp.get(p)
+        return d
+
+    # topological fallback order: a rejected parent must place before a
+    # rejected child, or the child attaches one level too high
+    jobs = []
     for rej in rejected:
         c = rej["candidate"]
-        reason = rej["reason"]
         for ds, node in sorted(c["members"].items()):
-            if (ds, node) in member_to_id or (ds, node) in aff:
-                continue                  # represented elsewhere
-            rp, _ = _collapse_chains(trees[ds])
-            p, parent_id = rp.get(node), None
-            while p not in (None, "root"):
-                if (ds, p) in member_to_id:
-                    parent_id = member_to_id[(ds, p)]
-                    break
-                p = rp.get(p)
-            ucount += 1
-            uid = f"MA-X{ucount:04d}"
-            rec = {"reason": reason, "candidate_id": c["candidate_id"]}
-            sub = c.get("provenance", {}).get("subtree_nodes") or []
-            sub_un = sorted(x for x in set(sub) - {node}
-                            if (ds, x) not in member_to_id and
-                            (ds, x) not in aff)
-            idmap = {node: uid}
-            for k, x in enumerate(sub_un, 1):
-                idmap[x] = f"{uid}.{k:02d}"
-            for x, xid in idmap.items():
-                if x == node:
-                    px = parent_id
-                else:
-                    p2 = rp.get(x)
-                    while p2 not in (None, "root") and p2 not in idmap:
-                        p2 = rp.get(p2)
-                    px = idmap.get(p2, uid)
-                nodes[xid] = {"parent": px,
-                              "status": "unplaced_single_atlas",
-                              "members": {ds: x}, "aliases": [x],
-                              "display": _display([x]),
-                              "support": (0, 0), "subtree_parent": None,
-                              "rejection": dict(rec),
-                              **({"expanded": True} if x != node else {})}
-                member_to_id[(ds, x)] = xid
-                routed.append({"dataset": ds, "label": x,
-                               "node_id": xid, "reason": reason,
-                               "candidate_id": c["candidate_id"]})
+            jobs.append((depth(ds, node), ds, node, rej))
+    routed, ucount = [], 0
+    for _d, ds, node, rej in sorted(
+            jobs, key=lambda t: (t[0], t[1], t[2])):
+        c = rej["candidate"]
+        reason = rej["reason"]
+        if (ds, node) in member_to_id or (ds, node) in aff:
+            continue                      # represented elsewhere
+        rp, _ = _collapse_chains(trees[ds])
+        p, parent_id = rp.get(node), None
+        while p not in (None, "root"):
+            if (ds, p) in member_to_id:
+                parent_id = member_to_id[(ds, p)]
+                break
+            p = rp.get(p)
+        ucount += 1
+        uid = f"MA-X{ucount:04d}"
+        rec = {"reason": reason, "candidate_id": c["candidate_id"]}
+        sub = c.get("provenance", {}).get("subtree_nodes") or []
+        sub_un = sorted(x for x in set(sub) - {node}
+                        if (ds, x) not in member_to_id and
+                        (ds, x) not in aff)
+        idmap = {node: uid}
+        for k, x in enumerate(sub_un, 1):
+            idmap[x] = f"{uid}.{k:02d}"
+        for x, xid in idmap.items():
+            if x == node:
+                px = parent_id
+            else:
+                p2 = rp.get(x)
+                while p2 not in (None, "root") and p2 not in idmap:
+                    p2 = rp.get(p2)
+                px = idmap.get(p2, uid)
+            nodes[xid] = {"parent": px,
+                          "status": "unplaced_single_atlas",
+                          "members": {ds: x}, "aliases": [x],
+                          "display": _display([x]),
+                          "support": (0, 0), "subtree_parent": None,
+                          "rejection": dict(rec),
+                          **({"expanded": True} if x != node else {})}
+            member_to_id[(ds, x)] = xid
+            routed.append({"dataset": ds, "label": x,
+                           "node_id": xid, "reason": reason,
+                           "candidate_id": c["candidate_id"]})
     return routed
 
 
@@ -157,7 +175,7 @@ def _display(labels):
 
 
 def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
-              frozen=FROZEN, **walk_kwargs):
+              stability=None, frozen=FROZEN, **walk_kwargs):
     """Run pairwise Walk evidence -> candidates -> hierarchical greedy
     backbone -> assembled reconciled hierarchy.
 
@@ -169,12 +187,35 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
     members, aliases, display), plus decisions / candidates / backbone /
     conflicts / provenance passthroughs.
     """
+    # entry validation: the completeness invariant is only as strong as
+    # its reference set — every observed dataset label must be a tree
+    # leaf and vice versa, or the tree silently misdescribes the data
+    for ds in sorted(datasets):
+        obs = set(np.unique(np.asarray(datasets[ds]["labels"])))
+        lv = set(trees[ds]["leaves"])
+        if obs != lv:
+            raise ValueError(
+                f"{ds}: dataset labels != tree leaves; "
+                f"labels-not-in-tree={sorted(obs - lv)[:5]}, "
+                f"tree-leaves-unobserved={sorted(lv - obs)[:5]}")
+
+    if stability is None:
+        import warnings
+        warnings.warn(
+            "no stability map supplied: STABILITY_FLOOR screening of "
+            "private clades is INACTIVE (trust-supplied-trees mode). "
+            "Pass stability={(dataset, node): support}, e.g. from "
+            "infer_tree()['support'], to screen inferred clades.",
+            UserWarning)
+        stability = {}
+
     dec = pairwise_decisions(datasets, trees, n_hvg=n_hvg,
                              base_seed=base_seed, n_boot=n_boot,
                              **walk_kwargs)
     cands = candidate_groups(dec, trees)
     bb = greedy_backbone(cands, trees, datasets,
-                         selections=dec["selections"], frozen=frozen)
+                         selections=dec["selections"],
+                         stability=stability, frozen=frozen)
 
     nodes = {}
     for nd in bb["nodes"]:

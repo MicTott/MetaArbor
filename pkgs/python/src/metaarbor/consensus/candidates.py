@@ -17,7 +17,7 @@ import numpy as np
 
 from metaarbor import leaves_under, measure
 from metaarbor.branch_fit import _collapse_chains
-from metaarbor.walk import select_node
+from metaarbor.walk import compactness, select_node
 
 
 def canonical_nodes(tree):
@@ -48,10 +48,15 @@ def _decision_support(sel):
 
 
 def _node_walks(cache, labels, own_tree, own_nodes, target_tree,
-                target_node_map, base_seed, **walk_kwargs):
-    """Frozen Walk of every canonical node of `own_tree` (its cells as the
-    positive set) against `target_tree`. Per-node seed = base_seed + rank
-    in the canonical order (deterministic)."""
+                target_node_map, base_seed, min_compact=0.7,
+                **walk_kwargs):
+    """COMPLETE frozen Walk of every canonical node of `own_tree` (its
+    cells as the positive set) against `target_tree` — including the
+    frozen 0.70 compactness gate that baseline_map applies before
+    calling a relation: a selection failing it is DISCORDANT, never a
+    valid match (it cannot seed a reciprocal consensus edge). The gated
+    landing is preserved diagnostically in `gated_selected`. Per-node
+    seed = base_seed + rank in the canonical order (deterministic)."""
     labels = np.asarray(labels)
     out = {}
     for rank, node in enumerate(own_nodes):
@@ -60,11 +65,21 @@ def _node_walks(cache, labels, own_tree, own_nodes, target_tree,
         sel = select_node(cache, q_labels, "__q__", target_tree,
                           seed=base_seed + rank, **walk_kwargs)
         matched = bool(sel["matched"]) and not sel["at_root"]
+        comp, gated = float("nan"), None
+        if matched:
+            comp = compactness(cache, q_labels == "__q__", target_tree,
+                               sel["selected"])
+            if not np.isnan(comp) and comp < min_compact:
+                gated = target_node_map[sel["selected"]]
+                matched = False
         out[node] = {
             "selected": (target_node_map[sel["selected"]]
                          if matched else None),
             "support": _decision_support(sel) if matched else float("nan"),
             "matched": matched,
+            "compactness": (None if np.isnan(comp) else float(comp)),
+            "relation": ("discordant" if gated is not None else None),
+            "gated_selected": gated,
         }
     return out
 
@@ -96,10 +111,44 @@ def pairwise_decisions(datasets, trees, n_hvg=1000, base_seed=211,
         for b_i in range(a_i + 1, len(keys)):
             ki, kj = keys[a_i], keys[b_i]
             di, dj = datasets[ki], datasets[kj]
-            m = measure(di["counts"], di["labels"], dj["counts"],
-                        dj["labels"],
-                        gene_names=di.get("gene_names",
-                                          dj.get("gene_names")),
+            ca_, cb_ = di["counts"], dj["counts"]
+            ga, gb = di.get("gene_names"), dj.get("gene_names")
+            if ga is not None and gb is not None:
+                if list(ga) == list(gb):
+                    gnames = list(ga)
+                else:
+                    # intersect and reorder BOTH matrices by name —
+                    # equal widths with reordered columns would
+                    # otherwise produce a valid-looking, meaningless
+                    # measurement
+                    ib = {g: x for x, g in enumerate(gb)}
+                    common = [g for g in ga if g in ib]
+                    if len(common) < 100:
+                        raise ValueError(
+                            f"{ki}/{kj}: only {len(common)} shared "
+                            "gene names — cannot align expression")
+                    ia = {g: x for x, g in enumerate(ga)}
+                    ca_ = ca_[:, [ia[g] for g in common]]
+                    cb_ = cb_[:, [ib[g] for g in common]]
+                    gnames = common
+            elif ga is None and gb is None:
+                if ca_.shape[1] != cb_.shape[1]:
+                    raise ValueError(
+                        f"{ki}/{kj}: no gene_names and matrix widths "
+                        f"differ ({ca_.shape[1]} vs {cb_.shape[1]})")
+                import warnings
+                warnings.warn(
+                    f"{ki}/{kj}: no gene_names supplied — assuming "
+                    "identical gene columns in identical order",
+                    UserWarning)
+                gnames = None
+            else:
+                raise ValueError(
+                    f"{ki}/{kj}: gene_names supplied for only one "
+                    "dataset; alignment cannot be verified — supply "
+                    "both or neither")
+            m = measure(ca_, di["labels"], cb_, dj["labels"],
+                        gene_names=gnames,
                         n_hvg=n_hvg, lib_a=di.get("lib"),
                         lib_b=dj.get("lib"))
             nodes_i, map_i = canon[ki]

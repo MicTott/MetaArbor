@@ -154,10 +154,15 @@ def main():
                 continue                          # anchored (or absent)
             n_cells = cells[ds].get(leaf, 0)
             fams, sels = {}, {}
+            discordant = []
             for dt in atlases:
                 if dt == ds:
                     continue
                 rec = decisions.get(f"{ds}>{dt}", {}).get(c, {})
+                if rec.get("relation") == "discordant":
+                    # the frozen Walk found signal but gated the
+                    # placement as incompatible with the target topology
+                    discordant.append(dt)
                 if rec.get("matched") and rec.get("selected"):
                     sels[dt] = (rec["selected"], rec.get("support"))
                     fam = target_family(nodes, midx, itrees, canon, dt,
@@ -179,6 +184,10 @@ def main():
                 # shared family (points into another unanchored group):
                 # real cross-atlas signal, distinct from weak/no-signal
                 cat = "matched_outside_families"
+            elif discordant:
+                # signal present, placement gated discordant by the
+                # frozen Walk's compactness rule -> incompatible evidence
+                cat = "incompatible"
             else:
                 cat = ("weak_no_signal" if n_cells >= args.min_cells
                        else "insufficient_power")
@@ -186,6 +195,7 @@ def main():
                 "atlas": ds, "label": leaf.split("|", 1)[-1],
                 "category": cat, "n_cells": n_cells,
                 "canonical_used": c if c != leaf else "",
+                "discordant_pairs": "; ".join(discordant),
                 "selections": "; ".join(
                     f"{dt}:{s[0]}({s[1]:.2f})" if s[1] is not None
                     else f"{dt}:{s[0]}" for dt, s in sorted(sels.items())),

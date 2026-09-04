@@ -187,31 +187,39 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
         for n_ in nodes_k:
             if n_ not in has_child:
                 terminal_in.add((k, n_))
-    # nodes spoken for by multi-dataset candidates (and which candidate)
-    spoken_for = {(ds, n_) for c in candidates if c["kind"] == "multi"
-                  for ds, n_ in c["members"].items()}
     node_owner = {(ds, n_): ci for ci, c in enumerate(candidates)
                   if c["kind"] == "multi"
                   for ds, n_ in c["members"].items()}
-    # per (ds, node): any FREE canonical node strictly below it?
-    has_free_below = {}
+    # structure is "claimed" only by ACCEPTED multi-dataset claims — a
+    # claim that is later rejected must not screen eligibility, so
+    # free-structure-below is evaluated DYNAMICALLY at each candidate's
+    # processing time against the accepted-so-far set (ancestors are
+    # processed first, so their claims are in place when descendants and
+    # siblings are adjudicated)
+    claimed = set()
+    kids_by = {}
     for k in keys:
-        nodes_k, _ = canonical_nodes(trees[k])
         rp, _ = _collapse_chains(trees[k])
-        kids_of = {}
+        kof = {}
         for c_, p_ in rp.items():
-            kids_of.setdefault(p_, []).append(c_)
+            kof.setdefault(p_, []).append(c_)
+        kids_by[k] = kof
 
-        def free_below(p_):
-            stack = list(kids_of.get(p_, []))
+    class _FreeBelow:
+        """dict-shaped view (.get) computing free-structure-below
+        against the live accepted-claim set."""
+
+        def get(self, key):
+            k, p_ = key
+            stack = list(kids_by.get(k, {}).get(p_, []))
             while stack:
                 v = stack.pop()
-                if (k, v) not in spoken_for:
+                if (k, v) not in claimed:
                     return True
-                stack.extend(kids_of.get(v, []))
+                stack.extend(kids_by[k].get(v, []))
             return False
-        for n_ in nodes_k:
-            has_free_below[(k, n_)] = free_below(n_)
+
+    has_free_below = _FreeBelow()
 
     # candidate ancestry relation (co-present datasets); disagreements
     # recorded as conflicts and treated as unrelated for ordering
@@ -247,28 +255,73 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
     processed = set()
 
     def parent_context(ci):
-        """Deepest accepted ancestor's members (per dataset), else root."""
-        best, best_idx = None, None
+        """Deepest accepted ancestor's members (per dataset), else root.
+        Also returns the MAXIMAL accepted ancestors: more than one means
+        two incomparable parent candidates claim this child (ambiguous
+        parentage — surfaced as a conflict at acceptance time)."""
+        best, best_idx, maximal = None, None, []
         for k, aidx in enumerate(accepted):
             if anc[aidx, ci]:
+                maximal = [m for m in maximal if not anc[m, aidx]]
+                if not any(anc[aidx, m] for m in maximal):
+                    maximal.append(aidx)
                 if best is None or anc[best_idx, aidx]:
                     best, best_idx = accepted_members[k], aidx
         ctx = {ds: None for ds in keys}
         if best:
             ctx.update(best)
-        return ctx, best_idx
+        return ctx, best_idx, maximal
 
     order_round = 0
     while len(processed) < n:
         ready = [i for i in range(n) if i not in processed and
                  all(j in processed for j in range(n) if anc[j, i])]
-        if not ready:                       # ancestry cycle: break by id
-            ready = [min(i for i in range(n) if i not in processed)]
+        if not ready:
+            # ancestry constraints among the unprocessed candidates are
+            # CYCLIC: contradictory cross-atlas ancestry evidence. Emit
+            # an explicit conflict and reject every cycle member (the
+            # claims die; their labels fall back via rejection routing)
+            # — never silently linearize by index.
+            rem = [i for i in range(n) if i not in processed]
+            reach = {i: {j for j in rem if j != i and anc[i, j]}
+                     for i in rem}
+            changed = True
+            while changed:
+                changed = False
+                for i in rem:
+                    ext = set().union(*(reach[j] for j in reach[i]))                         if reach[i] else set()
+                    if not ext <= reach[i]:
+                        reach[i] |= ext
+                        changed = True
+            in_cycle = sorted({i for i in rem if i in reach[i]})
+            comps, seen = [], set()
+            for i in in_cycle:
+                if i in seen:
+                    continue
+                comp = sorted({i} | {j for j in in_cycle
+                                     if j in reach[i] and i in reach[j]})
+                seen.update(comp)
+                comps.append(comp)
+            if not comps:                   # safety net; cannot happen
+                ready = [min(rem)]
+            else:
+                for comp in comps:
+                    conflicts.append({
+                        "type": "ancestry_cycle",
+                        "candidates": [candidates[i]["candidate_id"]
+                                       for i in comp],
+                        "class": "genuine_conflict"})
+                    for i in comp:
+                        processed.add(i)
+                        rejected.append({"candidate": candidates[i],
+                                         "reason": "ancestry_cycle",
+                                         "support": (0, 0)})
+                continue
         # group by parent context, rank within it
         def rank_key(ci):
             c = candidates[ci]
             rows = []
-            ctx, _ = parent_context(ci)
+            ctx, _, _ = parent_context(ci)
             for ds in keys:
                 rows.append(_eligibility_row(c, ds, datasets, trees, ctx,
                                              selections, frozen,
@@ -308,20 +361,51 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
                 # singleton's own dataset?
                 (sk, snode), = c["members"].items()
                 affiliate_target = None
-                if selections is not None:
+                sub_nodes = c.get("provenance", {}).get(
+                    "subtree_nodes") or []
+                if selections is not None and len(sub_nodes) <= 1:
+                    # a consolidated subtree is never affiliated: an
+                    # alias cannot carry topology, so subtree claims go
+                    # through the private/unknown routes (which expand)
+                    landings = {}
                     for d in keys:
                         if d == sk:
                             continue
                         sel = selections.get((sk, d), {}).get(snode)
                         v = sel.get("selected") if sel else None
                         oi = node_owner.get((d, v)) if v else None
-                        if oi is not None and oi in ids and \
-                                sk not in candidates[oi]["members"]:
-                            ok_rel, _ = pair_relation(
-                                c["members"], candidates[oi]["members"],
-                                trees)
-                            affiliate_target = ids[oi]
-                            break
+                        if oi is None or oi not in ids or \
+                                sk in candidates[oi]["members"]:
+                            continue
+                        _rel, dis = pair_relation(
+                            c["members"], candidates[oi]["members"],
+                            trees)
+                        if not dis:
+                            landings[d] = oi
+                    targets = sorted(set(landings.values()))
+                    if len(targets) == 1:
+                        affiliate_target = ids[targets[0]]
+                    elif len(targets) > 1:
+                        comparable = all(
+                            anc[a_, b_] or anc[b_, a_]
+                            for x_, a_ in enumerate(targets)
+                            for b_ in targets[x_ + 1:])
+                        if comparable:
+                            # nested resolution difference: attach to
+                            # the COARSEST landing (the common ancestor
+                            # claim) — the conservative statement
+                            coarse = [t for t in targets
+                                      if all(anc[t, o] for o in targets
+                                             if o != t)]
+                            if coarse:
+                                affiliate_target = ids[coarse[0]]
+                        if affiliate_target is None:
+                            conflicts.append({
+                                "type": "affiliate_incompatible_landings",
+                                "candidate": c["candidate_id"],
+                                "targets": [candidates[t]["candidate_id"]
+                                            for t in targets],
+                                "class": "ambiguity"})
                 if affiliate_target is not None:
                     affiliates.append({
                         "dataset": sk, "node": snode,
@@ -354,7 +438,14 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
                                  "reason": "ancestry_incompatible",
                                  "support": (supp, elig)})
                 continue
-            ctx, parent_idx = parent_context(ci)
+            ctx, parent_idx, maximal = parent_context(ci)
+            if len(maximal) > 1:
+                conflicts.append({
+                    "type": "ambiguous_parent",
+                    "candidate": c["candidate_id"],
+                    "parents": [candidates[m]["candidate_id"]
+                                for m in sorted(maximal)],
+                    "class": "ambiguity"})
             ma_id = f"MA-C{len(accepted)+1:04d}"
             ids[ci] = ma_id
             node = {"id": ma_id, "status": status,
@@ -376,6 +467,9 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
                         else None) for x in sorted(sub)}
             accepted.append(ci)
             accepted_members.append(c["members"])
+            if c["kind"] == "multi":
+                claimed.update((ds, n_) for ds, n_ in
+                               c["members"].items())
             node_list.append(node)
         order_round += 1
         if order_round > n + 2:

@@ -63,9 +63,21 @@ def test_reciprocal_recovery_and_private_pool(three_donors):
         for f in fams:
             assert (f"family:{ki}|{f}", f"family:{kj}|{f}") in got, \
                 (ki, kj, f, sorted(got))
-        # every latent leaf reciprocally matched to its counterpart
+        # every latent leaf reciprocally matched to its counterpart —
+        # or the miss is EXPLAINED by the frozen Walk's compactness gate
+        # (relation "discordant" recorded, gated landing = the true
+        # counterpart). Losses are never silent.
         for l in sim["latent"]["leaves"]:
-            assert (f"{ki}|{l}", f"{kj}|{l}") in got, (ki, kj, l)
+            if (f"{ki}|{l}", f"{kj}|{l}") in got:
+                continue
+            fw = dec["selections"][(ki, kj)].get(f"{ki}|{l}", {})
+            rv = dec["selections"][(kj, ki)].get(f"{kj}|{l}", {})
+            explained = (
+                (fw.get("relation") == "discordant" and
+                 fw.get("gated_selected") == f"{kj}|{l}") or
+                (rv.get("relation") == "discordant" and
+                 rv.get("gated_selected") == f"{ki}|{l}"))
+            assert explained, (ki, kj, l, fw, rv)
         # no cross-family confusion
         for (a, b) in got:
             base_a = a.split("|", 1)[1]

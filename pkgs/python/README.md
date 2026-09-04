@@ -29,7 +29,7 @@ pip install -e ".[all,test]"      # anndata + POT + pytest
 ## Quick start (arrays)
 
 ```python
-import metaarbor as tn
+import metaarbor as ma
 
 m = ma.measure(counts_a, labels_a, counts_b, labels_b,
                gene_names=genes)                  # cells x genes

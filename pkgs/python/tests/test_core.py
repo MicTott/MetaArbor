@@ -42,8 +42,6 @@ def test_vote_cache_additivity_and_root_neutrality():
     # root neutrality: the all-leaves union scores every cell identically
     tot = cf["V"].sum(axis=1)
     assert np.ptp(tot) < 1e-9
-    assert abs(auroc(np.round(tot, 6), coarse[: n_a % n_b] ==  # any split
-               "F0") - 0.5) < 1e-12 or True  # tie-restored AUROC is 0.5
     r = np.round(tot, 6)
     assert abs(auroc(r, np.arange(n_a) < 40) - 0.5) < 1e-12
 

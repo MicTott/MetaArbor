@@ -130,11 +130,15 @@ def plot_reconciled_tree(harm, trees, dataset_names=None, figsize=None):
             for ds in keys:
                 for lab in nd["aliases"]:
                     base = str(lab)
-                    if base.startswith(f"{ds}|") or \
-                            base.split("|", 1)[0] == ds or \
+                    aff_mark = base.startswith("\u2248 ")
+                    core = base[2:] if aff_mark else base
+                    if core.startswith(f"{ds}|") or \
+                            core.split("|", 1)[0] == ds or \
                             (ds in nd["members"] and
                              nd["members"][ds] == lab):
-                        texts.append((base.split("|", 1)[-1], colors[ds]))
+                        texts.append((("\u2248 " if aff_mark else "") +
+                                      core.split("|", 1)[-1],
+                                      colors[ds]))
             seen = set()
             texts = [t for t in texts
                      if not (t in seen or seen.add(t))]
@@ -142,7 +146,7 @@ def plot_reconciled_tree(harm, trees, dataset_names=None, figsize=None):
                 ax.text(x1 + 0.10, y1 + (j - (len(texts) - 1) / 2) * 0.42,
                         txt.split(":")[-1], fontsize=5.2, va="center",
                         color=col,
-                        fontweight=("bold" if not children[i] or True
+                        fontweight=("bold" if not children[i]
                                     else "normal"))
         n_conf = len([c for c in harm["conflicts"]
                       if c.get("class") == "genuine_conflict"])
@@ -153,8 +157,10 @@ def plot_reconciled_tree(harm, trees, dataset_names=None, figsize=None):
                 f"backbone: {sum(nd['status'] == 'backbone' for nd in nodes.values())}   "
                 f"private: {sum(nd['status'] == 'private' for nd in nodes.values())}   "
                 f"single-atlas: {sum(nd['status'] == 'single_atlas' for nd in nodes.values())}   "
-                f"unplaced (assembly repair): "
-                f"{sum(nd['status'] == 'unplaced_single_atlas' for nd in nodes.values())}   "
+                f"unplaced (routed rejections): "
+                f"{sum(nd['status'] == 'unplaced_single_atlas' and not nd.get('assembly_repair') for nd in nodes.values())}   "
+                f"unplaced (tripwire repairs): "
+                f"{sum(bool(nd.get('assembly_repair')) for nd in nodes.values())}   "
                 f"affiliate aliases: {len(harm['affiliates'])}   "
                 f"conflicts: {n_conf}   "
                 f"unplaced internal layers: "
