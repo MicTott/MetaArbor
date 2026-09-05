@@ -65,8 +65,7 @@ import numpy as np
 
 from metaarbor import leaves_under
 
-from .eligibility import (p_detect_posterior, prevalence_lower,
-                          prevalence_posterior)
+from .eligibility import p_detect_posterior, prevalence_lower, prevalence_posterior
 from .poset import compatible, pair_relation, relation
 
 FROZEN = {"POWER": 0.95, "CRED_Q": 0.05, "MIN_SUPPORT": 0.5,
@@ -339,9 +338,13 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
             k_, rows = rank_key(ci)
             keyed.append((k_, ci, rows))
         keyed.sort(key=lambda t: t[0])
-        for k_, ci, rows in keyed:
+        for k_, ci, _rank_rows in keyed:
             processed.add(ci)
             c = candidates[ci]
+            # ranking used cohort-start state; ADJUDICATION re-evaluates
+            # eligibility fresh so claims accepted earlier in this same
+            # cohort are visible (no stale shared state within a round)
+            _k2, rows = rank_key(ci)
             for r in rows:
                 eligibility_table.append(
                     dict(r, candidate=c["candidate_id"]))
@@ -438,7 +441,7 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
                                  "reason": "ancestry_incompatible",
                                  "support": (supp, elig)})
                 continue
-            ctx, parent_idx, maximal = parent_context(ci)
+            _ctx, parent_idx, maximal = parent_context(ci)
             if len(maximal) > 1:
                 conflicts.append({
                     "type": "ambiguous_parent",
@@ -446,6 +449,17 @@ def greedy_backbone(cand_out, trees, datasets, selections=None,
                     "parents": [candidates[m]["candidate_id"]
                                 for m in sorted(maximal)],
                     "class": "ambiguity"})
+                # the diagnostic must govern the placement: an ambiguous
+                # candidate is NOT forced under an arbitrary parent — it
+                # attaches at the deepest accepted ancestor COMMON to
+                # every maximal parent (a polytomy), or at root
+                common = [a for a in accepted
+                          if anc[a, ci] and
+                          all(anc[a, m] for m in maximal)]
+                parent_idx = None
+                for a in common:
+                    if parent_idx is None or anc[parent_idx, a]:
+                        parent_idx = a
             ma_id = f"MA-C{len(accepted)+1:04d}"
             ids[ci] = ma_id
             node = {"id": ma_id, "status": status,

@@ -19,6 +19,10 @@ from metaarbor import leaves_under, measure
 from metaarbor.branch_fit import _collapse_chains
 from metaarbor.walk import compactness, select_node
 
+# minimum shared gene names required to align two atlases' expression;
+# below this the intersection is too small for a meaningful HVG panel
+MIN_SHARED_GENES = 100
+
 
 def canonical_nodes(tree):
     """(canonical node list, node -> canonical map): unary-chain interiors
@@ -50,13 +54,15 @@ def _decision_support(sel):
 def _node_walks(cache, labels, own_tree, own_nodes, target_tree,
                 target_node_map, base_seed, min_compact=0.7,
                 **walk_kwargs):
-    """COMPLETE frozen Walk of every canonical node of `own_tree` (its
-    cells as the positive set) against `target_tree` — including the
-    frozen 0.70 compactness gate that baseline_map applies before
-    calling a relation: a selection failing it is DISCORDANT, never a
-    valid match (it cannot seed a reciprocal consensus edge). The gated
-    landing is preserved diagnostically in `gated_selected`. Per-node
-    seed = base_seed + rank in the canonical order (deterministic)."""
+    """Frozen Walk of every canonical node of `own_tree` (its cells as
+    the positive set) against `target_tree`, applying the frozen Walk's
+    SELECTION and COMPACTNESS gates: a selection failing the 0.70
+    compactness gate is discordant, never a valid match (it cannot seed
+    a reciprocal consensus edge); the gated landing is preserved
+    diagnostically in `gated_selected`. NOTE: baseline_map's root-stop
+    diagnostic distinction (discordant-with-signal vs unmatched) is not
+    reproduced here — root stops are simply unmatched. Per-node seed =
+    base_seed + rank in the canonical order (deterministic)."""
     labels = np.asarray(labels)
     out = {}
     for rank, node in enumerate(own_nodes):
@@ -113,6 +119,17 @@ def pairwise_decisions(datasets, trees, n_hvg=1000, base_seed=211,
             di, dj = datasets[ki], datasets[kj]
             ca_, cb_ = di["counts"], dj["counts"]
             ga, gb = di.get("gene_names"), dj.get("gene_names")
+            for tag, g_, m_ in ((ki, ga, ca_), (kj, gb, cb_)):
+                if g_ is None:
+                    continue
+                if len(g_) != m_.shape[1]:
+                    raise ValueError(
+                        f"{tag}: {len(g_)} gene_names for "
+                        f"{m_.shape[1]} matrix columns")
+                if len(set(g_)) != len(g_):
+                    raise ValueError(
+                        f"{tag}: gene_names contain duplicates — "
+                        "alignment by name would be ambiguous")
             if ga is not None and gb is not None:
                 if list(ga) == list(gb):
                     gnames = list(ga)
@@ -120,13 +137,14 @@ def pairwise_decisions(datasets, trees, n_hvg=1000, base_seed=211,
                     # intersect and reorder BOTH matrices by name —
                     # equal widths with reordered columns would
                     # otherwise produce a valid-looking, meaningless
-                    # measurement
+                    # measurement. MIN_SHARED_GENES documents the floor.
                     ib = {g: x for x, g in enumerate(gb)}
                     common = [g for g in ga if g in ib]
-                    if len(common) < 100:
+                    if len(common) < MIN_SHARED_GENES:
                         raise ValueError(
                             f"{ki}/{kj}: only {len(common)} shared "
-                            "gene names — cannot align expression")
+                            f"gene names (< MIN_SHARED_GENES="
+                            f"{MIN_SHARED_GENES}) — cannot align")
                     ia = {g: x for x, g in enumerate(ga)}
                     ca_ = ca_[:, [ia[g] for g in common]]
                     cb_ = cb_[:, [ib[g] for g in common]]
@@ -141,7 +159,9 @@ def pairwise_decisions(datasets, trees, n_hvg=1000, base_seed=211,
                     f"{ki}/{kj}: no gene_names supplied — assuming "
                     "identical gene columns in identical order",
                     UserWarning)
-                gnames = None
+                # downstream measurement indexes names, so generate
+                # neutral positional names under the stated assumption
+                gnames = [f"__pos{i}__" for i in range(ca_.shape[1])]
             else:
                 raise ValueError(
                     f"{ki}/{kj}: gene_names supplied for only one "
@@ -328,23 +348,22 @@ def candidate_groups(decisions, trees):
     # ---- private-subtree consolidation ----------------------------------
     unresolved = {k: [] for k in keys}
     for k in keys:
-        nodes, node_map = canon[k]
+        nodes, _node_map = canon[k]
         matched_k = {n for (kk, n) in matched_nodes if kk == k}
 
-        def subtree_canon(n):
+        def subtree_canon(n, _nodes=nodes, _rp=red_parent[k]):
             out, stack = [], [n]
             while stack:
                 v = stack.pop()
                 out.append(v)
-                stack.extend(c for c in nodes
-                             if red_parent[k].get(c) == v)
+                stack.extend(c for c in _nodes if _rp.get(c) == v)
             return out
 
-        def depth_of(n):
-            d, p = 0, red_parent[k].get(n)
+        def depth_of(n, _rp=red_parent[k]):
+            d, p = 0, _rp.get(n)
             while p not in (None, "root"):
                 d += 1
-                p = red_parent[k].get(p)
+                p = _rp.get(p)
             return d
 
         # top-down: a node that goes unresolved (its subtree contains a

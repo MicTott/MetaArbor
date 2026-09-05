@@ -57,7 +57,8 @@ def simulate(key, leaves, family_of, n_per=70, batch_seed=0, sub_lfc=1.3,
 
 def run_case(name, datasets, trees, checks, names):
     print(f"\n=== case {name} ===")
-    harm = harmonize(datasets, trees, n_hvg=700, n_boot=100)
+    harm = harmonize(datasets, trees, n_hvg=700, n_boot=100,
+                     trust_trees=True)
     nodes = harm["tree"]
     by_status = {}
     for nd in nodes.values():

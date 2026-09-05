@@ -1,12 +1,17 @@
 # MetaArbor (research repository)
 
-**MetaArbor** aligns independently constructed cell-type taxonomies across
-atlases of different resolutions, without expression-space integration.
-Two frozen inference modes share one MetaNeighbor-derived voting kernel:
-**MetaArbor-Walk** (hierarchical selection: votes navigate, AUROC contrasts
-decide) and **MetaArbor-Transport** (fused unbalanced Gromov-Wasserstein
-with refinement-invariant tree-intrinsic marginals). Validated on the Allen
-whole-mouse-brain PL-ILA-ORB benchmark across three batch conditions.
+**MetaArbor** harmonizes independently constructed cell-type taxonomies
+across atlases of different resolutions, without expression-space
+integration. The product is a **reconciled hierarchy** — a genuinely new
+tree carrying every atlas's labels at their supported levels
+(`metaarbor.harmonize()`, beta) — built from pairwise evidence produced
+by two frozen engines sharing one MetaNeighbor-derived voting kernel:
+**MetaArbor-Walk** (hierarchical selection: votes navigate, AUROC
+contrasts decide; feeds harmonize) and **MetaArbor-Transport** (fused
+unbalanced Gromov-Wasserstein with refinement-invariant tree-intrinsic
+marginals; synthesis adapter not yet built). Validated on the Allen
+whole-mouse-brain PL-ILA-ORB benchmark across three batch conditions;
+matched comparison vs OTHarmonizer in comparison/.
 
 Formerly TreeNeighbor (renamed at tag `v0.1-treeneighbor-final`; the old
 name persists in the frozen analysis record). This top level is the
@@ -32,7 +37,7 @@ pip install "metaarbor[all] @ git+https://github.com/MicTott/MetaArbor#subdirect
 # or from a clone
 git clone https://github.com/MicTott/MetaArbor && cd metaarbor
 pip install "./pkgs/python[all]"       # [viz] plots, [ot] Transport, [ete] ete4
-python -m pytest pkgs/python/tests -q  # 10 pass; 4 parity tests skip without fixtures
+python -m pytest pkgs/python/tests -q  # full suite; FUGW contract tests need pot>=0.9.4
 
 # R companion
 R CMD INSTALL pkgs/r

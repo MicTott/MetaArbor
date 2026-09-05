@@ -3,21 +3,28 @@ is NOT changed; this only classifies the saved one-way Walk evidence.
 
 An input label is UNANCHORED when its assembled component contains no
 multi-atlas meta-clade (it lives in a purely single-atlas tree of the
-forest). Each unanchored label is classified:
+forest). Each unanchored label is classified (MetaNeighbor-style
+terminology; the `evidence` column carries the annotation):
 
-  coherent_one_way      its saved one-way Walk selections point into an
-                        existing shared family, and where several atlas
-                        pairs matched they agree (same family or one is
-                        the other's ancestor)
-  incompatible          matched selections imply conflicting families
-                        across atlas pairs
-  weak_no_signal        no one-way match anywhere despite adequate
-                        sampling (>= --min-cells cells)
-  insufficient_power    no match and fewer than --min-cells cells
-  genuinely_unsampled   the label's lineage is absent from every other
-                        atlas per user-supplied metadata (--absent CSV
-                        with columns: atlas,label; without the file this
-                        category cannot be assessed and is not assigned)
+  one_way_match        a supported one-way Walk selection exists;
+                       evidence = into_shared_family (agreeing
+                       landings inside an existing shared family — the
+                       decisive class) or outside_families (real
+                       signal, but the target is itself unanchored)
+  conflicting_matches  supported placements imply genuinely
+                       incompatible families across atlas pairs
+  no_supported_match   no supported placement anywhere; evidence =
+                       distributed_evidence when the frozen Walk's
+                       compactness gate fired (the vote mass was too
+                       dispersed to support a concentrated match — NOT
+                       proof of conflicting biology), else none
+  insufficient_power   no supported placement and fewer than
+                       --min-cells cells (cannot distinguish absence
+                       from undersampling)
+  atlas_specific       the label's lineage is absent from every other
+                       atlas per user-supplied metadata (--absent CSV
+                       with columns: atlas,label; without the file this
+                       category cannot be assessed and is not assigned)
 
 Usage:
     python audit_unanchored.py <run_dir> [--absent absent.csv]
@@ -170,30 +177,34 @@ def main():
                     if fam is not None:
                         fams[dt] = fam
             others = [dt for dt in atlases if dt != ds]
+            evidence = ""
             if absent.get(leaf.split("|", 1)[-1]) and \
                     all(dt in absent[leaf.split("|", 1)[-1]]
                         for dt in others):
-                cat = "genuinely_unsampled"
+                cat = "atlas_specific"
             elif fams:
                 vals = list(fams.values())
                 ok = all(ancestor_line(nodes, vals[0], v)
                          for v in vals[1:])
-                cat = "coherent_one_way" if ok else "incompatible"
+                if ok:
+                    cat, evidence = "one_way_match", "into_shared_family"
+                else:
+                    cat = "conflicting_matches"
             elif sels:
-                # one-way match exists but its target lies outside every
-                # shared family (points into another unanchored group):
-                # real cross-atlas signal, distinct from weak/no-signal
-                cat = "matched_outside_families"
+                cat, evidence = "one_way_match", "outside_families"
             elif discordant:
-                # signal present, placement gated discordant by the
-                # frozen Walk's compactness rule -> incompatible evidence
-                cat = "incompatible"
+                # compactness-gated: the evidence was too DISTRIBUTED to
+                # support a concentrated match — this is absence of a
+                # supported match, not proof of conflicting biology
+                cat, evidence = "no_supported_match", "distributed_evidence"
+            elif n_cells >= args.min_cells:
+                cat = "no_supported_match"
             else:
-                cat = ("weak_no_signal" if n_cells >= args.min_cells
-                       else "insufficient_power")
+                cat = "insufficient_power"
             rows.append({
                 "atlas": ds, "label": leaf.split("|", 1)[-1],
-                "category": cat, "n_cells": n_cells,
+                "category": cat, "evidence": evidence,
+                "n_cells": n_cells,
                 "canonical_used": c if c != leaf else "",
                 "discordant_pairs": "; ".join(discordant),
                 "selections": "; ".join(
@@ -211,20 +222,21 @@ def main():
             w.writeheader()
             w.writerows(rows)
     tab = Counter((r["atlas"], r["category"]) for r in rows)
-    cats = ["coherent_one_way", "incompatible",
-            "matched_outside_families", "weak_no_signal",
-            "insufficient_power", "genuinely_unsampled"]
+    cats = ["one_way_match", "conflicting_matches",
+            "no_supported_match", "insufficient_power",
+            "atlas_specific"]
     print(f"unanchored labels: {len(rows)}")
     for ds in atlases:
         line = "  ".join(f"{c}={tab.get((ds, c), 0)}" for c in cats)
         print(f"  {ds}: {line}")
-    coh = sum(v for (d, c), v in tab.items() if c == "coherent_one_way")
-    print(f"DECISIVE: {coh}/{len(rows)} unanchored labels point "
-          "coherently into an existing shared family "
-          "(these are representable only by asymmetric fine-to-coarse "
+    coh = sum(1 for r in rows if r["category"] == "one_way_match" and
+              r["evidence"] == "into_shared_family")
+    print(f"DECISIVE: {coh}/{len(rows)} unanchored labels are "
+          "one-way matches into an existing shared family "
+          "(representable only by asymmetric fine-to-coarse "
           "attachment, not by strict reciprocity)")
     if not args.absent:
-        print("note: genuinely_unsampled not assessed (no --absent "
+        print("note: atlas_specific not assessed (no --absent "
               "metadata supplied)")
 
     # ---- renders ---------------------------------------------------------

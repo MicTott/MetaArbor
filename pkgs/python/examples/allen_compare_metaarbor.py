@@ -51,6 +51,9 @@ labB = np.asarray([f"v3|{c['cluster']}" for c in cellsB])
 inf_a = infer_tree(cA, labA, lib=lA, n_hvg=2000, n_boot=50, seed=0)
 inf_b = infer_tree(cB, labB, lib=lB, n_hvg=2000, n_boot=50, seed=0)
 trees = {"v2": inf_a["tree"], "v3": inf_b["tree"]}
+stability = {("v2", n): float(v) for n, v in inf_a["support"].items()}
+stability.update({("v3", n): float(v)
+                  for n, v in inf_b["support"].items()})
 datasets = {
     "v2": {"counts": cA, "labels": labA, "gene_names": genes, "lib": lA},
     "v3": {"counts": cB, "labels": labB, "gene_names": genes, "lib": lB},
@@ -58,7 +61,7 @@ datasets = {
 
 for tag, seed in (("primary", 211), ("seed977", 977)):
     harm = harmonize(datasets, trees, n_hvg=1000, n_boot=200,
-                     base_seed=seed)
+                     base_seed=seed, stability=stability)
     dump = {i: {"parent": nd["parent"], "status": nd["status"],
                 "members": nd["members"], "aliases": nd["aliases"]}
             for i, nd in harm["tree"].items()}

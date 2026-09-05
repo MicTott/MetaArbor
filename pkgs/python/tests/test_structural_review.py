@@ -255,15 +255,15 @@ def small_pair():
 
 def test_gene_reordering_is_corrected(small_pair):
     ds, trees = small_pair
-    with pytest.warns(UserWarning):
-        base = harmonize(dict(ds), trees, n_hvg=500, n_boot=50)
+    base = harmonize(dict(ds), trees, n_hvg=500, n_boot=50,
+                     trust_trees=True)
     perm = np.random.RandomState(3).permutation(len(GENES))
     shuf = dict(ds)
     shuf["B"] = dict(ds["B"],
                      counts=ds["B"]["counts"][:, perm],
                      gene_names=[GENES[i] for i in perm])
-    with pytest.warns(UserWarning):
-        out = harmonize(shuf, trees, n_hvg=500, n_boot=50)
+    out = harmonize(shuf, trees, n_hvg=500, n_boot=50,
+                    trust_trees=True)
     assert {i: (nd["parent"], nd["status"], nd["members"])
             for i, nd in out["tree"].items()} == \
         {i: (nd["parent"], nd["status"], nd["members"])
@@ -275,7 +275,7 @@ def test_one_sided_gene_names_raise(small_pair):
     bad = dict(ds)
     bad["B"] = {k: v for k, v in ds["B"].items() if k != "gene_names"}
     with pytest.raises(ValueError, match="only one"):
-        harmonize(bad, trees, n_hvg=500, n_boot=50)
+        harmonize(bad, trees, n_hvg=500, n_boot=50, trust_trees=True)
 
 
 def test_label_tree_leaf_mismatch_raises(small_pair):
@@ -285,17 +285,17 @@ def test_label_tree_leaf_mismatch_raises(small_pair):
     lab[0] = "A|GHOST"
     bad["A"] = dict(ds["A"], labels=lab)
     with pytest.raises(ValueError, match="labels != tree leaves"):
-        harmonize(bad, trees, n_hvg=500, n_boot=50)
+        harmonize(bad, trees, n_hvg=500, n_boot=50, trust_trees=True)
 
 
 def test_dataset_insertion_order_invariance(small_pair):
     ds, trees = small_pair
-    with pytest.warns(UserWarning):
-        fwd = harmonize(dict(ds), trees, n_hvg=500, n_boot=50)
+    fwd = harmonize(dict(ds), trees, n_hvg=500, n_boot=50,
+                    trust_trees=True)
     rev_ds = dict(reversed(list(ds.items())))
     rev_tr = dict(reversed(list(trees.items())))
-    with pytest.warns(UserWarning):
-        rev = harmonize(rev_ds, rev_tr, n_hvg=500, n_boot=50)
+    rev = harmonize(rev_ds, rev_tr, n_hvg=500, n_boot=50,
+                     trust_trees=True)
     assert {i: (nd["parent"], nd["status"], nd["members"])
             for i, nd in fwd["tree"].items()} == \
         {i: (nd["parent"], nd["status"], nd["members"])
@@ -344,3 +344,43 @@ def test_compactness_gate_blocks_reciprocal_edge(small_pair, monkeypatch):
                 assert rec["relation"] == "discordant"
     assert all(not v for v in dec["matches"].values())
     monkeypatch.setattr(C, "compactness", real)
+
+
+def test_rejected_claimant_leaves_structure_free_and_honest():
+    """Reviewer's adversarial shape: a candidate missing in one atlas,
+    free structure beneath its accepted parent there, and a REJECTED
+    same-cohort sibling as the only apparent claimant of that structure.
+    The missing-atlas eligibility row must be unresolved_in_dataset
+    (structure genuinely free — the claimant died), NOT a confident
+    private_or_absent driven by a claim that never entered the
+    consensus."""
+    trees = {k: toy_tree(k, FAMS) for k in ("d0", "d1", "d2")}
+    datasets = {k: {"labels": labels_for(k, FAMS, {})}
+                for k in ("d0", "d1", "d2")}
+    e_hi = [{"from": ("d0", "x"), "to": ("d1", "y"),
+             "support_ij": 0.95, "support_ji": 0.95}]
+    e_lo = [{"from": ("d0", "x"), "to": ("d1", "y"),
+             "support_ij": 0.9, "support_ji": 0.9}]
+    cands = [
+        cand({f"d{i}": f"family:d{i}|F1" for i in range(3)},
+             edges=e_lo * 3),
+        cand({f"d{i}": f"family:d{i}|F2" for i in range(3)},
+             edges=e_lo * 3),
+        # R: crosses families (d0 under F2, d2 under F1) -> rejected as
+        # ancestry_incompatible at adjudication; ranks BEFORE A2 via
+        # higher bootstrap support. It "claims" d2|F1.a — apparently.
+        cand({"d0": "d0|F2.a", "d2": "d2|F1.a"}, edges=e_hi),
+        # A2: leaf claim missing in d2, under accepted F1 parent
+        cand({"d0": "d0|F1.b", "d1": "d1|F1.b"}, edges=e_lo),
+    ]
+    for i, c in enumerate(cands):
+        c["candidate_id"] = f"cand:{i+1:04d}"
+    out = greedy_backbone({"candidates": cands, "edge_conflicts": []},
+                          trees, datasets)
+    assert any(r["candidate"]["candidate_id"] == "cand:0003" and
+               r["reason"] == "ancestry_incompatible"
+               for r in out["rejected"])
+    row = next(r for r in out["eligibility_table"]
+               if r["candidate"] == "cand:0004" and r["dataset"] == "d2")
+    assert row["call"] == "unresolved_in_dataset", row
+    assert row["via"][0] == "free_structure_below"

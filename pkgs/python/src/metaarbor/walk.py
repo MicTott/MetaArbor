@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .kernel import auroc, node_scores, node_mean_scores
+from .kernel import auroc, node_mean_scores, node_scores
 from .rng import Minstd
 from .tree import ancestors, leaves_under
 

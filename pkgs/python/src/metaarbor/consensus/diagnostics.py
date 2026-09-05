@@ -3,12 +3,19 @@ candidate-by-dataset membership, decision-edge graph, eligibility power
 curves, and true-vs-reconstructed consensus comparison."""
 from __future__ import annotations
 
-import numpy as np
-
 import contextlib
 
-from metaarbor.style import (OKABE_ITO, RULE_GRAY, SIZES, TEXT_DARK,
-                             TEXT_MID, TREE_GRAY, pub_style)
+import numpy as np
+
+from metaarbor.style import (
+    OKABE_ITO,
+    RULE_GRAY,
+    SIZES,
+    TEXT_DARK,
+    TEXT_MID,
+    TREE_GRAY,
+    pub_style,
+)
 
 
 @contextlib.contextmanager

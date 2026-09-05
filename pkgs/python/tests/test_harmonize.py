@@ -61,7 +61,8 @@ def private_world():
     dA["labels"] = np.asarray([f"A|{l}" for l in dA["labels"]])
     dB = simulate(leaves, fam, batch_seed=6)
     dB["labels"] = np.asarray([f"B|{l}" for l in dB["labels"]])
-    return harmonize({"A": dA, "B": dB}, trees, n_hvg=700, n_boot=100), \
+    return harmonize({"A": dA, "B": dB}, trees, n_hvg=700,
+                 n_boot=100, trust_trees=True), \
         trees
 
 
@@ -151,7 +152,8 @@ def test_repair_reinstates_lost_label_with_input_parentage(private_world):
     nd = nodes[rid]
     assert nd["status"] == "unplaced_single_atlas"
     assert nd["assembly_repair"] is True
-    assert nd["support"] == (0, 0)          # excluded from support counts
+    assert nd["support"] is None and \
+        nd["support_type"] == "unplaced"    # never counted as support
     # exact input-tree parentage: nearest represented ancestor of the
     # leaf in B's own tree
     from metaarbor.branch_fit import _collapse_chains
@@ -202,7 +204,8 @@ def test_rejection_routes_labels_not_claims(private_world):
         assert nd["status"] == "unplaced_single_atlas"   # never private
         assert nd["rejection"]["reason"] == "insufficient_support"
         assert nd["rejection"]["candidate_id"] == "cand:9999"
-        assert nd["support"] == (0, 0)
+        assert nd["support"] is None and \
+            nd["support_type"] == "unplaced"
     # tripwire now finds NOTHING: the source fix precedes it
     assert repair_completeness(nodes, trees, harm["affiliates"]) == []
 

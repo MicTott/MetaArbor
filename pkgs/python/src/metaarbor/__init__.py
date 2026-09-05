@@ -8,28 +8,61 @@ frozen FUGW transport estimator with refinement-invariant tree-intrinsic
 marginals. Validated against the reference R implementation on the Allen
 WMB PL-ILA-ORB benchmark (see the repo's NOTES.md).
 """
-from .kernel import (aggregate_cache, auroc, leaf_costs, lognorm, measure,
-                     node_auroc, node_mean_scores, node_scores,
-                     rank_normalize, variable_genes, vote_cache)
-from .accessors import (family_mass, node_auroc_matrix,
-                        vote_fraction_matrix, walk_traces, write_csv)
-from .branch_fit import (fit_branch_lengths, patristic_matrix,
-                         pseudobulk_distances, structure_matrices)
+from .accessors import (
+                     family_mass,
+                     node_auroc_matrix,
+                     vote_fraction_matrix,
+                     walk_traces,
+                     write_csv,
+)
+from .branch_fit import (
+                     fit_branch_lengths,
+                     patristic_matrix,
+                     pseudobulk_distances,
+                     structure_matrices,
+)
 from .bundle import result_bundle
+
 from .evidence import node_evidence
 from .fugw import MassCollapsedError, molecular_only
-from .infer_tree import (annotate_star_relations, infer_tree, is_star_tree,
-                         star_tree)
-from .phylogram import (plot_alignment_phylogram,
-                        plot_harmonized_phylogram, to_ete4, to_newick)
-from .plots import (classify_outcome, plot_alignment_tree,
-                    plot_error_tree, plot_evidence_heatmap,
-                    plot_query_path, plot_transport_heatmap, tree_layout)
-from .summary import (agreement, alignment_summary, transport_summary,
-                      walk_summary)
+from .infer_tree import annotate_star_relations, infer_tree, is_star_tree, star_tree
+from .kernel import (
+                     aggregate_cache,
+                     auroc,
+                     leaf_costs,
+                     lognorm,
+                     measure,
+                     node_auroc,
+                     node_mean_scores,
+                     node_scores,
+                     rank_normalize,
+                     variable_genes,
+                     vote_cache,
+)
+from .phylogram import (
+                     plot_alignment_phylogram,
+                     plot_harmonized_phylogram,
+                     to_ete4,
+                     to_newick,
+)
+from .plots import (
+                     classify_outcome,
+                     plot_alignment_tree,
+                     plot_error_tree,
+                     plot_evidence_heatmap,
+                     plot_query_path,
+                     plot_transport_heatmap,
+                     tree_layout,
+)
 from .rng import Minstd
-from .tree import (ancestors, leaf_path_dist, leaves_under, tree_from_levels,
-                   tree_weights)
+from .summary import agreement, alignment_summary, transport_summary, walk_summary
+from .tree import (
+                     ancestors,
+                     leaf_path_dist,
+                     leaves_under,
+                     tree_from_levels,
+                     tree_weights,
+)
 from .walk import baseline_map, compactness, select_node
 
 # BETA / EXPERIMENTAL: consensus harmonization. harmonize() builds a
@@ -38,10 +71,10 @@ from .walk import baseline_map, compactness, select_node
 # Validated on synthetic gates and the Allen coarse-vs-fine truth case
 # (see examples/ and comparison/); the API surface and output schema may
 # still change. Transport-derived synthesis is not yet available.
-from .consensus.harmonize import harmonize
-from .consensus.plot_reconciled import plot_reconciled_tree
+from .consensus.harmonize import harmonize  # noqa: E402
+from .consensus.plot_reconciled import plot_reconciled_tree  # noqa: E402
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 __all__ = [
     "measure", "vote_cache", "aggregate_cache", "leaf_costs", "auroc",

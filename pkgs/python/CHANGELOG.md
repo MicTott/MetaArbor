@@ -1,5 +1,79 @@
 # Changelog
 
+## 0.7.0 (2026-09-04) — review round 2: placement honesty + contracts
+
+- Ambiguous parents (two incomparable accepted ancestors) are no longer
+  forced under an arbitrary parent: the candidate attaches at the
+  deepest COMMON accepted ancestor (polytomy) or root, alongside the
+  ambiguous_parent conflict.
+- Eligibility is re-evaluated at adjudication time, so claims accepted
+  earlier in the same processing cohort are visible (no stale shared
+  state within a round).
+- Gene-name contract: names validated for uniqueness/length; both
+  missing -> neutral positional names under an explicit identical-order
+  warning (path previously raised TypeError); MIN_SHARED_GENES=100
+  documented as the alignment floor.
+- Stability contract: harmonize() now requires either a COMPLETE
+  stability map over internal canonical nodes or an explicit
+  trust_trees=True; silent 1.0 defaults are gone.
+- support semantics: every node carries support_type — cross_atlas
+  (backbone/private tuples), input_topology (single-atlas placements
+  and expansions; support=None — existence is certain, cross-atlas
+  support is NOT implied), unplaced (routed rejections and tripwire
+  repairs).
+- Audit terminology (examples/audit_unanchored.py): MetaNeighbor-style
+  categories (one_way_match / conflicting_matches / no_supported_match
+  / insufficient_power / atlas_specific) with an evidence column;
+  compactness-gated walks are no_supported_match with
+  distributed_evidence — NOT conflicting biology.
+- Consensus Walk parity wording: node walks apply the frozen Walk's
+  selection and compactness gates; baseline_map's root-stop
+  discordant-vs-unmatched diagnostic distinction is not reproduced.
+
+## 0.6.0 (2026-09-04) — structural review fixes (K>=3 synthesis)
+
+- Ancestry cycles detected (SCC) -> ancestry_cycle genuine-conflict +
+  rejection of all members; ambiguous_parent conflict for incomparable
+  accepted parents (silent min-index linearization removed).
+- Consensus consumes the complete frozen Walk decision: the 0.70
+  compactness gate is applied to node walks; gated selections are
+  discordant and never seed reciprocal edges (landing preserved in
+  gated_selected).
+- Stability propagated (infer_tree support) into STABILITY_FLOOR
+  screening.
+- Affiliates: all landings collected, pair_relation honored,
+  incompatible landings -> conflict, consolidated subtrees never
+  affiliated.
+- Gene columns aligned by name (intersect/reorder both matrices).
+- Free-structure-below evaluated against ACCEPTED claims only.
+- Entry validation: dataset labels == tree leaves. Rejection fallback
+  topologically ordered.
+- Allen truth case under complete semantics: 71 exact / 27
+  consistent-coarse / 4 wrong / 1 root / 0 missing (98/103
+  truth-consistent).
+
+## 0.5.0 (2026-09-04) — rejection routes the claim, never its labels
+
+Root cause of missing labels: greedy_backbone's rejected list was
+terminal for member labels. route_rejected() surfaces unrepresented
+members of rejected claims as unplaced_single_atlas nodes with the
+rejection reason as provenance; repair_completeness() remains as a
+permanent tripwire that must report zero.
+
+## 0.4.1 (2026-09-04) — completeness as a core invariant
+
+Every input label must appear in the assembly (member / marked
+affiliate / private / explicitly unplaced). repair_completeness()
+reinstates anything upstream loses, flagged assembly_repair. Offline
+audit tooling (examples/audit_unanchored.py) and audit-input
+persistence in the K-atlas runner.
+
+## 0.4.0 (2026-09-04) — harmonize() public API (beta)
+
+Consensus harmonization exported at top level: harmonize() +
+plot_reconciled_tree(). Reconciled-hierarchy synthesis over frozen
+pairwise Walk evidence; K-atlas runner (examples/harmonize_k3.py).
+
 ## 0.3.0 (2026-09-03) — patristic structure metric becomes the Transport
 default
 

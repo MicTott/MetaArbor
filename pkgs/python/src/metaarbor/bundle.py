@@ -10,8 +10,12 @@ import numpy as np
 
 from .accessors import walk_traces, write_csv
 from .phylogram import plot_alignment_phylogram, plot_harmonized_phylogram
-from .plots import (plot_alignment_tree, plot_evidence_heatmap,
-                    plot_query_path, plot_transport_heatmap)
+from .plots import (
+    plot_alignment_tree,
+    plot_evidence_heatmap,
+    plot_query_path,
+    plot_transport_heatmap,
+)
 from .summary import alignment_summary, transport_summary, walk_summary
 
 

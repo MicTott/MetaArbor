@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from metaarbor.style import (OKABE_ITO, RULE_GRAY, SIZES, TEXT_DARK,
-                             TEXT_MID, TREE_GRAY)
+from metaarbor.style import OKABE_ITO, RULE_GRAY, SIZES, TEXT_DARK, TEXT_MID, TREE_GRAY
+
 from .diagnostics import _style as pub_style
 
 DS_COLORS = [OKABE_ITO["blue"], OKABE_ITO["vermillion"],
@@ -45,7 +45,6 @@ def _draw_input_tree(ax, tree, color, title):
     from metaarbor.tree import ancestors
     parent = tree["parent"]
     children = tree["children"]
-    roots = [c for c in children["root"]]
     depth = {v: len(ancestors(tree, v)) for v in parent if v != "root"}
     leaves = tree["leaves"]
     ys = {l: i for i, l in enumerate(leaves)}
@@ -100,7 +99,7 @@ def plot_reconciled_tree(harm, trees, dataset_names=None, figsize=None):
         nodes = harm["tree"]
         children = {i: nd["children"] for i, nd in nodes.items()}
         parent = {i: nd["parent"] for i, nd in nodes.items()}
-        depth, yof, order = _layout(parent, children, harm["roots"])
+        depth, yof, _order = _layout(parent, children, harm["roots"])
         for i, nd in nodes.items():
             x1, y1 = depth[i], yof(i)
             p = parent[i]
@@ -110,7 +109,7 @@ def plot_reconciled_tree(harm, trees, dataset_names=None, figsize=None):
             else:
                 ax.plot([0.35, 0.35, x1], [y1, y1, y1], color=TREE_GRAY,
                         lw=0.8)
-            mark, fill = STATUS_MARK.get(nd["status"], ("s", "full"))
+            mark, _fill = STATUS_MARK.get(nd["status"], ("s", "full"))
             mcol = (OKABE_ITO["vermillion"] if nd["status"] == "private"
                     else "#4a4a4a")
             if nd["status"] in ("single_atlas", "unplaced_single_atlas"):

@@ -68,3 +68,21 @@ Benchmark-only: `plot_error_tree` + `classify_outcome`.
 
 Vignette: `examples/allen_interpretation.py` runs the full workflow on the
 Allen benchmark fixtures (forward with Transport, reverse Walk-only).
+
+## Consensus harmonization (beta)
+
+`harmonize(datasets, trees, stability=..., | trust_trees=True)` builds a
+best-supported reconciled hierarchy across K >= 2 atlases from frozen
+pairwise Walk evidence: meta-clades carry all atlases' labels as
+aliases, coarse labels sit above finer descendants, private branches
+persist with full topology, affiliates ride as marked aliases, and
+incompatible evidence becomes conflicts/polytomies — never forced
+splits. Every input label is guaranteed to appear (completeness
+invariant; rejected claims route their labels to explicit
+`unplaced_single_atlas` nodes carrying the rejection reason).
+`stability` takes `infer_tree()["support"]`-style maps; pass
+`trust_trees=True` for curated trees instead. See
+`examples/harmonize_k3.py` (manifest-driven K-atlas runner) and
+`examples/audit_unanchored.py` (offline evidence audit). API surface
+may still change; Transport-derived synthesis is a separate, future
+adapter.

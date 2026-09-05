@@ -362,7 +362,7 @@ def plot_query_path(trace_rows, query, transport_row=None, col_names=None,
                            zorder=4)
         t0 = d[0]
         if t0["override"]:
-            verdict = f"vote override (top vote >= 0.90) -> DESCEND"
+            verdict = "vote override (top vote >= 0.90) -> DESCEND"
         elif t0["decision"] == "descend":
             verdict = f"sibling dAUROC lower bound {t0['sib_lo']:.3f} > margin {margin} -> DESCEND"
         elif not np.isnan(t0.get("par_lo", np.nan)) and t0["par_lo"] > 0:

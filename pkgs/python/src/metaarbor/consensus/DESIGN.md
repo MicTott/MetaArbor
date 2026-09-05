@@ -1,10 +1,13 @@
-# MetaArbor-Consensus — design (experimental branch)
+# MetaArbor-Consensus — design
 
-**Status: prototype on `consensus-prototype`. Isolation rules:** consumes
-the frozen pairwise MetaArbor API only (Walk, Transport, kernel untouched);
-no amygdala data or results inform any rule here; consensus rules are
-frozen on simulation + Allen pseudo-donor trees BEFORE touching any real
-multi-atlas problem. Not merged into the released package until then.
+**Status: merged to main; exported as `metaarbor.harmonize()` and
+labeled BETA/EXPERIMENTAL.** Isolation rules retained: consumes the
+frozen pairwise MetaArbor API only (Walk, Transport, kernel untouched);
+consensus rules were frozen on simulation + Allen gates before any real
+multi-atlas problem. The structural-review fixes (0.6.0/0.7.0: ancestry
+cycles, complete Walk semantics incl. compactness gate, live stability,
+multi-landing affiliates, dynamic eligibility, completeness invariant
+with rejection routing) are documented in CHANGELOG.md.
 
 ## Problem
 
@@ -126,9 +129,12 @@ Given K ≥ 3 independently constructed atlas/donor trees, produce:
 - `poset.py` — ancestry-relation extraction + compatibility checker
   (implemented; conflicts emitted, not raised).
 - `candidates.py` — pairwise decisions → seed-invariant candidate groups
-  (contracts stubbed; consumes frozen `metaarbor` pairwise API).
+  (implemented; consumes frozen `metaarbor` pairwise API and applies
+  the COMPLETE frozen Walk decision including the compactness gate).
 - `backbone.py` — greedy ancestry-compatible selection + polytomy
-  emission + provenance/naming table (contracts stubbed).
+  emission + provenance/naming table (implemented; ancestry-cycle
+  detection, ambiguous parents placed at the common accepted ancestor,
+  eligibility evaluated against accepted claims at adjudication time).
 
 ## Gate results and rule-correction log (2026-09-02)
 
@@ -157,11 +163,13 @@ Final form: unresolved iff (a) parent member terminal in the dataset's
 canonical tree, or (b) FREE (unclaimed) canonical structure exists below
 the parent there. Landings remain asymmetric evidence only.
 
-KNOWN RESIDUAL (for review, not silently fixed): a reciprocity-failure
-twin whose latent counterpart is claimed by a sibling meta-clade can
-surface as a duplicate private branch (e.g. d0|F1.s2 beside the accepted
-F1.s2 meta-clade). Proposed refinement: a singleton whose one-way
-selection lands exactly on a spoken-for member of an ancestry-compatible
-sibling meta-clade should attach as an asymmetric affiliate of that
-meta-clade rather than becoming private. Awaiting review before
-implementation.
+RESIDUAL RESOLVED (affiliate rule, reviewed and implemented): a
+singleton whose one-way selection lands on an accepted meta-clade
+lacking a member in the singleton's dataset attaches as a visibly
+marked asymmetric AFFILIATE alias (never counted as reciprocal
+support). Multi-atlas hardening (structural review): landings are
+collected across ALL other atlases, pair_relation disagreement
+disqualifies a landing, incompatible landings emit an
+affiliate_incompatible_landings conflict and no attachment, nested
+landings attach at the coarsest target, and consolidated subtrees are
+never affiliated (an alias cannot carry topology).

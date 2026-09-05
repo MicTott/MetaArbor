@@ -22,8 +22,16 @@ from __future__ import annotations
 
 import numpy as np
 
-from .style import (OKABE_ITO, QUERY_ACCENT, RULE_GRAY, SIZES, TEXT_DARK,
-                    TEXT_MID, TREE_GRAY, pub_style)
+from .style import (
+    OKABE_ITO,
+    QUERY_ACCENT,
+    RULE_GRAY,
+    SIZES,
+    TEXT_DARK,
+    TEXT_MID,
+    TREE_GRAY,
+    pub_style,
+)
 from .tree import ancestors, leaves_under
 
 RELATION_SHAPES = {"equal": "o", "parent_child": "^", "broader_ancestor": "P"}

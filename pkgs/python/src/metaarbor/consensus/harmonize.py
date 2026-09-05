@@ -101,7 +101,8 @@ def route_rejected(nodes, trees, rejected, affiliates):
                           "status": "unplaced_single_atlas",
                           "members": {ds: x}, "aliases": [x],
                           "display": _display([x]),
-                          "support": (0, 0), "subtree_parent": None,
+                          "support": None, "support_type": "unplaced",
+                          "subtree_parent": None,
                           "rejection": dict(rec),
                           **({"expanded": True} if x != node else {})}
             member_to_id[(ds, x)] = xid
@@ -154,7 +155,8 @@ def repair_completeness(nodes, trees, affiliates):
                           "status": "unplaced_single_atlas",
                           "members": {ds: leaf}, "aliases": [leaf],
                           "display": _display([leaf]),
-                          "support": (0, 0), "subtree_parent": None,
+                          "support": None, "support_type": "unplaced",
+                          "subtree_parent": None,
                           "assembly_repair": True}
             member_to_id[(ds, leaf)] = rid
             represented[ds].add(leaf)
@@ -175,7 +177,8 @@ def _display(labels):
 
 
 def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
-              stability=None, frozen=FROZEN, **walk_kwargs):
+              stability=None, trust_trees=False, frozen=FROZEN,
+              **walk_kwargs):
     """Run pairwise Walk evidence -> candidates -> hierarchical greedy
     backbone -> assembled reconciled hierarchy.
 
@@ -200,14 +203,30 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
                 f"tree-leaves-unobserved={sorted(lv - obs)[:5]}")
 
     if stability is None:
-        import warnings
-        warnings.warn(
-            "no stability map supplied: STABILITY_FLOOR screening of "
-            "private clades is INACTIVE (trust-supplied-trees mode). "
-            "Pass stability={(dataset, node): support}, e.g. from "
-            "infer_tree()['support'], to screen inferred clades.",
-            UserWarning)
+        if not trust_trees:
+            raise ValueError(
+                "supply stability={(dataset, node): support} (e.g. from "
+                "infer_tree()['support']) so STABILITY_FLOOR can screen "
+                "private clades, or pass trust_trees=True to state "
+                "explicitly that the supplied trees are trusted as-is "
+                "(curated trees). Silent trust is not available.")
         stability = {}
+    else:
+        # an INCOMPLETE map would silently imply perfect stability for
+        # its gaps — require an entry for every internal canonical node
+        missing = []
+        for ds in sorted(trees):
+            nodes_c, _ = canonical_nodes(trees[ds])
+            leaves = set(trees[ds]["leaves"])
+            for n_ in nodes_c:
+                if n_ not in leaves and (ds, n_) not in stability:
+                    missing.append((ds, n_))
+        if missing:
+            raise ValueError(
+                "stability map is incomplete for internal nodes "
+                f"(first missing: {missing[:5]}); supply every internal "
+                "canonical node's support, or trust_trees=True with "
+                "stability=None")
 
     dec = pairwise_decisions(datasets, trees, n_hvg=n_hvg,
                              base_seed=base_seed, n_boot=n_boot,
@@ -229,6 +248,7 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
             "members": dict(nd["members"]), "aliases": aliases,
             "display": _display(aliases),
             "support": nd["support"],
+            "support_type": "cross_atlas",
             "subtree_parent": nd.get("subtree_parent"),
         }
 
@@ -256,7 +276,10 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
         nodes[uid] = {"parent": parent_id, "status": "single_atlas",
                       "members": {ds: node}, "aliases": [node],
                       "display": _display([node]),
-                      "support": (1, 1), "subtree_parent": None}
+                      # existence certain in its own atlas; NO
+                      # cross-atlas support is implied
+                      "support": None, "support_type": "input_topology",
+                      "subtree_parent": None}
 
     # expand consolidated subtrees ("absorbed is never discarded" applies
     # to the ASSEMBLED tree too): every private node and every
@@ -282,7 +305,9 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
             nodes[xid] = {"parent": idmap.get(p, uid),
                           "status": nodes[uid]["status"],
                           "members": {ds: x}, "aliases": [x],
-                          "display": _display([x]), "support": (1, 1),
+                          "display": _display([x]),
+                          "support": None,
+                          "support_type": "input_topology",
                           "subtree_parent": None, "expanded": True}
 
     for nd in bb["nodes"]:
