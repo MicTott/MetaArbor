@@ -1,0 +1,69 @@
+{
+ "t1": {
+  "n_query": 22067,
+  "n_ref_cells": 4864,
+  "build_s": 0.1,
+  "project_s": 23.4,
+  "cells_per_s": 944.5,
+  "subclass_acc": 0.9555,
+  "class_acc": 0.9985,
+  "wrong_class_rate": 0.0015,
+  "frac_resolved_subclass_or_deeper": 0.6329,
+  "subclass_acc_when_resolved_deep": 0.9989,
+  "median_resolved_depth": 2.0,
+  "flat_subclass_acc": 0.9555,
+  "flat_class_acc": 0.9985
+ },
+ "t2": {
+  "n_query": 13842,
+  "total_s": 4.2,
+  "subclass_acc": 0.803,
+  "class_acc": 0.9981,
+  "wrong_class_rate": 0.0019,
+  "frac_resolved_to_subclass": 0.6041
+ },
+ "speed": [
+  {
+   "cap_per_leaf": 25,
+   "n_ref_cells": 2575,
+   "n_query": 2000,
+   "seconds": 1.6,
+   "cells_per_s": 1283.4
+  },
+  {
+   "cap_per_leaf": 25,
+   "n_ref_cells": 2575,
+   "n_query": 5000,
+   "seconds": 3.4,
+   "cells_per_s": 1489.4
+  },
+  {
+   "cap_per_leaf": 25,
+   "n_ref_cells": 2575,
+   "n_query": 22067,
+   "seconds": 13.5,
+   "cells_per_s": 1630.3
+  },
+  {
+   "cap_per_leaf": 50,
+   "n_ref_cells": 4864,
+   "n_query": 2000,
+   "seconds": 2.8,
+   "cells_per_s": 725.0
+  },
+  {
+   "cap_per_leaf": 50,
+   "n_ref_cells": 4864,
+   "n_query": 5000,
+   "seconds": 5.9,
+   "cells_per_s": 840.4
+  },
+  {
+   "cap_per_leaf": 50,
+   "n_ref_cells": 4864,
+   "n_query": 22067,
+   "seconds": 23.6,
+   "cells_per_s": 935.9
+  }
+ ]
+}
