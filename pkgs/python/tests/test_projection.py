@@ -108,8 +108,8 @@ def test_heldout_accuracy_and_no_wrong_family(world):
     xq, lq = sim(sorted(FAM), batch_seed=33)
     out = project(proj, xq, GENES)
     fam_true = np.asarray([FAM[l] for l in lq])
-    fam_pred = np.asarray([FAM.get(b, b) for b in out["best_leaf"]])
-    assert np.mean(out["best_leaf"] == lq) >= 0.9
+    fam_pred = np.asarray([FAM.get(b, b) for b in out["best_label"]])
+    assert np.mean(out["best_label"] == lq) >= 0.9
     assert np.mean(fam_pred == fam_true) >= 0.98
     deep = out["resolved_depth"] >= 2
     if deep.any():
@@ -122,7 +122,7 @@ def test_family_only_cells_abstain_at_family(world):
     xq, _ = sim([l for l in sorted(FAM) if FAM[l] == "F1"],
                 batch_seed=44, fam_only=["F1"])
     out = project(proj, xq, GENES)
-    fam_pred = np.asarray([FAM.get(b, b) for b in out["best_leaf"]])
+    fam_pred = np.asarray([FAM.get(b, b) for b in out["best_label"]])
     assert np.mean(fam_pred == "F1") >= 0.95
     # never resolves BEYOND the family (root stops are conservative,
     # not wrong: these cells' profiles genuinely lack the subtype
@@ -154,7 +154,7 @@ def test_determinism_and_blocking(world):
     xq, _ = sim(sorted(FAM), batch_seed=77, n_per=15)
     a = project(proj, xq, GENES)
     b = project(proj, xq, GENES, block=17)      # odd block size
-    assert list(a["best_leaf"]) == list(b["best_leaf"])
+    assert list(a["best_label"]) == list(b["best_label"])
     assert list(a["resolved_node"]) == list(b["resolved_node"])
     assert np.allclose(a["path_margins"], b["path_margins"],
                        equal_nan=True)
@@ -182,10 +182,72 @@ def test_refinement_null_no_multiplicity_bias():
                            cap_per_label=40)
     xq = draw(300, 999).astype(float)
     out = project(proj, xq, GENES)
-    into_b = np.mean([b.startswith("B") for b in out["best_leaf"]])
+    into_b = np.mean([b.startswith("B") for b in out["best_label"]])
     assert 0.25 <= into_b <= 0.75, into_b       # no leaf-count pull
     conf_deep = np.mean(out["resolved_depth"] >= 1)
     assert conf_deep <= 0.15, conf_deep         # null: almost all abstain
+
+
+def test_refinement_relabeling_same_cells():
+    """The stronger invariant: the SAME reference cells, with one
+    population relabeled as 1, 2, or 10 pseudo-leaves. Parent CHOICE
+    must be unchanged for signal cells, and the null pass-rate must
+    stay bounded under every relabeling. (Margin magnitudes shift with
+    block size — the statistic is multiplicity-ADJUSTED, and exact
+    refinement invariance of magnitudes is not claimed.)"""
+    rs = np.random.RandomState(0)
+    base = np.random.RandomState(99).lognormal(0, 1, len(GENES))
+    pool = np.random.RandomState(98).permutation(len(GENES))
+    a_idx, b_idx = pool[:40], pool[40:80]
+
+    def draw(n, seed, prog=None):
+        r = np.random.RandomState(seed)
+        mu = base.copy()
+        if prog is not None:
+            mu[prog] *= np.exp(1.3)
+        return r.poisson(np.outer(r.gamma(10, 0.1, n), mu))
+
+    XA = draw(60, 1, a_idx)
+    XB = draw(120, 2, b_idx)                  # ONE homogeneous B pool
+    X = np.vstack([XA, XB]).astype(float)
+    xq_sig = draw(80, 7, b_idx).astype(float)   # true B cells
+    xq_nul = draw(200, 8, None).astype(float)   # neither program
+
+    prev_choice = None
+    for k in (1, 2, 10):
+        bl = np.concatenate([np.full(60, "A1", dtype=object),
+                             np.asarray([f"B{j % k}" for j in
+                                         range(120)], dtype=object)])
+        rows = [("A", "A1")] + [("B", f"B{j}") for j in range(k)]
+        tree = tree_from_levels(rows, ["branch", "leaf"])
+        proj = build_projector([{"counts": X, "labels": bl,
+                                 "gene_names": GENES}], tree,
+                               cap_per_label=200)
+        o_sig = project(proj, xq_sig, GENES)
+        o_nul = project(proj, xq_nul, GENES)
+        choice = np.asarray([b.startswith("B") or b == "B"
+                             for b in o_sig["best_label"]])
+        assert choice.mean() >= 0.95, (k, choice.mean())
+        if prev_choice is not None:
+            assert np.mean(choice == prev_choice) >= 0.95
+        prev_choice = choice
+        # bounded null leakage under every relabeling
+        assert np.mean(o_nul["resolved_depth"] >= 1) <= 0.15, k
+
+
+def test_from_harmonize_maps_affiliates():
+    harm = {"tree": {
+        "MA-C0001": {"parent": None, "members": {"A": "A|F1",
+                                                 "B": "B|F1"}},
+        "MA-C0002": {"parent": "MA-C0001",
+                     "members": {"A": "A|F1.s1", "B": "B|F1.s1"}},
+    }, "affiliates": [{"dataset": "B", "node": "B|twin",
+                       "attached_to": "MA-C0002",
+                       "candidate_id": "cand:0001"}]}
+    tree, lmaps = from_harmonize(harm)
+    assert lmaps["B"]["B|twin"] == "MA-C0002"
+    assert lmaps["B"]["B|F1.s1"] == "MA-C0002"   # member wins/coexists
+    assert lmaps["A"]["A|F1"] == "MA-C0001"
 
 
 # ---- B. ties and permutation invariance -----------------------------------
@@ -236,7 +298,7 @@ def test_atlas_order_invariance(world):
                    xq, GENES)
     o_ba = project(build_projector([rb, ra], tree, cap_per_label=40),
                    xq, GENES)
-    assert list(o_ab["best_leaf"]) == list(o_ba["best_leaf"])
+    assert list(o_ab["best_label"]) == list(o_ba["best_label"])
     assert list(o_ab["resolved_node"]) == list(o_ba["resolved_node"])
 
 
@@ -247,7 +309,7 @@ def test_query_composition_invariance(world):
     batch = project(proj, xq, GENES)
     for i in (0, 7, 13, 29):
         single = project(proj, xq[i:i + 1], GENES)
-        assert single["best_leaf"][0] == batch["best_leaf"][i]
+        assert single["best_label"][0] == batch["best_label"][i]
         assert single["resolved_node"][0] == batch["resolved_node"][i]
         assert np.allclose(single["path_margins"][0],
                            batch["path_margins"][i], equal_nan=True)
@@ -266,6 +328,12 @@ def test_coarse_only_reference_never_resolves_below_its_labels():
     out = project(proj, xq, GENES)
     # family split resolvable; below it, no reference signal exists
     assert np.mean(out["resolved_depth"] <= 1) == 1.0
+    # CONTRACT: best_label is a real reference label; best_node is a
+    # VALID TREE NODE (never an invented leaf under a coarse reference)
+    valid_nodes = set(tree["parent"]) | {"root"}
+    assert set(out["best_label"]) <= set(fam_labels)
+    assert set(out["best_node"]) <= valid_nodes
+    assert all(b.startswith("family:") for b in out["best_node"])
     fam_true = np.asarray([FAM[i] for i in lq])
     got_fam = np.asarray(
         [r.split(":")[-1] if r != "root" else "root"
@@ -290,9 +358,9 @@ def test_mixed_resolution_references(world):
         [{l: l for l in set(la)}, lmap])
     xq, lq = sim(sorted(FAM), batch_seed=14, n_per=20)
     out = project(proj, xq, GENES)
-    assert np.mean(out["best_leaf"] == lq) >= 0.85
+    assert np.mean(out["best_label"] == lq) >= 0.85
     deep = out["resolved_depth"] >= 2
-    fam_pred = np.asarray([FAM.get(b, b) for b in out["best_leaf"]])
+    fam_pred = np.asarray([FAM.get(b, b) for b in out["best_label"]])
     fam_true = np.asarray([FAM[i] for i in lq])
     if deep.any():
         assert np.mean(fam_pred[deep] != fam_true[deep]) <= 0.02
@@ -318,7 +386,7 @@ def test_from_harmonize_roundtrip(world):
           "gene_names": GENES}], tree, label_maps=[lmaps["A"]])
     xq, lq = sim(leaves, batch_seed=41, n_per=10)
     out = project(proj, xq, GENES)
-    assert len(out["best_leaf"]) == len(lq)     # runs end to end
+    assert len(out["best_label"]) == len(lq)     # runs end to end
     assert set(out["resolved_node"]) <= (set(harm["tree"]) | {"root"})
 
 
@@ -335,7 +403,7 @@ def test_sparse_equals_dense(world):
                          cap_per_label=40)
     od = project(pd_, xq, GENES)
     os_ = project(ps, sp.csr_matrix(xq), GENES)
-    assert list(od["best_leaf"]) == list(os_["best_leaf"])
+    assert list(od["best_label"]) == list(os_["best_label"])
     assert np.allclose(od["label_vote"], os_["label_vote"], atol=1e-10)
 
 
@@ -355,5 +423,5 @@ def test_unequal_coverage_excluded_per_split(world):
     xq, lq = sim(sorted(FAM), batch_seed=61)
     out = project(proj, xq, GENES)
     f2 = np.asarray([FAM[l] == "F2" for l in lq])
-    acc_f2 = np.mean(out["best_leaf"][f2] == lq[f2])
+    acc_f2 = np.mean(out["best_label"][f2] == lq[f2])
     assert acc_f2 >= 0.85, acc_f2

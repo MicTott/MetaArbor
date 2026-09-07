@@ -12,25 +12,30 @@ At node v the cell's Spearman correlations to v's own reference cells
 are re-ranked among themselves with tie-AVERAGE ranks (the per-cell
 analogue of the frozen Walk's parent-context principle; global ranks
 compress sibling contrasts). Each reference LABEL under a child
-contributes one block; a block's statistic is the exact-null z-score of
-its mean local rank vote (mean 0.5; variance of a without-replacement
-mean of m draws from the finite rank population — no distributional
-assumption enters the mean/variance; a normal tail approximates the
-p-value, evaluated in LOG space so no signal strength saturates
-float64). A child's evidence is its Bonferroni-corrected best block on
-the log scale, lp_c = min_block log p + log n_blocks, so a child with
-ten labels gets no multiplicity advantage over a child with one — the
-statistic is refinement-calibrated (an uncorrected max over leaves
-forces cells into leaf-rich branches even under a pure null).
-Navigation follows the smallest lp (averaged over the reference
-atlases covering the split); the stop rule uses the RATIO margin
+contributes one block; a block's statistic is a z-score whose mean and
+variance are the EXACT finite-population moments of a
+without-replacement mean of m entries of the cell's realized local
+rank vector (computed from that vector itself, so tie structure is
+handled exactly; the normal TAIL is an approximation, evaluated in LOG
+space so no signal strength saturates float64). A child's evidence is
+its Bonferroni-corrected best block on the log scale,
+lp_c = min_block log p + log n_blocks, so a child with ten labels gets
+no multiplicity advantage over a child with one — the statistic is
+MULTIPLICITY-ADJUSTED (an uncorrected max over leaves forces cells
+into leaf-rich branches even under a pure null). Navigation follows
+the smallest lp (averaged over the reference atlases covering the
+split); the stop rule uses the RELATIVE-EVIDENCE margin
 
     margin = 1 - p_best / p_second = -expm1(lp1 - lp2)
 
-which is null-uniform on [0, 1] for any number of children (the ratio
-of the two smallest of k iid uniforms is itself uniform) and, unlike
-(1-p)^n scores, never saturates: two overwhelming-but-unequal
-children keep a large margin.
+Unlike (1-p)^n scores this never saturates: two
+overwhelming-but-unequal children keep a large margin. The margin is
+an EVIDENCE RATIO, not a calibrated null probability: under an
+idealized model (independent uniform child p-values) it would be
+null-uniform, but the realized p-values share one rank partition, use
+tail approximations and Bonferroni minima, and are conditioned on
+having reached the node — simulation of the exact two-child rank null
+passes ~2-4% at stringent thresholds, roughly double the idealized rate.
 
 Reference labels may sit at INTERNAL nodes of the tree (a coarse
 atlas's labels in a reconciled hierarchy): such cells inform every
@@ -51,7 +56,7 @@ from scipy.stats import norm, rankdata
 from .kernel import lognorm
 from .tree import leaves_under
 
-DEFAULTS = {"cap_per_label": 50, "n_hvg": 1000, "min_margin": 0.99,
+DEFAULTS = {"cap_per_label": 50, "n_hvg": 1000, "min_margin": 0.98,
             "block": 20000}
 
 
@@ -150,6 +155,11 @@ def from_harmonize(harm):
     for i, nd in nodes.items():
         for ds, member in nd["members"].items():
             label_maps.setdefault(ds, {})[member] = i
+    # affiliate labels ride on their attached meta-clade; a member
+    # mapping (if one exists) wins over an affiliate one
+    for aff in harm.get("affiliates", []):
+        label_maps.setdefault(aff["dataset"], {}).setdefault(
+            aff["node"], aff["attached_to"])
     return tree, label_maps
 
 
@@ -165,15 +175,6 @@ def _rank_norm(expr):
     n = np.linalg.norm(r, axis=1, keepdims=True)
     n[n == 0] = 1.0
     return r / n
-
-
-def _null_sigma(m, n):
-    """Exact s.d. of the mean of m ranks drawn WITHOUT replacement from
-    the scaled rank population {1..n}/n (mean 0.5)."""
-    if n <= 1 or m <= 0:
-        return np.inf
-    pop_var = (n * n - 1.0) / (12.0 * n * n)
-    return float(np.sqrt(pop_var / m * max(n - m, 0) / max(n - 1, 1)))
 
 
 def _prepare_split_blocks(tree, ref):
@@ -210,8 +211,8 @@ def _prepare_split_blocks(tree, ref):
 def _score_children(qn_sub, rn, per_child):
     """Refinement-calibrated child evidence for one reference at one
     split: local tie-average ranks over the split's reference cells,
-    exact-null z per label block, Bonferroni-corrected best block per
-    child ON THE LOG SCALE (norm.logsf — no float64 saturation at any
+    exact finite-population moments per label block (tie-robust),
+    Bonferroni-corrected best block per child ON THE LOG SCALE (norm.logsf — no float64 saturation at any
     signal strength). Returns lp (n_cells x n_children; SMALLER = more
     evidence; NaN for a child this reference does not cover), or None
     when fewer than two children carry blocks."""
@@ -223,14 +224,23 @@ def _score_children(qn_sub, rn, per_child):
     n_v = len(rows)
     co = qn_sub @ rn[rows].T
     w = rankdata(co, axis=1, method="average") / n_v
+    # EXACT finite-population null moments from each cell's realized
+    # local rank vector (scaled ranks 1/n..1 have mean (n+1)/2n, not
+    # 0.5, and ties shrink the population variance — both handled
+    # exactly by using the vector's own moments)
+    mu = w.mean(axis=1)
+    pv = w.var(axis=1)
     lp = np.full((qn_sub.shape[0], len(per_child)), np.nan)
     off = 0
     for ci in covered:
         best = None
         for _l, idx in per_child[ci]:
             m = len(idx)
+            sig = np.sqrt(pv * max(n_v - m, 0) /
+                          (m * max(n_v - 1, 1)))
             s = w[:, off:off + m].mean(axis=1)
-            z = (s - 0.5) / _null_sigma(m, n_v)
+            z = np.where(sig > 0, (s - mu) / np.maximum(sig, 1e-300),
+                         0.0)
             l_ = norm.logsf(z)
             best = l_ if best is None else np.minimum(best, l_)
             off += m
@@ -247,7 +257,14 @@ def project(projector, counts, gene_names, lib=None,
     """Project query cells into the reference tree.
 
     Per-cell outputs (dict of arrays):
-      best_leaf         terminal node of the forced descent (always)
+      best_label        the reference LABEL with the strongest evidence
+                        at the end of the forced descent (always a real
+                        reference label; may be a coarse label when
+                        only coarse references cover that region)
+      best_node         the TREE NODE of the forced descent's endpoint
+                        (always a valid node id; terminal only when
+                        covered splits reach a terminal node — a leaf
+                        is never invented beneath a coarse reference)
       resolved_node     deepest node with every q-margin >= min_margin
       resolved_depth    its depth (root = 0)
       stop_margin       q-margin at the first failing split (NaN when
@@ -288,6 +305,12 @@ def project(projector, counts, gene_names, lib=None,
                        "labels_sorted": sorted(ref["label_nodes"])})
     all_labels = sorted({l for ref in refs for l in ref["label_nodes"]})
     lab_pos = {l: i for i, l in enumerate(all_labels)}
+    # only the union of the fitted panels' query columns is ever
+    # densified (memory: block x |union|, not block x all genes)
+    ucols = np.unique(np.concatenate([p["qidx"] for p in panels]))
+    remap = {c: i for i, c in enumerate(ucols)}
+    for p in panels:
+        p["qidx_r"] = np.asarray([remap[c] for c in p["qidx"]])
 
     order, depth_of, stack = [], {"root": 0}, ["root"]
     while stack:
@@ -303,11 +326,19 @@ def project(projector, counts, gene_names, lib=None,
     n_total = counts.shape[0]
     for s0 in range(0, n_total, block):
         sl = slice(s0, min(s0 + block, n_total))
-        q_ln = lognorm(_dense(counts[sl]),
-                       None if lib is None else np.asarray(lib)[sl],
-                       assume_log)
+        blk = counts[sl]
+        if assume_log:
+            lib_eff = None
+        elif lib is not None:
+            lib_eff = np.asarray(lib)[sl]
+        else:
+            # library sizes come from the FULL gene set, computed
+            # before any column subsetting
+            lib_eff = np.asarray(blk.sum(axis=1)).ravel()
+        sub_cols = blk[:, ucols] if not sp.issparse(blk)             else blk.tocsc()[:, ucols]
+        q_ln = lognorm(_dense(sub_cols), lib_eff, assume_log)
         n = q_ln.shape[0]
-        qns = [_rank_norm(q_ln[:, p["qidx"]]) for p in panels]
+        qns = [_rank_norm(q_ln[:, p["qidx_r"]]) for p in panels]
 
         label_vote = np.zeros((n, len(all_labels)))
         label_cov = np.zeros(len(all_labels))
@@ -324,7 +355,8 @@ def project(projector, counts, gene_names, lib=None,
         label_vote /= np.maximum(label_cov, 1)[None, :]
 
         cur = np.full(n, "root", dtype=object)
-        best_leaf = np.full(n, "", dtype=object)
+        best_label = np.full(n, "", dtype=object)
+        best_node = np.full(n, "", dtype=object)
         resolved = np.full(n, "root", dtype=object)
         broken = np.zeros(n, dtype=bool)
         stop_margin = np.full(n, np.nan)
@@ -337,7 +369,14 @@ def project(projector, counts, gene_names, lib=None,
             if not mask.any():
                 continue
             if not kids:
-                best_leaf[mask] = v
+                best_node[mask] = v
+                sub_t = np.flatnonzero(mask)
+                lbs = _labels_at_or_above(refs, tree, v, all_labels)
+                if lbs:
+                    bi = np.asarray([lab_pos[l] for l in lbs])
+                    best_label[sub_t] = np.asarray(
+                        lbs, dtype=object)[np.argmax(
+                            label_vote[np.ix_(sub_t, bi)], axis=1)]
                 continue
             sub = np.flatnonzero(mask)
             q_sum, q_cnt = None, None
@@ -354,9 +393,10 @@ def project(projector, counts, gene_names, lib=None,
                     q_sum += np.where(filled, qc, 0.0)
                     q_cnt += filled
             if q_sum is None:
-                # no reference resolves this split: interpretation
-                # stops here; the forced candidate falls back to the
-                # strongest label vote among the labels below
+                # no reference resolves this split: the forced descent
+                # ENDS HERE — a leaf is never invented beneath a coarse
+                # reference. best_label = strongest-voted label at or
+                # below v; best_node = that label's own tree node.
                 below = [l for l in all_labels
                          if l in lab_pos and _label_below(
                              refs, l, tree, v)]
@@ -365,10 +405,15 @@ def project(projector, counts, gene_names, lib=None,
                 broken[sub] = True
                 if below:
                     bi = np.asarray([lab_pos[l] for l in below])
-                    best_leaf[sub] = np.asarray(below, dtype=object)[
-                        np.argmax(label_vote[np.ix_(sub, bi)], axis=1)]
+                    pick = np.asarray(below, dtype=object)[np.argmax(
+                        label_vote[np.ix_(sub, bi)], axis=1)]
+                    best_label[sub] = pick
+                    node_of = _label_node_map(refs)
+                    best_node[sub] = np.asarray(
+                        [node_of.get(x, v) for x in pick],
+                        dtype=object)
                 else:
-                    best_leaf[sub] = v
+                    best_node[sub] = v
                 cur[sub] = "__done__"
                 continue
             # mean log-p across covering references (geometric-mean
@@ -405,11 +450,12 @@ def project(projector, counts, gene_names, lib=None,
                 kids, dtype=object)[top[keep]]
             cur[sub] = np.asarray(kids, dtype=object)[top]
 
-        left = np.asarray([b == "" for b in best_leaf])
+        left = np.asarray([b == "" for b in best_node])
         if left.any():                       # safety net
-            best_leaf[left] = cur[left]
+            best_node[left] = cur[left]
         outs.append({
-            "best_leaf": best_leaf.astype(str),
+            "best_label": best_label.astype(str),
+            "best_node": best_node.astype(str),
             "resolved_node": resolved.astype(str),
             "resolved_depth": np.asarray(
                 [depth_of.get(r, 0) for r in resolved]),
@@ -429,6 +475,30 @@ def project(projector, counts, gene_names, lib=None,
     res["params"] = {"min_margin": min_margin,
                      "n_refs": len(refs), "block": block}
     return res
+
+
+def _label_node_map(refs):
+    """Merged label -> tree-node map across references (labels are
+    reference-unique by construction)."""
+    out = {}
+    for ref in refs:
+        out.update(ref["label_nodes"])
+    return out
+
+
+def _labels_at_or_above(refs, tree, v, all_labels):
+    """Labels whose node is v or, when none, the nearest ancestor of v
+    carrying labels — the honest label set for a terminal endpoint."""
+    node_of = _label_node_map(refs)
+    x = v
+    while x is not None:
+        here = [l for l in all_labels if node_of.get(l) == x]
+        if here:
+            return here
+        x = tree["parent"].get(x)
+        if x == "root":
+            x = None
+    return []
 
 
 def _label_below(refs, label, tree, v):

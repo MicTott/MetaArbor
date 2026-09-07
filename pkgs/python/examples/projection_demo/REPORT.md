@@ -1,3 +1,57 @@
+# Round 3 corrections (method-description review)
+
+All four round-3 corrections are implemented on top of report v2
+(below). Numbers were re-measured; forced accuracies are unchanged and
+the abstention operating point moved slightly.
+
+1. **The margin is NOT null-uniform — language and formula fixed.**
+   The docstring now calls it a multiplicity-adjusted RELATIVE-EVIDENCE
+   margin and states why calibration fails (dependent p-values sharing
+   one rank partition, tail approximations, Bonferroni minima,
+   conditioning on reaching the node; the realized null passes roughly
+   double the idealized rate). The rank-mean error ((n+1)/2n, not 0.5)
+   and the tie caveat are both eliminated at once: each cell's null
+   mean and variance are now the EXACT finite-population moments of its
+   own realized local rank vector. Only the normal tail remains an
+   approximation, and the docstring says so.
+2. **Refinement invariance is not claimed — and the stronger test was
+   added.** New gate: the SAME reference cells relabeled as 1, 2, or 10
+   pseudo-leaves. Parent CHOICE is stable (>=95% agreement) and null
+   leakage stays bounded under every relabeling; margin MAGNITUDES
+   shift with block size, which is why the statistic is described as
+   multiplicity-ADJUSTED, never refinement-invariant.
+3. **best_leaf contract split.** Outputs are now `best_label` (always a
+   real reference label — possibly a coarse one) and `best_node`
+   (always a valid tree node id). A leaf is never invented beneath a
+   coarse reference; the coarse-only gate asserts both properties.
+   `from_harmonize()` now maps affiliate labels to their attached
+   meta-clades (member mappings win).
+4. **Claims softened + practical fixes.** "Known biology" ->
+   "errors concentrate in biologically plausible hard cases"; blocks
+   densify only the union of fitted HVG columns (library sizes computed
+   from the full gene set BEFORE subsetting); the stale 0.80 header is
+   gone; the cap remains an influential parameter and is reported as
+   such (cap 25: 94.8-95.3% forced / 88-89% coverage / 97.8-98.1%
+   selective; cap 50: 93.5-93.8% / 94.4-94.6% / 95.6-95.8%).
+
+`min_margin = 0.98` was re-derived with the criterion EXTENDED to three
+prespecified constraints (family-only deep leakage <=10%, novel deep
+leakage <=5%, pure-null root pass <=15%) — the last one added because
+the empirical null passes ~2x the idealized rate, which is exactly the
+dependence the review identified. Gates 16/16; full suite 74/74.
+
+Allen under the corrected statistic (thresholds fixed beforehand):
+subclass 93.6% micro / 88.3% macro, class 99.0%, coverage 94.4%,
+selective 95.8%, flat baseline 95.4%; coverage-risk smooth (6.5% ->
+3.8%); seed spread +-0.2%. The defensible claim, per the review:
+multiplicity-adjusted hierarchical evidence yields a useful SELECTIVE
+classifier — it trades some forced leaf accuracy for concentrating
+errors among cells that stop at broader nodes. It is not a calibrated
+classifier. Next: amygdala, then MetaArbor projection vs MapMyCells on
+the same reconciled reference.
+
+---
+
 # MetaArbor Projection prototype — report v2 (after adversarial review)
 
 Branch `projection-prototype`. The round-1 review found five real

@@ -1,7 +1,9 @@
 """Projection prototype — Allen held-out-PLATFORM evaluation + speed,
 under the review-round fixes (fitted projector, refinement-calibrated
-statistic, tie-aware ranks). min_margin = 0.80 was fixed on synthetic
-operating curves BEFORE this script ran; nothing here tunes it.
+statistic, tie-aware ranks). min_margin = 0.98 was fixed on synthetic
+operating curves (three prespecified constraints: family-only deep
+leakage <=10%, novel deep leakage <=5%, pure-null root pass <=15%)
+BEFORE this script ran; nothing here tunes it.
 
 Reports: selective (coverage-risk) curve from per-split margins, micro
 and MACRO subclass accuracy, per-subclass coverage, wrong-class rates,
@@ -76,8 +78,8 @@ t0 = time.time()
 out = project(proj3, c2, genes, lib=l2)
 t_proj = time.time() - t0
 
-pred_sub = np.asarray([clu_to_sub[b] for b in out["best_leaf"]])
-pred_cls = np.asarray([clu_to_cls[b] for b in out["best_leaf"]])
+pred_sub = np.asarray([clu_to_sub[b] for b in out["best_label"]])
+pred_cls = np.asarray([clu_to_cls[b] for b in out["best_label"]])
 subs_all = sorted(set(sub2))
 per_sub_acc = {s: float(np.mean(pred_sub[sub2 == s] == s))
                for s in subs_all}
@@ -138,7 +140,7 @@ proj2 = build_projector([{"counts": c2, "labels": sub2,
                           "gene_names": genes, "lib": l2,
                           "name": "10Xv2"}], tree2, cap_per_label=50)
 out2 = project(proj2, c3, genes, lib=l3)
-pred2 = out2["best_leaf"]
+pred2 = out2["best_label"]
 pred2_cls = np.asarray([sub_to_cls.get(b, "?") for b in pred2])
 results["t2"] = {
     "n_query": int(len(sub3)),
@@ -158,7 +160,7 @@ for cap in (25, 50):
                                "name": "10Xv3"}], tree3,
                              cap_per_label=cap, seed=seed)
         o = project(pr, c2, genes, lib=l2)
-        ps = np.asarray([clu_to_sub[b] for b in o["best_leaf"]])
+        ps = np.asarray([clu_to_sub[b] for b in o["best_label"]])
         dd = o["resolved_depth"] >= 2
         sens.append({"cap": cap, "seed": seed,
                      "subclass_acc": round(float(np.mean(ps == sub2)), 4),
