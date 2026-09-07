@@ -2,362 +2,447 @@
 `projection-prototype` branch).
 
 Projects INDIVIDUAL CELLS into a reference hierarchy with hierarchical
-abstention, reusing the frozen MetaArbor measurement layer (lognorm,
-joint HVGs, per-cell rank normalization, MetaNeighbor-style rank
-voting). Nothing frozen is modified.
+abstention. The projector is FITTED at build time (reference-only
+feature selection and preprocessing); a cell's result depends only on
+the cell and the projector — never on which other cells accompany it.
 
-Method
-------
-- Reference: one or MORE labeled atlases whose labels are leaves of one
-  reference tree. References are stratified-subsampled per leaf
-  (atlas-balanced evidence; a dominant atlas cannot swamp the votes).
-- Evidence per query cell: rank-standardized vote weights toward every
-  reference leaf (exactly `kernel.vote_cache`; parity-tested), computed
-  per reference atlas and combined as COVERAGE-AWARE averages of
-  size-normalized child scores — an atlas contributes to a split only
-  when it carries cells for EVERY child of that split.
-- Routing: each cell walks the tree root-to-leaf. At every split the
-  vote is recomputed LOCALLY: the cell's correlations to the reference
-  cells under that node are re-ranked among themselves (the per-cell
-  analogue of the frozen Walk's parent-context principle), and each
-  child scores the MAXIMUM over its leaves' mean local votes —
-  navigation follows the child's most similar leaf, so a heterogeneous
-  child cannot dilute its own most distinctive type (mean-union scores
-  are size-biased; on the Allen benchmark mean navigation lost ~10
-  points of subclass accuracy that max navigation recovers exactly).
-  Global ranks would compress sibling contrasts (every leaf under the
-  right family scores high globally); local re-ranking restores them.
-  Two descents are tracked at once:
-    * FORCED descent -> `best_leaf` (every cell gets a terminal
-      candidate; `path_score` is the product of local fractions —
-      an evidence score, NOT a calibrated probability);
-    * CONFIDENT descent -> `resolved_node` (the walk stops the first
-      time the LOCAL VOTE MARGIN — top child's mean local vote minus
-      the runner-up's — drops below `min_margin`; deeper coordinates
-      are not interpreted). The margin is the per-cell analogue of the
-      Walk's sibling-contrast stop.
-- Per-cell outputs additionally include the credible children at the
-  stop, the stop confidence, an out-of-reference score
-  (`top_leaf_mean`, the mean vote weight per reference cell of the best
-  leaf; 0.5 = rank-random), and the maximum Spearman similarity to any
-  reference cell (`max_corr`).
+Evidence model (per split, per reference atlas)
+-----------------------------------------------
+At node v the cell's Spearman correlations to v's own reference cells
+are re-ranked among themselves with tie-AVERAGE ranks (the per-cell
+analogue of the frozen Walk's parent-context principle; global ranks
+compress sibling contrasts). Each reference LABEL under a child
+contributes one block; a block's statistic is the exact-null z-score of
+its mean local rank vote (mean 0.5; variance of a without-replacement
+mean of m draws from the finite rank population — no distributional
+assumption enters the mean/variance; a normal tail approximates the
+p-value, evaluated in LOG space so no signal strength saturates
+float64). A child's evidence is its Bonferroni-corrected best block on
+the log scale, lp_c = min_block log p + log n_blocks, so a child with
+ten labels gets no multiplicity advantage over a child with one — the
+statistic is refinement-calibrated (an uncorrected max over leaves
+forces cells into leaf-rich branches even under a pure null).
+Navigation follows the smallest lp (averaged over the reference
+atlases covering the split); the stop rule uses the RATIO margin
 
-Relation to the frozen Walk: this is the per-cell counterpart of
-`select_node` — votes navigate; the stop rule here is a per-cell local
-confidence (population AUROC contrasts are undefined for n = 1).
+    margin = 1 - p_best / p_second = -expm1(lp1 - lp2)
+
+which is null-uniform on [0, 1] for any number of children (the ratio
+of the two smallest of k iid uniforms is itself uniform) and, unlike
+(1-p)^n scores, never saturates: two overwhelming-but-unequal
+children keep a large margin.
+
+Reference labels may sit at INTERNAL nodes of the tree (a coarse
+atlas's labels in a reconciled hierarchy): such cells inform every
+split ABOVE their node and are excluded from splits at/below it —
+partially observed subtrees, not wrong fine labels.
+`from_harmonize(harm)` adapts a `metaarbor.harmonize()` result into
+(tree, per-dataset label->node maps) for direct use as a reference.
+
+Outputs are labeled for what they are: evidence scores and candidate
+sets — not calibrated probabilities and not statistical credible sets.
 """
 from __future__ import annotations
 
 import numpy as np
-from scipy.stats import rankdata
+from scipy import sparse as sp
+from scipy.stats import norm, rankdata
 
-from .kernel import lognorm, rank_normalize, variable_genes
+from .kernel import lognorm
 from .tree import leaves_under
 
-DEFAULTS = {"cap_per_leaf": 50, "n_hvg": 1000, "min_margin": 0.10}
+DEFAULTS = {"cap_per_label": 50, "n_hvg": 1000, "min_margin": 0.99,
+            "block": 20000}
 
 
-def _votes_and_maxcorr(test_norm, train_norm, train_labels, chunk=2000):
-    """kernel.vote_cache's exact vote computation (parity-tested) plus
-    each test cell's maximum Spearman correlation to any train cell."""
-    train_labels = np.asarray(train_labels)
-    leaves = sorted(set(train_labels))
-    n_train = train_norm.shape[0]
-    col = np.asarray([leaves.index(l) for l in train_labels])
-    ind = np.zeros((n_train, len(leaves)))
-    ind[np.arange(n_train), col] = 1.0
-    n_test = test_norm.shape[0]
-    V = np.zeros((n_test, len(leaves)))
-    mc = np.zeros(n_test)
-    for s in range(0, n_test, chunk):
-        co = test_norm[s:s + chunk] @ train_norm.T
-        mc[s:s + chunk] = co.max(axis=1)
-        w = np.apply_along_axis(rankdata, 1, co) / n_train
-        V[s:s + chunk] = w @ ind
-    sizes = np.asarray([(train_labels == l).sum() for l in leaves],
-                       dtype=float)
-    return {"V": V, "leaves": leaves, "leaf_sizes": sizes,
-            "max_corr": mc}
+# --------------------------------------------------------------------------
+# fitting
+# --------------------------------------------------------------------------
+def _dense(x):
+    return np.asarray(x.todense() if sp.issparse(x) else x,
+                      dtype=np.float64)
 
 
-def build_projector(refs, tree, cap_per_leaf=DEFAULTS["cap_per_leaf"],
-                    seed=0):
-    """Build a projector from labeled reference atlases.
+def build_projector(refs, tree, label_maps=None,
+                    cap_per_label=DEFAULTS["cap_per_label"],
+                    n_hvg=DEFAULTS["n_hvg"], seed=0):
+    """Fit a projector from labeled reference atlases.
 
-    refs: list of dicts {counts (cells x genes), labels (leaf labels of
-          `tree`), gene_names, lib=optional, name=optional}
-    tree: metaarbor tree whose leaves are the reference label space.
+    refs: list of dicts {counts (cells x genes; dense or scipy sparse),
+          labels, gene_names, lib=optional, name=optional}
+    tree: metaarbor tree. Reference labels must map to tree NODES —
+          leaves by default, or via label_maps[i][label] -> node_id
+          (internal nodes allowed: coarse labels in a reconciled tree).
 
-    Each reference is stratified-subsampled to at most `cap_per_leaf`
-    cells per leaf (seeded). Labels not in the tree's leaves raise;
-    leaves absent from a reference are allowed (coverage-aware splits).
+    Fitting freezes, per reference: a stratified subsample (at most
+    `cap_per_label` cells per label), reference-only HVGs (top-variance
+    genes of the reference alone), and the log-normalized HVG matrix.
+    Nothing about any future query enters the fit.
     """
-    leaves = set(tree["leaves"])
-    rs = np.random.RandomState(seed)
+    import zlib
+    nodes_all = set(tree["parent"]) | {"root"}
     stored = []
     for ri, ref in enumerate(refs):
+        # per-reference stream keyed by the reference NAME, so results
+        # are invariant to the order references are listed in (unnamed
+        # references fall back to their position)
+        name = ref.get("name", f"ref{ri}")
+        rs = np.random.RandomState(
+            (seed + zlib.crc32(str(name).encode())) % (2 ** 31 - 1))
         labels = np.asarray(ref["labels"])
-        bad = sorted(set(labels) - leaves)
+        lmap = (label_maps[ri] if label_maps else
+                {l: l for l in set(labels)})
+        bad = sorted(l for l in set(labels)
+                     if lmap.get(l, l) not in nodes_all)
         if bad:
             raise ValueError(
-                f"ref {ri}: labels not in tree leaves: {bad[:5]}")
+                f"ref {ri}: labels map to no tree node: {bad[:5]}")
+        gn = list(ref["gene_names"])
+        counts = ref["counts"]
+        if len(gn) != counts.shape[1]:
+            raise ValueError(f"ref {ri}: {len(gn)} gene_names for "
+                             f"{counts.shape[1]} columns")
+        if len(set(gn)) != len(gn):
+            raise ValueError(f"ref {ri}: duplicate gene_names")
         keep = []
         for l in sorted(set(labels)):
             idx = np.flatnonzero(labels == l)
-            if len(idx) > cap_per_leaf:
-                idx = rs.choice(idx, cap_per_leaf, replace=False)
+            if len(idx) > cap_per_label:
+                idx = rs.choice(idx, cap_per_label, replace=False)
             keep.append(np.sort(idx))
         keep = np.concatenate(keep)
+        sub = counts.tocsr()[keep] if sp.issparse(counts) else \
+            np.asarray(counts)[keep]
+        lib = (np.asarray(ref["lib"])[keep]
+               if ref.get("lib") is not None else None)
+        ln = lognorm(_dense(sub), lib)
+        hvg = np.sort(np.argsort(ln.var(axis=0))[::-1][:n_hvg])
         stored.append({
-            "counts": np.asarray(ref["counts"])[keep],
+            "ln_hvg": ln[:, hvg],
+            "hvg_names": [gn[i] for i in hvg],
             "labels": labels[keep],
-            "gene_names": list(ref["gene_names"]),
-            "lib": (np.asarray(ref["lib"])[keep]
-                    if ref.get("lib") is not None else None),
+            "label_nodes": {l: lmap.get(l, l)
+                            for l in sorted(set(labels))},
             "name": ref.get("name", f"ref{ri}"),
         })
-    return {"refs": stored, "tree": tree,
-            "cap_per_leaf": cap_per_leaf, "seed": seed}
+    return {"refs": stored, "tree": tree, "cap_per_label": cap_per_label,
+            "n_hvg": n_hvg, "seed": seed}
 
 
-def _split_index(tree, cache_leaves):
-    """Per internal node: list of per-child leaf-index arrays into the
-    cache's leaf order, or None when this reference does not cover
-    every child of the split (coverage-aware exclusion)."""
-    pos = {l: i for i, l in enumerate(cache_leaves)}
+def from_harmonize(harm):
+    """Adapt a metaarbor.harmonize() result into (tree, label_maps by
+    dataset): a projector-ready tree over the reconciled node ids plus,
+    per dataset, each original label's node. Coarse labels land on
+    internal nodes; unplaced labels on their unplaced nodes."""
+    nodes = harm["tree"]
+    parent = {"root": None}
+    children = {"root": []}
+    for i, nd in nodes.items():
+        parent[i] = nd["parent"] if nd["parent"] is not None else "root"
+        children.setdefault(i, [])
+    for i in nodes:
+        children.setdefault(parent[i], []).append(i)
+    for k in children:
+        children[k].sort()
+    leaves = [i for i in sorted(nodes) if not children.get(i)]
+    tree = {"parent": parent, "children": children, "leaves": leaves}
+    label_maps = {}
+    for i, nd in nodes.items():
+        for ds, member in nd["members"].items():
+            label_maps.setdefault(ds, {})[member] = i
+    return tree, label_maps
+
+
+# --------------------------------------------------------------------------
+# scoring
+# --------------------------------------------------------------------------
+def _rank_norm(expr):
+    """Tie-average Spearman preparation (kernel.rank_normalize
+    semantics, vectorized): per-cell average ranks, centered,
+    L2-normalized, so qn @ rn.T is cell-cell Spearman correlation."""
+    r = rankdata(expr, axis=1, method="average")
+    r = r - r.mean(axis=1, keepdims=True)
+    n = np.linalg.norm(r, axis=1, keepdims=True)
+    n[n == 0] = 1.0
+    return r / n
+
+
+def _null_sigma(m, n):
+    """Exact s.d. of the mean of m ranks drawn WITHOUT replacement from
+    the scaled rank population {1..n}/n (mean 0.5)."""
+    if n <= 1 or m <= 0:
+        return np.inf
+    pop_var = (n * n - 1.0) / (12.0 * n * n)
+    return float(np.sqrt(pop_var / m * max(n - m, 0) / max(n - 1, 1)))
+
+
+def _prepare_split_blocks(tree, ref):
+    """Per internal node: list per child of [(label, ref-row idx)]
+    blocks. A reference label maps to a tree node; its cells form a
+    block under the child whose subtree contains that node for every
+    split strictly ABOVE the node, and carry no signal at or below."""
+    node_of = ref["label_nodes"]
+    labels = np.asarray(ref["labels"])
     out = {}
     for v in tree["children"]:
         kids = tree["children"][v]
-        if not kids or v == "root" and False:
-            continue
         if not kids:
             continue
         per_child = []
-        ok = True
         for c in kids:
-            idx = [pos[l] for l in leaves_under(tree, c) if l in pos]
-            if not idx:
-                ok = False
-                break
-            per_child.append(np.asarray(idx))
-        out[v] = per_child if ok else None
+            span = {c}
+            stack = list(tree["children"].get(c, []))
+            while stack:
+                x = stack.pop()
+                span.add(x)
+                stack.extend(tree["children"].get(x, []))
+            blocks = []
+            for l in sorted(node_of):
+                if node_of[l] in span:
+                    idx = np.flatnonzero(labels == l)
+                    if len(idx):
+                        blocks.append((l, idx))
+            per_child.append(blocks)
+        out[v] = per_child
     return out
 
 
-def project(projector, counts, gene_names, lib=None,
-            n_hvg=DEFAULTS["n_hvg"],
-            min_margin=DEFAULTS["min_margin"], chunk=2000,
-            assume_log=False):
-    """Project query cells (cells x genes) into the reference tree.
+def _score_children(qn_sub, rn, per_child):
+    """Refinement-calibrated child evidence for one reference at one
+    split: local tie-average ranks over the split's reference cells,
+    exact-null z per label block, Bonferroni-corrected best block per
+    child ON THE LOG SCALE (norm.logsf — no float64 saturation at any
+    signal strength). Returns lp (n_cells x n_children; SMALLER = more
+    evidence; NaN for a child this reference does not cover), or None
+    when fewer than two children carry blocks."""
+    covered = [ci for ci, blocks in enumerate(per_child) if blocks]
+    if len(covered) < 2:
+        return None
+    rows = np.concatenate([idx for ci in covered
+                           for _l, idx in per_child[ci]])
+    n_v = len(rows)
+    co = qn_sub @ rn[rows].T
+    w = rankdata(co, axis=1, method="average") / n_v
+    lp = np.full((qn_sub.shape[0], len(per_child)), np.nan)
+    off = 0
+    for ci in covered:
+        best = None
+        for _l, idx in per_child[ci]:
+            m = len(idx)
+            s = w[:, off:off + m].mean(axis=1)
+            z = (s - 0.5) / _null_sigma(m, n_v)
+            l_ = norm.logsf(z)
+            best = l_ if best is None else np.minimum(best, l_)
+            off += m
+        lp[:, ci] = np.minimum(best + np.log(len(per_child[ci])), 0.0)
+    return lp
 
-    Returns dict of per-cell arrays:
-      best_leaf        forced-descent terminal candidate (always set)
-      path_score       product of local child fractions along the
-                       forced path (evidence score, uncalibrated)
-      resolved_node    deepest node reached with every local vote
-                       margin >= min_margin (== best_leaf when fully
-                       confident)
-      resolved_depth   depth of resolved_node (root = 0)
-      stop_margin      the local vote margin at the first failing split
-                       (1.0 when none failed)
-      credible         ';'-joined children within min_margin of the top
-                       at the stop; '' if resolved
-      top_leaf_mean    out-of-reference score: mean vote weight per
-                       reference cell of the best leaf (0.5 = random)
-      max_corr         max Spearman correlation to any reference cell
-    plus 'leaves' and 'leaf_mean' (n_cells x n_leaves averaged
-    size-normalized vote matrix) for flat-baseline comparisons.
+
+# --------------------------------------------------------------------------
+# projection
+# --------------------------------------------------------------------------
+def project(projector, counts, gene_names, lib=None,
+            min_margin=DEFAULTS["min_margin"],
+            block=DEFAULTS["block"], assume_log=False):
+    """Project query cells into the reference tree.
+
+    Per-cell outputs (dict of arrays):
+      best_leaf         terminal node of the forced descent (always)
+      resolved_node     deepest node with every q-margin >= min_margin
+      resolved_depth    its depth (root = 0)
+      stop_margin       q-margin at the first failing split (NaN when
+                        fully resolved — no split failed)
+      stop_candidates   ';'-joined children within min_margin of the
+                        top at the stop (a candidate set, NOT a
+                        statistical credible set); '' when resolved
+      path_margins      (n_cells x max_depth) q-margin at each split of
+                        the forced path, NaN elsewhere — re-threshold
+                        offline for coverage-risk curves
+      max_label_vote    max global mean vote over reference labels
+                        (out-of-reference evidence; its null level
+                        GROWS with the number of labels)
+      mean_max_corr     mean over reference atlases of the cell's max
+                        Spearman correlation to any reference cell
+      label_vote        (n_cells x n_labels) global vote matrix, with
+                        'labels' (flat-baseline comparisons)
+
+    Query cells are processed in blocks of `block` rows (memory
+    bounded); every per-cell quantity is independent of the other
+    cells in the call by construction.
     """
     tree = projector["tree"]
-    q_ln = lognorm(counts, lib, assume_log)
-    caches, splits, mats = [], [], []
-    for ref in projector["refs"]:
-        if list(ref["gene_names"]) == list(gene_names):
-            qi = np.arange(len(gene_names))
-            ri = np.arange(len(gene_names))
-        else:
-            rpos = {g: i for i, g in enumerate(ref["gene_names"])}
-            common = [g for g in gene_names if g in rpos]
-            if len(common) < 100:
-                raise ValueError(
-                    f"{ref['name']}: only {len(common)} shared genes")
-            qpos = {g: i for i, g in enumerate(gene_names)}
-            qi = np.asarray([qpos[g] for g in common])
-            ri = np.asarray([rpos[g] for g in common])
-        r_ln = lognorm(ref["counts"][:, ri] if len(ri) !=
-                       ref["counts"].shape[1] else ref["counts"],
-                       ref["lib"], assume_log)
-        q_sub = q_ln[:, qi] if len(qi) != q_ln.shape[1] else q_ln
-        hvg = variable_genes(q_sub, r_ln, list(np.asarray(
-            gene_names)[qi]), n_hvg)
-        qn = rank_normalize(q_sub[:, hvg])
-        rn = rank_normalize(r_ln[:, hvg])
-        cache = _votes_and_maxcorr(qn, rn, ref["labels"], chunk)
-        caches.append(cache)
-        splits.append(_split_index(tree, cache["leaves"]))
-        # per-node reference-cell rows for local re-ranking
-        labs = np.asarray(ref["labels"])
-        rows = {}
-        for v in tree["children"]:
-            kids = tree["children"][v]
-            if not kids:
-                continue
-            per_child = []
-            ok = True
-            for c in kids:
-                blocks = []
-                for l in leaves_under(tree, c):
-                    idx = np.flatnonzero(labs == l)
-                    if len(idx):
-                        blocks.append(idx)
-                if not blocks:
-                    ok = False
-                    break
-                per_child.append(blocks)
-            rows[v] = per_child if ok else None
-        mats.append({"qn": qn, "rn": rn, "rows": rows})
+    refs = projector["refs"]
+    qpos = {g: i for i, g in enumerate(gene_names)}
+    panels = []
+    for ref in refs:
+        pr = [(i, qpos[g]) for i, g in enumerate(ref["hvg_names"])
+              if g in qpos]
+        if len(pr) < 100:
+            raise ValueError(f"{ref['name']}: only {len(pr)} of its "
+                             "fitted HVGs present in the query genes")
+        ridx = np.asarray([i for i, _ in pr])
+        qidx = np.asarray([j for _, j in pr])
+        rn = _rank_norm(ref["ln_hvg"][:, ridx])
+        panels.append({"qidx": qidx, "rn": rn,
+                       "blocks": _prepare_split_blocks(tree, ref),
+                       "labels_sorted": sorted(ref["label_nodes"])})
+    all_labels = sorted({l for ref in refs for l in ref["label_nodes"]})
+    lab_pos = {l: i for i, l in enumerate(all_labels)}
 
-    n = q_ln.shape[0]
-    # averaged size-normalized leaf matrix over the tree's leaf order
-    tree_leaves = list(tree["leaves"])
-    leaf_mean = np.zeros((n, len(tree_leaves)))
-    leaf_cov = np.zeros(len(tree_leaves))
-    for cache in caches:
-        pos = {l: i for i, l in enumerate(cache["leaves"])}
-        for j, l in enumerate(tree_leaves):
-            if l in pos:
-                leaf_mean[:, j] += (cache["V"][:, pos[l]] /
-                                    cache["leaf_sizes"][pos[l]])
-                leaf_cov[j] += 1
-    cov = np.maximum(leaf_cov, 1.0)
-    leaf_mean = leaf_mean / cov[None, :]
-
-    def _ranks(co):
-        """dense ranks along axis 1 (argsort-of-argsort; correlation
-        ties are measure-zero on float data), scaled to (0, 1]."""
-        r = np.empty_like(co)
-        idx = np.argsort(co, axis=1)
-        r[np.arange(co.shape[0])[:, None], idx] = \
-            np.arange(1, co.shape[1] + 1)[None, :]
-        return r / co.shape[1]
-
-    def child_scores(v, mask):
-        """Coverage-aware, atlas-balanced per-child LOCAL vote scores
-        for the cells in `mask` at node v: the cells' correlations to
-        the reference cells under v are re-ranked among themselves and
-        each child gets its size-normalized mean local vote. None if no
-        reference covers the whole split."""
-        kids = tree["children"][v]
-        sub = np.flatnonzero(mask)
-        acc = np.zeros((len(sub), len(kids)))
-        n_cov = 0
-        for m in mats:
-            per_child = m["rows"].get(v)
-            if per_child is None:
-                continue
-            n_cov += 1
-            rows_v = np.concatenate([np.concatenate(b)
-                                     for b in per_child])
-            co = m["qn"][sub] @ m["rn"][rows_v].T
-            w = _ranks(co)
-            off = 0
-            for ci, blocks in enumerate(per_child):
-                best = None
-                for idx in blocks:
-                    mvote = w[:, off:off + len(idx)].mean(axis=1)
-                    best = mvote if best is None else \
-                        np.maximum(best, mvote)
-                    off += len(idx)
-                acc[:, ci] += best
-        if n_cov == 0:
-            return None
-        return acc / n_cov
-
-    cur = np.full(n, "root", dtype=object)
-    best_leaf = np.full(n, "", dtype=object)
-    resolved = np.full(n, "root", dtype=object)
-    broken = np.zeros(n, dtype=bool)
-    stop_conf = np.ones(n)
-    credible = np.full(n, "", dtype=object)
-    path_score = np.ones(n)
-    depth_of = {"root": 0}
-
-    # topological order (parents first)
-    order, stack = [], ["root"]
+    order, depth_of, stack = [], {"root": 0}, ["root"]
     while stack:
         v = stack.pop(0)
         order.append(v)
         for c in tree["children"].get(v, []):
             depth_of[c] = depth_of[v] + 1
             stack.append(c)
+    max_depth = max(depth_of.values()) if depth_of else 1
 
-    for v in order:
-        kids = tree["children"].get(v, [])
-        mask = np.asarray(cur == v)
-        if not kids or not mask.any():
-            if not kids and mask.any():
+    outs = []
+    counts = counts.tocsr() if sp.issparse(counts) else counts
+    n_total = counts.shape[0]
+    for s0 in range(0, n_total, block):
+        sl = slice(s0, min(s0 + block, n_total))
+        q_ln = lognorm(_dense(counts[sl]),
+                       None if lib is None else np.asarray(lib)[sl],
+                       assume_log)
+        n = q_ln.shape[0]
+        qns = [_rank_norm(q_ln[:, p["qidx"]]) for p in panels]
+
+        label_vote = np.zeros((n, len(all_labels)))
+        label_cov = np.zeros(len(all_labels))
+        mean_mc = np.zeros(n)
+        for ref, p, qn in zip(refs, panels, qns):
+            labs = np.asarray(ref["labels"])
+            co = qn @ p["rn"].T
+            mean_mc += co.max(axis=1) / len(refs)
+            w = rankdata(co, axis=1, method="average") / co.shape[1]
+            for l in p["labels_sorted"]:
+                idx = np.flatnonzero(labs == l)
+                label_vote[:, lab_pos[l]] += w[:, idx].mean(axis=1)
+                label_cov[lab_pos[l]] += 1
+        label_vote /= np.maximum(label_cov, 1)[None, :]
+
+        cur = np.full(n, "root", dtype=object)
+        best_leaf = np.full(n, "", dtype=object)
+        resolved = np.full(n, "root", dtype=object)
+        broken = np.zeros(n, dtype=bool)
+        stop_margin = np.full(n, np.nan)
+        stop_cand = np.full(n, "", dtype=object)
+        path_margins = np.full((n, max_depth), np.nan)
+
+        for v in order:
+            kids = tree["children"].get(v, [])
+            mask = np.asarray(cur == v)
+            if not mask.any():
+                continue
+            if not kids:
                 best_leaf[mask] = v
-            continue
-        S = child_scores(v, mask)
-        sub = np.flatnonzero(mask)
-        if S is None:
-            # no reference resolves this split: stop here; best_leaf
-            # falls back to the strongest leaf below by leaf_mean
-            below = [tree_leaves.index(l) for l in leaves_under(tree, v)]
-            best_leaf[sub] = np.asarray(tree_leaves, dtype=object)[
-                np.asarray(below)[np.argmax(leaf_mean[np.ix_(
-                    sub, below)], axis=1)]]
-            stop_conf[sub] = np.where(broken[sub], stop_conf[sub], 0.0)
-            broken[sub] = True
-            continue
-        # LOCAL VOTE MARGIN: top child's mean local vote minus the
-        # runner-up's. A subtype-true cell separates strongly (~0.5+);
-        # a cell carrying no signal at this split sits near 0. Ratios
-        # of clipped excesses are avoided (a tiny excess over a zero
-        # sibling must not look confident).
-        orderk = np.argsort(-S, axis=1)
-        top = orderk[:, 0]
-        s1 = S[np.arange(len(sub)), top]
-        s2 = (S[np.arange(len(sub)), orderk[:, 1]]
-              if S.shape[1] > 1 else np.zeros(len(sub)))
-        conf = s1 - s2                       # the margin
-        E = np.clip(S - 0.5, 0.0, None)
-        tot = E.sum(axis=1)
-        e1 = E[np.arange(len(sub)), top]
-        frac = np.where(tot > 0, e1 / np.maximum(tot, 1e-300), 0.0)
-        path_score[sub] *= frac
-        newly = (~broken[sub]) & (conf < min_margin)
-        if newly.any():
-            nb = sub[newly]
-            resolved[nb] = v
-            stop_conf[nb] = conf[newly]
-            kid_arr = np.asarray(kids, dtype=object)
-            for x, row in zip(np.flatnonzero(newly), nb):
-                cred = kid_arr[S[x] >= s1[x] - min_margin]
-                credible[row] = ";".join(map(str, cred))
-            broken[nb] = True
-        keep_going = ~broken[sub]
-        resolved[sub[keep_going]] = np.asarray(
-            kids, dtype=object)[top[keep_going]]
-        cur[sub] = np.asarray(kids, dtype=object)[top]
+                continue
+            sub = np.flatnonzero(mask)
+            q_sum, q_cnt = None, None
+            for p, qn in zip(panels, qns):
+                qc = _score_children(qn[sub], p["rn"],
+                                     p["blocks"].get(v, []))
+                if qc is None:
+                    continue
+                filled = ~np.isnan(qc)
+                if q_sum is None:
+                    q_sum = np.where(filled, qc, 0.0)
+                    q_cnt = filled.astype(float)
+                else:
+                    q_sum += np.where(filled, qc, 0.0)
+                    q_cnt += filled
+            if q_sum is None:
+                # no reference resolves this split: interpretation
+                # stops here; the forced candidate falls back to the
+                # strongest label vote among the labels below
+                below = [l for l in all_labels
+                         if l in lab_pos and _label_below(
+                             refs, l, tree, v)]
+                nb = sub[~broken[sub]]
+                stop_margin[nb] = 0.0
+                broken[sub] = True
+                if below:
+                    bi = np.asarray([lab_pos[l] for l in below])
+                    best_leaf[sub] = np.asarray(below, dtype=object)[
+                        np.argmax(label_vote[np.ix_(sub, bi)], axis=1)]
+                else:
+                    best_leaf[sub] = v
+                cur[sub] = "__done__"
+                continue
+            # mean log-p across covering references (geometric-mean
+            # evidence); SMALLER = stronger, so sort ascending
+            LP = np.where(q_cnt > 0, q_sum / np.maximum(q_cnt, 1),
+                          np.inf)
+            orderk = np.argsort(LP, axis=1)
+            top = orderk[:, 0]
+            lp1 = LP[np.arange(len(sub)), top]
+            lp2 = (LP[np.arange(len(sub)), orderk[:, 1]]
+                   if LP.shape[1] > 1 else np.full(len(sub), np.inf))
+            with np.errstate(over="ignore"):
+                margin = np.where(np.isfinite(lp2),
+                                  -np.expm1(np.minimum(lp1 - lp2, 0.0)),
+                                  1.0)
+            S = -LP
+            path_margins[sub, depth_of[v]] = margin
+            newly = (~broken[sub]) & (margin < min_margin)
+            if newly.any():
+                nb = sub[newly]
+                resolved[nb] = v
+                stop_margin[nb] = margin[newly]
+                kid_arr = np.asarray(kids, dtype=object)
+                for x, row in zip(np.flatnonzero(newly), nb):
+                    with np.errstate(over="ignore"):
+                        rm = -np.expm1(np.minimum(
+                            lp1[x] - LP[x], 0.0))
+                    cand = kid_arr[np.where(np.isfinite(LP[x]),
+                                            rm < min_margin, False)]
+                    stop_cand[row] = ";".join(map(str, cand))
+                broken[nb] = True
+            keep = ~broken[sub]
+            resolved[sub[keep]] = np.asarray(
+                kids, dtype=object)[top[keep]]
+            cur[sub] = np.asarray(kids, dtype=object)[top]
 
-    unassigned = best_leaf == ""
-    if unassigned.any():                       # safety (shouldn't occur)
-        best_leaf[unassigned] = np.asarray(tree_leaves, dtype=object)[
-            np.argmax(leaf_mean[unassigned], axis=1)]
+        left = np.asarray([b == "" for b in best_leaf])
+        if left.any():                       # safety net
+            best_leaf[left] = cur[left]
+        outs.append({
+            "best_leaf": best_leaf.astype(str),
+            "resolved_node": resolved.astype(str),
+            "resolved_depth": np.asarray(
+                [depth_of.get(r, 0) for r in resolved]),
+            "stop_margin": stop_margin,
+            "stop_candidates": stop_cand.astype(str),
+            "path_margins": path_margins,
+            "max_label_vote": label_vote.max(axis=1),
+            "mean_max_corr": mean_mc,
+            "label_vote": label_vote,
+        })
 
-    return {
-        "best_leaf": best_leaf.astype(str),
-        "path_score": path_score,
-        "resolved_node": resolved.astype(str),
-        "resolved_depth": np.asarray([depth_of.get(r, 0)
-                                      for r in resolved]),
-        "stop_margin": stop_conf,
-        "credible": credible.astype(str),
-        "top_leaf_mean": leaf_mean.max(axis=1),
-        "max_corr": np.mean([c["max_corr"] for c in caches], axis=0),
-        "leaves": tree_leaves,
-        "leaf_mean": leaf_mean,
-        "params": {"n_hvg": n_hvg, "min_margin": min_margin,
-                   "n_refs": len(caches)},
-    }
+    res = {k: np.concatenate([o[k] for o in outs])
+           for k in outs[0] if outs[0][k].ndim == 1}
+    res["path_margins"] = np.vstack([o["path_margins"] for o in outs])
+    res["label_vote"] = np.vstack([o["label_vote"] for o in outs])
+    res["labels"] = all_labels
+    res["params"] = {"min_margin": min_margin,
+                     "n_refs": len(refs), "block": block}
+    return res
+
+
+def _label_below(refs, label, tree, v):
+    """True when `label`'s node lies within v's subtree in any ref."""
+    for ref in refs:
+        nd = ref["label_nodes"].get(label)
+        if nd is None:
+            continue
+        span = {v}
+        stack = list(tree["children"].get(v, []))
+        while stack:
+            x = stack.pop()
+            span.add(x)
+            stack.extend(tree["children"].get(x, []))
+        if nd in span:
+            return True
+    return False

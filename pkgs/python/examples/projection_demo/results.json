@@ -2,68 +2,139 @@
  "t1": {
   "n_query": 22067,
   "n_ref_cells": 4864,
-  "build_s": 0.1,
-  "project_s": 23.4,
-  "cells_per_s": 944.5,
-  "subclass_acc": 0.9555,
-  "class_acc": 0.9985,
-  "wrong_class_rate": 0.0015,
-  "frac_resolved_subclass_or_deeper": 0.6329,
-  "subclass_acc_when_resolved_deep": 0.9989,
-  "median_resolved_depth": 2.0,
-  "flat_subclass_acc": 0.9555,
-  "flat_class_acc": 0.9985
+  "build_s": 0.3,
+  "project_s": 35.0,
+  "cells_per_s": 631.3,
+  "subclass_acc_micro": 0.9357,
+  "subclass_acc_macro": 0.883,
+  "class_acc": 0.9901,
+  "wrong_class_rate": 0.0099,
+  "coverage_subclass_or_deeper": 0.9362,
+  "selective_subclass_acc": 0.9625,
+  "flat_subclass_acc": 0.9543,
+  "coverage_risk_curve": [
+   {
+    "threshold": 0.0,
+    "coverage": 0.9827,
+    "risk": 0.0654
+   },
+   {
+    "threshold": 0.2,
+    "coverage": 0.9809,
+    "risk": 0.0643
+   },
+   {
+    "threshold": 0.4,
+    "coverage": 0.9777,
+    "risk": 0.0622
+   },
+   {
+    "threshold": 0.6,
+    "coverage": 0.9746,
+    "risk": 0.0598
+   },
+   {
+    "threshold": 0.8,
+    "coverage": 0.9687,
+    "risk": 0.0567
+   },
+   {
+    "threshold": 0.9,
+    "coverage": 0.9618,
+    "risk": 0.0525
+   },
+   {
+    "threshold": 0.95,
+    "coverage": 0.9547,
+    "risk": 0.048
+   },
+   {
+    "threshold": 0.99,
+    "coverage": 0.9362,
+    "risk": 0.0375
+   }
+  ],
+  "per_subclass_coverage_min": 0.0,
+  "per_subclass_coverage_median": 0.966
  },
  "t2": {
   "n_query": 13842,
-  "total_s": 4.2,
-  "subclass_acc": 0.803,
-  "class_acc": 0.9981,
-  "wrong_class_rate": 0.0019,
-  "frac_resolved_to_subclass": 0.6041
+  "subclass_acc": 0.8611,
+  "class_acc": 0.9988,
+  "coverage_to_subclass": 0.8864
  },
+ "sensitivity": [
+  {
+   "cap": 25,
+   "seed": 0,
+   "subclass_acc": 0.9484,
+   "coverage": 0.8707,
+   "selective_acc": 0.9816
+  },
+  {
+   "cap": 25,
+   "seed": 1,
+   "subclass_acc": 0.9531,
+   "coverage": 0.8677,
+   "selective_acc": 0.9845
+  },
+  {
+   "cap": 25,
+   "seed": 2,
+   "subclass_acc": 0.9494,
+   "coverage": 0.8718,
+   "selective_acc": 0.9828
+  },
+  {
+   "cap": 50,
+   "seed": 0,
+   "subclass_acc": 0.9357,
+   "coverage": 0.9362,
+   "selective_acc": 0.9625
+  },
+  {
+   "cap": 50,
+   "seed": 1,
+   "subclass_acc": 0.9376,
+   "coverage": 0.939,
+   "selective_acc": 0.961
+  },
+  {
+   "cap": 50,
+   "seed": 2,
+   "subclass_acc": 0.9351,
+   "coverage": 0.9374,
+   "selective_acc": 0.9609
+  }
+ ],
  "speed": [
   {
-   "cap_per_leaf": 25,
-   "n_ref_cells": 2575,
+   "cap": 25,
+   "n_ref": 2575,
    "n_query": 2000,
    "seconds": 1.6,
-   "cells_per_s": 1283.4
+   "cells_per_s": 1276.7
   },
   {
-   "cap_per_leaf": 25,
-   "n_ref_cells": 2575,
-   "n_query": 5000,
-   "seconds": 3.4,
-   "cells_per_s": 1489.4
-  },
-  {
-   "cap_per_leaf": 25,
-   "n_ref_cells": 2575,
+   "cap": 25,
+   "n_ref": 2575,
    "n_query": 22067,
-   "seconds": 13.5,
-   "cells_per_s": 1630.3
+   "seconds": 13.4,
+   "cells_per_s": 1650.7
   },
   {
-   "cap_per_leaf": 50,
-   "n_ref_cells": 4864,
+   "cap": 50,
+   "n_ref": 4864,
    "n_query": 2000,
-   "seconds": 2.8,
-   "cells_per_s": 725.0
+   "seconds": 2.6,
+   "cells_per_s": 755.9
   },
   {
-   "cap_per_leaf": 50,
-   "n_ref_cells": 4864,
-   "n_query": 5000,
-   "seconds": 5.9,
-   "cells_per_s": 840.4
-  },
-  {
-   "cap_per_leaf": 50,
-   "n_ref_cells": 4864,
+   "cap": 50,
+   "n_ref": 4864,
    "n_query": 22067,
-   "seconds": 23.6,
-   "cells_per_s": 935.9
+   "seconds": 23.7,
+   "cells_per_s": 932.1
   }
  ]
 }

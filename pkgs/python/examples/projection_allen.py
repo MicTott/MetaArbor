@@ -1,23 +1,11 @@
-"""Projection prototype — real-data held-out-PLATFORM evaluation + speed
-benchmark on the Allen WMB PL-ILA-ORB data.
+"""Projection prototype — Allen held-out-PLATFORM evaluation + speed,
+under the review-round fixes (fitted projector, refinement-calibrated
+statistic, tie-aware ranks). min_margin = 0.80 was fixed on synthetic
+operating curves BEFORE this script ran; nothing here tunes it.
 
-Test 1 (fine reference, coarse-labeled query):
-  reference = 10Xv3 cells, CLUSTER labels, curated 4-level tree
-  (class -> subclass -> supertype -> cluster);
-  query = every 10Xv2 cell (different platform = the batch axis).
-  Truth = each v2 cell's own subclass annotation (used ONLY to score).
-  Score best_leaf via its curated subclass; measure subclass/class
-  accuracy, wrong-class rate, resolution-depth distribution, and the
-  abstention value (accuracy among cells that RESOLVED to subclass
-  depth or deeper vs all cells). Baseline: flat argmax over the global
-  leaf vote matrix (same evidence, no hierarchy, no local re-ranking).
-
-Test 2 (coarse reference, fine-labeled query):
-  reference = 10Xv2 cells, SUBCLASS labels, 2-level class -> subclass
-  tree; query = every 10Xv3 cell; truth = its curated subclass.
-
-Speed: build + project wall time at reference caps 25/50 and query
-sizes 2k / 5k / full.
+Reports: selective (coverage-risk) curve from per-split margins, micro
+and MACRO subclass accuracy, per-subclass coverage, wrong-class rates,
+cap/seed sensitivity, and speed scaling.
 """
 import csv
 import json
@@ -60,17 +48,29 @@ clu_to_cls = {c["cluster"]: c["class"] for c in cells3}
 sub_to_cls = {c["subclass"]: c["class"] for c in cells3}
 sub_to_cls.update({c["subclass"]: c["class"] for c in cells2})
 
-results = {}
-
-# ---- Test 1: v3 cluster reference, v2 query -------------------------------
 tree3 = tree_from_levels(
     sorted({(c["class"], c["subclass"], c["supertype"], c["cluster"])
             for c in cells3}),
     ["class", "subclass", "supertype", "cluster"])
+results = {}
+
+
+def depth_at(path_margins, t):
+    ok = np.ones(len(path_margins), dtype=bool)
+    d = np.zeros(len(path_margins), dtype=int)
+    for lvl in range(path_margins.shape[1]):
+        m = path_margins[:, lvl]
+        passed = ok & ~np.isnan(m) & (m >= t)
+        d[passed] = lvl + 1
+        ok = passed
+    return d
+
+
+# ---- Test 1: v3 cluster reference -> all v2 cells -------------------------
 t0 = time.time()
 proj3 = build_projector([{"counts": c3, "labels": clu3,
                           "gene_names": genes, "lib": l3,
-                          "name": "10Xv3"}], tree3, cap_per_leaf=50)
+                          "name": "10Xv3"}], tree3, cap_per_label=50)
 t_build = time.time() - t0
 t0 = time.time()
 out = project(proj3, c2, genes, lib=l2)
@@ -78,90 +78,114 @@ t_proj = time.time() - t0
 
 pred_sub = np.asarray([clu_to_sub[b] for b in out["best_leaf"]])
 pred_cls = np.asarray([clu_to_cls[b] for b in out["best_leaf"]])
-depth = out["resolved_depth"]
-acc_sub = float(np.mean(pred_sub == sub2))
-acc_cls = float(np.mean(pred_cls == cls2))
-deep = depth >= 2                                   # subclass or deeper
-acc_sub_deep = float(np.mean(pred_sub[deep] == sub2[deep])) \
-    if deep.any() else float("nan")
-# flat baseline: argmax over global leaf votes (same evidence, no tree)
-leaves = np.asarray(out["leaves"])
-flat_leaf = leaves[np.argmax(out["leaf_mean"], axis=1)]
-flat_sub = np.asarray([clu_to_sub[b] for b in flat_leaf])
-flat_cls = np.asarray([clu_to_cls[b] for b in flat_leaf])
+subs_all = sorted(set(sub2))
+per_sub_acc = {s: float(np.mean(pred_sub[sub2 == s] == s))
+               for s in subs_all}
+macro = float(np.mean(list(per_sub_acc.values())))
+deep = out["resolved_depth"] >= 2
+per_sub_cov = {s: float(np.mean(deep[sub2 == s])) for s in subs_all}
+
+# selective (coverage-risk) curve: threshold the recorded per-split
+# margins offline; risk = subclass error among cells resolving >= depth2
+curve = []
+for t in (0.0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 0.99):
+    d = depth_at(out["path_margins"], t)
+    cov = float(np.mean(d >= 2))
+    sel = d >= 2
+    risk = float(np.mean(pred_sub[sel] != sub2[sel])) if sel.any() \
+        else float("nan")
+    curve.append({"threshold": t, "coverage": round(cov, 4),
+                  "risk": round(risk, 4)})
+
 results["t1"] = {
-    "n_query": int(len(sub2)), "n_ref_cells":
-        int(sum(len(r["labels"]) for r in proj3["refs"])),
+    "n_query": int(len(sub2)),
+    "n_ref_cells": int(sum(len(r["labels"]) for r in proj3["refs"])),
     "build_s": round(t_build, 1), "project_s": round(t_proj, 1),
     "cells_per_s": round(len(sub2) / t_proj, 1),
-    "subclass_acc": round(acc_sub, 4),
-    "class_acc": round(acc_cls, 4),
-    "wrong_class_rate": round(1 - acc_cls, 4),
-    "frac_resolved_subclass_or_deeper": round(float(np.mean(deep)), 4),
-    "subclass_acc_when_resolved_deep": round(acc_sub_deep, 4),
-    "median_resolved_depth": float(np.median(depth)),
-    "flat_subclass_acc": round(float(np.mean(flat_sub == sub2)), 4),
-    "flat_class_acc": round(float(np.mean(flat_cls == cls2)), 4),
+    "subclass_acc_micro": round(float(np.mean(pred_sub == sub2)), 4),
+    "subclass_acc_macro": round(macro, 4),
+    "class_acc": round(float(np.mean(pred_cls == cls2)), 4),
+    "wrong_class_rate": round(float(np.mean(pred_cls != cls2)), 4),
+    "coverage_subclass_or_deeper": round(float(np.mean(deep)), 4),
+    "selective_subclass_acc": round(
+        float(np.mean(pred_sub[deep] == sub2[deep])), 4)
+        if deep.any() else None,
+    "flat_subclass_acc": round(float(np.mean(np.asarray(
+        [clu_to_sub[l] for l in np.asarray(out["labels"])[
+            np.argmax(out["label_vote"], axis=1)]]) == sub2)), 4),
+    "coverage_risk_curve": curve,
+    "per_subclass_coverage_min": round(min(per_sub_cov.values()), 3),
+    "per_subclass_coverage_median": round(
+        float(np.median(list(per_sub_cov.values()))), 3),
 }
-print("Test 1 (v3 cluster ref -> v2 query):",
-      json.dumps(results["t1"], indent=1))
-
-# per-cell table for auditing
-with open(os.path.join(OUT, "t1_per_cell.csv"), "w", newline="") as fh:
+print("Test 1:", json.dumps(
+    {k: v for k, v in results["t1"].items()
+     if k != "coverage_risk_curve"}, indent=1))
+print("coverage-risk:", curve)
+with open(os.path.join(OUT, "t1_per_subclass.csv"), "w",
+          newline="") as fh:
     w = csv.writer(fh)
-    w.writerow(["true_subclass", "best_leaf", "pred_subclass",
-                "resolved_node", "resolved_depth", "stop_margin",
-                "path_score", "top_leaf_mean"])
-    for i in range(len(sub2)):
-        w.writerow([sub2[i], out["best_leaf"][i], pred_sub[i],
-                    out["resolved_node"][i], depth[i],
-                    round(float(out["stop_margin"][i]), 3),
-                    round(float(out["path_score"][i]), 4),
-                    round(float(out["top_leaf_mean"][i]), 3)])
+    w.writerow(["subclass", "n_cells", "accuracy", "coverage"])
+    for s in subs_all:
+        w.writerow([s, int((sub2 == s).sum()),
+                    round(per_sub_acc[s], 4), round(per_sub_cov[s], 4)])
 
-# ---- Test 2: v2 subclass reference, v3 query ------------------------------
+# ---- Test 2: v2 subclass reference -> all v3 cells ------------------------
 tree2 = tree_from_levels(
     sorted({(c["class"], c["subclass"]) for c in cells2}),
     ["class", "subclass"])
-t0 = time.time()
 proj2 = build_projector([{"counts": c2, "labels": sub2,
                           "gene_names": genes, "lib": l2,
-                          "name": "10Xv2"}], tree2, cap_per_leaf=50)
+                          "name": "10Xv2"}], tree2, cap_per_label=50)
 out2 = project(proj2, c3, genes, lib=l3)
-t_all2 = time.time() - t0
 pred2 = out2["best_leaf"]
 pred2_cls = np.asarray([sub_to_cls.get(b, "?") for b in pred2])
 results["t2"] = {
     "n_query": int(len(sub3)),
-    "total_s": round(t_all2, 1),
     "subclass_acc": round(float(np.mean(pred2 == sub3)), 4),
     "class_acc": round(float(np.mean(pred2_cls == cls3)), 4),
-    "wrong_class_rate": round(float(np.mean(pred2_cls != cls3)), 4),
-    "frac_resolved_to_subclass":
+    "coverage_to_subclass":
         round(float(np.mean(out2["resolved_depth"] >= 2)), 4),
 }
-print("Test 2 (v2 subclass ref -> v3 query):",
-      json.dumps(results["t2"], indent=1))
+print("Test 2:", json.dumps(results["t2"], indent=1))
 
-# ---- Speed scaling --------------------------------------------------------
+# ---- cap/seed sensitivity -------------------------------------------------
+sens = []
+for cap in (25, 50):
+    for seed in (0, 1, 2):
+        pr = build_projector([{"counts": c3, "labels": clu3,
+                               "gene_names": genes, "lib": l3,
+                               "name": "10Xv3"}], tree3,
+                             cap_per_label=cap, seed=seed)
+        o = project(pr, c2, genes, lib=l2)
+        ps = np.asarray([clu_to_sub[b] for b in o["best_leaf"]])
+        dd = o["resolved_depth"] >= 2
+        sens.append({"cap": cap, "seed": seed,
+                     "subclass_acc": round(float(np.mean(ps == sub2)), 4),
+                     "coverage": round(float(np.mean(dd)), 4),
+                     "selective_acc": round(
+                         float(np.mean(ps[dd] == sub2[dd])), 4)})
+        print("sensitivity", sens[-1])
+results["sensitivity"] = sens
+
+# ---- speed scaling --------------------------------------------------------
 speed = []
 rs = np.random.RandomState(0)
 for cap in (25, 50):
     pr = build_projector([{"counts": c3, "labels": clu3,
-                           "gene_names": genes, "lib": l3}],
-                         tree3, cap_per_leaf=cap)
+                           "gene_names": genes, "lib": l3,
+                           "name": "10Xv3"}], tree3, cap_per_label=cap)
     n_ref = int(sum(len(r["labels"]) for r in pr["refs"]))
-    for nq in (2000, 5000, len(sub2)):
+    for nq in (2000, 22067):
         idx = (rs.choice(len(sub2), nq, replace=False)
                if nq < len(sub2) else np.arange(len(sub2)))
         t0 = time.time()
         project(pr, c2[idx], genes, lib=l2[idx])
         dt = time.time() - t0
-        speed.append({"cap_per_leaf": cap, "n_ref_cells": n_ref,
-                      "n_query": int(nq), "seconds": round(dt, 1),
+        speed.append({"cap": cap, "n_ref": n_ref, "n_query": int(nq),
+                      "seconds": round(dt, 1),
                       "cells_per_s": round(nq / dt, 1)})
-        print(f"speed cap={cap} ref={n_ref} n={nq}: {dt:.1f}s "
-              f"({nq/dt:.0f} cells/s)")
+        print("speed", speed[-1])
 results["speed"] = speed
 
 with open(os.path.join(OUT, "results.json"), "w") as fh:
