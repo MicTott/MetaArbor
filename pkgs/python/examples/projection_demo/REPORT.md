@@ -1,166 +1,119 @@
-# Round 3 corrections (method-description review)
+# MetaArbor Projection prototype — consolidated report (round 4)
 
-All four round-3 corrections are implemented on top of report v2
-(below). Numbers were re-measured; forced accuracies are unchanged and
-the abstention operating point moved slightly.
+Branch `projection-prototype`. This file supersedes the earlier
+stacked v1/v2 reports, whose superseded claims ("null-uniform",
+"calibrated", "refinement-invariant") are retired; the review history
+lives in the git log.
 
-1. **The margin is NOT null-uniform — language and formula fixed.**
-   The docstring now calls it a multiplicity-adjusted RELATIVE-EVIDENCE
-   margin and states why calibration fails (dependent p-values sharing
-   one rank partition, tail approximations, Bonferroni minima,
-   conditioning on reaching the node; the realized null passes roughly
-   double the idealized rate). The rank-mean error ((n+1)/2n, not 0.5)
-   and the tie caveat are both eliminated at once: each cell's null
-   mean and variance are now the EXACT finite-population moments of its
-   own realized local rank vector. Only the normal tail remains an
-   approximation, and the docstring says so.
-2. **Refinement invariance is not claimed — and the stronger test was
-   added.** New gate: the SAME reference cells relabeled as 1, 2, or 10
-   pseudo-leaves. Parent CHOICE is stable (>=95% agreement) and null
-   leakage stays bounded under every relabeling; margin MAGNITUDES
-   shift with block size, which is why the statistic is described as
-   multiplicity-ADJUSTED, never refinement-invariant.
-3. **best_leaf contract split.** Outputs are now `best_label` (always a
-   real reference label — possibly a coarse one) and `best_node`
-   (always a valid tree node id). A leaf is never invented beneath a
-   coarse reference; the coarse-only gate asserts both properties.
-   `from_harmonize()` now maps affiliate labels to their attached
-   meta-clades (member mappings win).
-4. **Claims softened + practical fixes.** "Known biology" ->
-   "errors concentrate in biologically plausible hard cases"; blocks
-   densify only the union of fitted HVG columns (library sizes computed
-   from the full gene set BEFORE subsetting); the stale 0.80 header is
-   gone; the cap remains an influential parameter and is reported as
-   such (cap 25: 94.8-95.3% forced / 88-89% coverage / 97.8-98.1%
-   selective; cap 50: 93.5-93.8% / 94.4-94.6% / 95.6-95.8%).
+## What the method is
 
-`min_margin = 0.98` was re-derived with the criterion EXTENDED to three
-prespecified constraints (family-only deep leakage <=10%, novel deep
-leakage <=5%, pure-null root pass <=15%) — the last one added because
-the empirical null passes ~2x the idealized rate, which is exactly the
-dependence the review identified. Gates 16/16; full suite 74/74.
+A hierarchical MetaNeighbor-style reference classifier with selective
+abstention. A FITTED projector (reference-only features and
+preprocessing; per-cell results independent of query composition)
+routes each cell root-to-leaf through a reference tree. At each split,
+the cell's Spearman correlations to that node's own reference cells
+are re-ranked locally (tie-average); each reference label under a
+child forms a block scored by a z-statistic whose mean/variance are
+the EXACT finite-population moments of the cell's realized local rank
+vector (tie-robust; the normal tail is the one approximation);
+children carry the Bonferroni-corrected best block on the log scale;
+the stop rule is a MULTIPLICITY-ADJUSTED RELATIVE-EVIDENCE MARGIN
+(1 - p_best/p_second). The margin is an evidence ratio, NOT a
+calibrated null probability (dependent p-values sharing one rank
+partition; the empirical null passes ~2x the idealized rate).
 
-Allen under the corrected statistic (thresholds fixed beforehand):
-subclass 93.6% micro / 88.3% macro, class 99.0%, coverage 94.4%,
-selective 95.8%, flat baseline 95.4%; coverage-risk smooth (6.5% ->
-3.8%); seed spread +-0.2%. The defensible claim, per the review:
-multiplicity-adjusted hierarchical evidence yields a useful SELECTIVE
-classifier — it trades some forced leaf accuracy for concentrating
-errors among cells that stop at broader nodes. It is not a calibrated
-classifier. Next: amygdala, then MetaArbor projection vs MapMyCells on
-the same reconciled reference.
+Outputs per cell: `best_label` (always a real reference label,
+possibly coarse), `best_node` (always a valid tree node — a leaf is
+never invented beneath a coarse reference), `resolved_node`/depth,
+`stop_margin` (NaN when fully resolved), `stop_candidates` (candidate
+set, not a credible set), `path_margins` (offline coverage-risk),
+`max_label_vote` (OOR evidence; null grows with label count),
+`mean_max_corr`, and the global `label_vote` matrix.
 
----
+Multi-atlas references: stratified per-label caps (name-keyed
+subsample streams; atlas-order invariant); the formal COMBINATION RULE
+is that a reference contributes to a split only when it covers EVERY
+child of that split, so children are always compared on identical
+reference subsets. Cross-atlas label collisions raise unless both
+atlases map the label to the same tree node. Reference labels may sit
+at internal nodes (coarse atlases in a reconciled hierarchy);
+`from_harmonize()` adapts a harmonize() result, affiliates included.
 
-# MetaArbor Projection prototype — report v2 (after adversarial review)
+The frozen operating point is `min_margin = 0.98`, chosen on synthetic
+operating curves under three prespecified constraints (family-only
+deep leakage <=10%, novel deep leakage <=5%, pure-null root pass
+<=15%). The 15% null criterion is an engineering choice, not a
+universal constant; it is FROZEN and will not be retuned after seeing
+amygdala results — coverage-risk curves are reported instead.
 
-Branch `projection-prototype`. The round-1 review found five real
-problems; all are fixed, each with an adversarial test that now guards
-it. The headline numbers CHANGED as the review predicted they would.
+## Gates (tests/test_projection.py, 19/19)
 
-## What the review found, and what was done
+Parity with kernel.vote_cache; held-out-batch accuracy with ~0
+wrong-family among resolved; family-only cells never resolve beyond
+family; novel-family cells resolve shallow with separable OOR;
+determinism incl. odd block sizes; refinement null (1-vs-10
+exchangeable leaves: balanced, bounded); SAME-cells relabeling
+(1/2/10 pseudo-leaves: parent choice stable >=95%, null bounded —
+margins shift with block size, hence "multiplicity-adjusted", never
+"refinement-invariant"); tie abstention + reference-order,
+label-renaming, atlas-order invariance; query-composition invariance;
+coarse-only references stop at their labels with valid best_node;
+mixed-resolution references; harmonize adapter incl. affiliate
+mapping; sparse==dense; unequal coverage; CROSSED three-child partial
+coverage (split abstains for everyone; adding one full-coverage
+reference reproduces its solo decisions exactly); label-collision
+guard; gene_panel decouples features from the cap.
 
-1. **Max-over-leaves multiplicity bias** (a 10-leaf branch got 10
-   draws at the max; the 1-vs-10 null forced 99.7% of cells into the
-   leaf-rich branch). Replaced by a refinement-calibrated statistic:
-   per-label-block exact-null z of the mean local rank vote,
-   Bonferroni-corrected best block per child in LOG space, and a
-   null-uniform RATIO margin `1 - p_best/p_second` (uniform for any
-   number of children; the log scale never saturates float64 — a
-   plain `(1-p)^n` score saturated to 1.0 on Allen and destroyed all
-   margins). Null test now: ~balanced assignment, <=15% pass root.
-2. **Transductive feature selection** (query batch changed a cell's
-   result: 18/30 flipped). The projector is now FITTED: reference-only
-   HVGs and preprocessing frozen in `build_projector()`; a
-   composition-invariance test asserts single-cell == in-batch
-   results exactly.
-3. **Ordinal tie-breaking in local ranks.** Tie-average ranks
-   everywhere; identical reference profiles now abstain (>=90%) and
-   results are invariant to reference row order, label renaming, and
-   atlas order (subsampling streams keyed by reference NAME).
-4. **Could not consume reconciled trees.** `label_maps` lets reference
-   labels sit at INTERNAL nodes (informing splits above, silent at and
-   below — partially observed subtrees); `from_harmonize()` adapts a
-   harmonize() result directly. Tests: coarse-only references never
-   resolve below their labels; mixed-resolution references work;
-   harmonize round-trip runs end to end.
-5. **Sparse/memory.** scipy.sparse references and queries supported;
-   queries stream through in blocks (`block=20000`), and per-cell
-   independence makes blocking exact (tested with odd block sizes).
+## Allen held-out platform (single reference; thresholds fixed first)
 
-Renames per review: `stop_candidates` (a candidate set, not a credible
-set), `stop_margin` = NaN sentinel when no split failed,
-`mean_max_corr`, `max_label_vote` (null grows with label count).
-`path_score` was dropped (not comparable across depths);
-`path_margins` (per-split, NaN-padded) replaces it and supports
-offline coverage-risk curves. "Calibration" language removed: the
-Allen numbers are SELECTIVE accuracy at a threshold.
-
-`min_margin = 0.99` was re-derived on the synthetic operating curve
-(prespecified criterion: smallest threshold with family-only deep
-leakage <=10% and novel-family deep leakage <=5%), before any Allen
-run. On a ratio scale it reads: descend only when the winner's
-corrected p is 100x smaller than the runner-up's.
-
-## Synthetic gates (14/14)
-
-Core five (parity, held-out accuracy, family-only abstention, novelty,
-determinism+blocking) plus the review's six adversarial checks
-(refinement null, ties/permutation invariance, atlas order, query
-composition, internal-node labels + harmonize adapter + mixed
-resolution, sparse equivalence, unequal coverage).
-
-## Allen held-out platform (thresholds fixed beforehand)
-
-**Test 1** — v3 cluster reference (4,864 cells after cap), all 22,067
-v2 cells, truth = each cell's own subclass:
+v3 cluster reference (4,864 cells) -> all 22,067 v2 cells, truth =
+each cell's own subclass:
 
 | metric | value |
 |---|---|
-| subclass accuracy (micro / MACRO) | 93.6% / 88.3% |
+| subclass accuracy micro / macro | 93.6% / 88.3% |
 | class accuracy | 99.0% (wrong-class 0.99%) |
-| coverage (resolved to subclass depth) | 93.6% |
-| selective subclass accuracy (covered cells) | 96.3% |
+| coverage (resolved to subclass depth) | 94.4% |
+| selective subclass accuracy | 95.8% |
 | flat global-vote baseline | 95.4% |
 
-Coverage-risk curve (threshold 0 -> 0.99): coverage 98.3% -> 93.6%,
-risk 6.5% -> 3.8% — smooth and monotone. Sensitivity: seed variation
-+-0.2%; cap 25 vs 50 trades coverage (87% vs 94%) against selective
-accuracy (98.2% vs 96.1%) monotonically — the pathological cap flip
-from the saturating statistic is gone.
+Coverage-risk (threshold 0 -> 0.99): coverage 98.3% -> 93.6%, risk
+6.5% -> 3.8%, smooth and monotone. Seeds move results +-0.2%. The cap
+is an influential parameter: cap 25 gives 94.8-95.3% forced / 88-89%
+coverage / 97.8-98.1% selective; cap 50 gives 93.5-93.8% / 94.4-94.6%
+/ 95.6-95.8%. Reverse direction (coarse v2 reference -> v3 cells):
+subclass 86.1%, class 99.9%.
 
-**Honest reading vs round 1:** the uncalibrated max flattered the
-prototype (95.6% forced, 99.9% selective at only 63% coverage). The
-calibrated statistic gives up ~1.9 points of forced accuracy against
-the flat baseline (93.6% vs 95.4%) and buys: refinement invariance,
-a 30-point coverage gain at 96.3% selective accuracy, valid abstention
-semantics, internal-node references, and per-split interpretability.
-The flat baseline remains the right yardstick and is reported
-alongside.
+Errors concentrate in biologically plausible hard cases: the
+deep-layer IT continuum (003 L5/6 IT TPE-ENT at 0.4%, absorbed by
+adjacent IT subclasses), rare 046 Sst Chodl absorbed by bulk Sst, and
+two non-neuronal subclasses that abstain at their fine splits while
+being 100% correct at best_label.
 
-**Failure structure (per-subclass table committed):** the two
-zero-coverage subclasses (Astro-TE, Microglia) have 100% best-leaf
-accuracy — pure conservative abstention at their fine splits. The two
-low-accuracy subclasses are 003 L5/6 IT TPE-ENT (0.4% — absorbed into
-the adjacent IT subclasses: the deep-layer IT continuum that every
-MetaArbor analysis has flagged) and rare 046 Sst Chodl (2%, absorbed
-by bulk Sst). Errors are structured and known, not random.
-
-**Test 2** — coarse v2 subclass reference -> all 13,842 v3 cells:
-subclass 86.1%, class 99.9%, coverage 88.6%.
+The defensible claim: multiplicity-adjusted hierarchical evidence
+yields a useful SELECTIVE classifier — it trades some forced leaf
+accuracy for concentrating errors among cells that stop at broader
+nodes. It is not a calibrated classifier.
 
 ## Speed
 
-725-1,650 cells/s CPU across caps and query sizes (22k cells in
-13-24 s; build <0.5 s). Sparse input and query blocking are in; the
-million-cell path now has bounded memory by construction.
+725-1,690 cells/s CPU (22k cells in 13-24 s; build <0.5 s). Blocks
+densify only the union of fitted panel columns, with library sizes
+computed from the full gene set before subsetting.
 
-## Still open
+## Status per review
 
-- Selective accuracy is not calibration; donor-level cross-fit
-  calibration remains future work, as does a principled OOR flag
-  (max_label_vote's null grows with label count).
-- The amygdala atlases remain the independent confirmation the
-  statistic choices deserve.
-- Module remains one file; a class-based fit/transform split would be
-  the packaging step if this graduates.
+- GREEN: frozen single-reference evaluation (amygdala next, via
+  examples/project_run.py; thresholds frozen).
+- AMBER: combined multi-atlas projection — the collision guard and the
+  full-coverage combination rule are now in with adversarial tests,
+  but independent (amygdala) validation comes before trusting it.
+- Not merged to the stable API; branch-only.
+
+## Open items
+
+Donor-level cross-fit calibration; principled OOR flag; sparse HVG
+computation or supplied panels for whole-transcriptome-scale fitting
+(gene_panel exists); class-based fit/transform refactor if this
+graduates; MetaArbor projection vs MapMyCells on the same reconciled
+reference as the decisive comparison.

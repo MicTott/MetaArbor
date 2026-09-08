@@ -1,5 +1,5 @@
 """Projection prototype — Allen held-out-PLATFORM evaluation + speed,
-under the review-round fixes (fitted projector, refinement-calibrated
+under the review-round fixes (fitted projector, multiplicity-adjusted
 statistic, tie-aware ranks). min_margin = 0.98 was fixed on synthetic
 operating curves (three prespecified constraints: family-only deep
 leakage <=10%, novel deep leakage <=5%, pure-null root pass <=15%)

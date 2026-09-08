@@ -425,3 +425,89 @@ def test_unequal_coverage_excluded_per_split(world):
     f2 = np.asarray([FAM[l] == "F2" for l in lq])
     acc_f2 = np.mean(out["best_label"][f2] == lq[f2])
     assert acc_f2 >= 0.85, acc_f2
+
+
+# ---- G. crossed partial coverage (round-4 P1) -----------------------------
+def test_crossed_coverage_split_abstains_and_full_ref_governs():
+    """Three children; ref A covers F1+F2, ref B covers F2+F3 (crossed
+    partial coverage). Under the formal combination rule NEITHER
+    contributes to the root split (children must be compared on
+    identical reference subsets), so the split abstains — no child can
+    be favored by having more covering atlases. Adding a reference C
+    that covers all three children makes the projection EQUAL to the
+    C-only projection at that split (only full-coverage refs govern)."""
+    tree = ref_tree()
+    leaves_a = [l for l in sorted(FAM) if FAM[l] != "F3"]
+    leaves_b = [l for l in sorted(FAM) if FAM[l] != "F1"]
+    xa, la = sim(leaves_a, batch_seed=11)
+    xb, lb = sim(leaves_b, batch_seed=12)
+    xc, lc = sim(sorted(FAM), batch_seed=13)
+    xq, lq = sim(sorted(FAM), batch_seed=71, n_per=15)
+
+    crossed = build_projector(
+        [{"counts": xa, "labels": la, "gene_names": GENES, "name": "A"},
+         {"counts": xb, "labels": lb, "gene_names": GENES, "name": "B"}],
+        tree, cap_per_label=40)
+    oc = project(crossed, xq, GENES)
+    # root split uncovered by every reference -> universal abstention
+    assert np.all(oc["resolved_depth"] == 0)
+    # and best_node is always a REAL tree node, never invented
+    valid = set(tree["parent"]) | {"root"}
+    assert set(oc["best_node"]) <= valid
+
+    both = build_projector(
+        [{"counts": xa, "labels": la, "gene_names": GENES, "name": "A"},
+         {"counts": xb, "labels": lb, "gene_names": GENES, "name": "B"},
+         {"counts": xc, "labels": lc, "gene_names": GENES,
+          "name": "C"}], tree, cap_per_label=40)
+    only_c = build_projector(
+        [{"counts": xc, "labels": lc, "gene_names": GENES,
+          "name": "C"}], tree, cap_per_label=40)
+    ob = project(both, xq, GENES)
+    os_ = project(only_c, xq, GENES)
+    # at the ROOT split only C governs in both projectors, so the
+    # root-level choice must be identical
+    root_choice_b = np.asarray([FAM.get(b, b) for b in ob["best_label"]])
+    root_choice_c = np.asarray([FAM.get(b, b)
+                                for b in os_["best_label"]])
+    assert np.mean(root_choice_b == root_choice_c) >= 0.95
+    assert np.allclose(ob["path_margins"][:, 0],
+                       os_["path_margins"][:, 0], equal_nan=True)
+
+
+# ---- H. label collisions (round-4 P1) -------------------------------------
+def test_label_collision_across_atlases_raises():
+    tree = ref_tree()
+    xa, la = sim(sorted(FAM), batch_seed=11)
+    xb, lb = sim(sorted(FAM), batch_seed=12)
+    # same label string, DIFFERENT nodes: must raise
+    lmapA = {l: l for l in set(la)}
+    lmapB = {l: l for l in set(lb)}
+    lmapB["F1.s1"] = "F1.s2"                 # conflict with A's mapping
+    with pytest.raises(ValueError, match="maps to node"):
+        build_projector(
+            [{"counts": xa, "labels": la, "gene_names": GENES,
+              "name": "A"},
+             {"counts": xb, "labels": lb, "gene_names": GENES,
+              "name": "B"}], tree, label_maps=[lmapA, lmapB],
+            cap_per_label=20)
+    # same label, SAME node (shared taxonomy): allowed
+    build_projector(
+        [{"counts": xa, "labels": la, "gene_names": GENES, "name": "A"},
+         {"counts": xb, "labels": lb, "gene_names": GENES,
+          "name": "B"}], tree, cap_per_label=20)
+
+
+def test_gene_panel_fixes_feature_space():
+    tree = ref_tree()
+    xa, la = sim(sorted(FAM), batch_seed=11)
+    panel = GENES[:400]
+    p1 = build_projector([{"counts": xa, "labels": la,
+                           "gene_names": GENES, "name": "A"}], tree,
+                         cap_per_label=20, gene_panel=panel)
+    assert set(p1["refs"][0]["hvg_names"]) <= set(panel)
+    p2 = build_projector([{"counts": xa, "labels": la,
+                           "gene_names": GENES, "name": "A"}], tree,
+                         cap_per_label=40, gene_panel=panel)
+    # with a supplied panel the feature space no longer depends on cap
+    assert p1["refs"][0]["hvg_names"] == p2["refs"][0]["hvg_names"]

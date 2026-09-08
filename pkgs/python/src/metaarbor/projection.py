@@ -70,7 +70,7 @@ def _dense(x):
 
 def build_projector(refs, tree, label_maps=None,
                     cap_per_label=DEFAULTS["cap_per_label"],
-                    n_hvg=DEFAULTS["n_hvg"], seed=0):
+                    n_hvg=DEFAULTS["n_hvg"], gene_panel=None, seed=0):
     """Fit a projector from labeled reference atlases.
 
     refs: list of dicts {counts (cells x genes; dense or scipy sparse),
@@ -83,6 +83,13 @@ def build_projector(refs, tree, label_maps=None,
     `cap_per_label` cells per label), reference-only HVGs (top-variance
     genes of the reference alone), and the log-normalized HVG matrix.
     Nothing about any future query enters the fit.
+
+    NOTE: HVGs are selected AFTER the cap subsample, so `cap_per_label`
+    shapes both the reference sampling and the feature space
+    (label-balanced feature selection — deliberate, but a coupling to
+    be aware of). Pass `gene_panel` (a list of gene names) to fix the
+    feature space explicitly instead; whole-transcriptome atlas-scale
+    fitting should prefer a supplied panel.
     """
     import zlib
     nodes_all = set(tree["parent"]) | {"root"}
@@ -121,7 +128,14 @@ def build_projector(refs, tree, label_maps=None,
         lib = (np.asarray(ref["lib"])[keep]
                if ref.get("lib") is not None else None)
         ln = lognorm(_dense(sub), lib)
-        hvg = np.sort(np.argsort(ln.var(axis=0))[::-1][:n_hvg])
+        if gene_panel is not None:
+            gset = {g for g in gene_panel}
+            hvg = np.asarray([i for i, g in enumerate(gn) if g in gset])
+            if len(hvg) < 100:
+                raise ValueError(
+                    f"ref {ri}: only {len(hvg)} panel genes present")
+        else:
+            hvg = np.sort(np.argsort(ln.var(axis=0))[::-1][:n_hvg])
         stored.append({
             "ln_hvg": ln[:, hvg],
             "hvg_names": [gn[i] for i in hvg],
@@ -130,6 +144,20 @@ def build_projector(refs, tree, label_maps=None,
                             for l in sorted(set(labels))},
             "name": ref.get("name", f"ref{ri}"),
         })
+    # cross-reference label collisions: the same label string in two
+    # references is allowed ONLY when both map it to the SAME tree node
+    # (shared taxonomies); mapping to different nodes would silently
+    # merge distinct populations in the vote columns and label maps
+    seen = {}
+    for st in stored:
+        for l, nd in st["label_nodes"].items():
+            if l in seen and seen[l][0] != nd:
+                raise ValueError(
+                    f"label {l!r} maps to node {seen[l][0]!r} in "
+                    f"reference {seen[l][1]!r} but {nd!r} in "
+                    f"{st['name']!r}; qualify labels per atlas "
+                    "(e.g. 'atlas|label') or align the mapping")
+            seen.setdefault(l, (nd, st["name"]))
     return {"refs": stored, "tree": tree, "cap_per_label": cap_per_label,
             "n_hvg": n_hvg, "seed": seed}
 
@@ -209,15 +237,23 @@ def _prepare_split_blocks(tree, ref):
 
 
 def _score_children(qn_sub, rn, per_child):
-    """Refinement-calibrated child evidence for one reference at one
+    """Multiplicity-adjusted child evidence for one reference at one
     split: local tie-average ranks over the split's reference cells,
     exact finite-population moments per label block (tie-robust),
-    Bonferroni-corrected best block per child ON THE LOG SCALE (norm.logsf — no float64 saturation at any
-    signal strength). Returns lp (n_cells x n_children; SMALLER = more
-    evidence; NaN for a child this reference does not cover), or None
-    when fewer than two children carry blocks."""
+    Bonferroni-corrected best block per child ON THE LOG SCALE
+    (norm.logsf — no float64 saturation at any signal strength).
+
+    COMBINATION RULE (formal): a reference contributes to a split ONLY
+    when it carries cells for EVERY child of that split, so children
+    are always compared on identical reference subsets — a child
+    supported by atlases A+B is never weighed against a sibling
+    supported only by A. A reference covering some but not all children
+    contributes nothing here (its cells still inform the splits it
+    fully covers). Returns lp (n_cells x n_children; SMALLER = more
+    evidence), or None when this reference does not cover the full
+    split."""
     covered = [ci for ci, blocks in enumerate(per_child) if blocks]
-    if len(covered) < 2:
+    if len(covered) < len(per_child):
         return None
     rows = np.concatenate([idx for ci in covered
                            for _l, idx in per_child[ci]])
