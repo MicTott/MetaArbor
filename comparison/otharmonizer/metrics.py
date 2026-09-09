@@ -205,3 +205,124 @@ def score_all(constructed, ref):
     return {"TED": float(ted), "TEDS": float(teds_), "PCB": int(pcb),
             "RFS": float(rfs), "PCBS": float(pcbs_),
             "AH_F1": float(ah_f1(constructed, ref))}
+
+
+# ---- correlation/topology metrics (ours; star-baseline-proof) -------------
+# Added after the structure-free-baseline audit disqualified TEDS/PCBS:
+# cophenetic Spearman uses FULL ancestry (a star has zero distance
+# variance -> correlation 0 by construction); triplet recovery scores
+# only what the reference actually resolves (a star recovers none).
+import numpy as np
+
+
+def _label_nodes_depths(tree):
+    """{atomic label: (node_id, depth)}, plus parent map, from a MyNode
+    tree ('&' splits into atomic labels sharing one node)."""
+    lab2node, parent, depth = {}, {}, {}
+    ctr = [0]
+
+    def walk(node, par, d):
+        i = ctr[0]
+        ctr[0] += 1
+        parent[i] = par
+        depth[i] = d
+        for l_ in str(node.label).split("&"):
+            if l_ and l_ != "root":
+                lab2node.setdefault(l_, i)
+        for c in node.children:
+            walk(c, i, d + 1)
+    walk(tree, None, 0)
+    return lab2node, parent, depth
+
+
+def _lca_depth_matrix(labels, lab2node, parent, depth):
+    anc = {}
+    for l_ in labels:
+        chain, x = [], lab2node[l_]
+        while x is not None:
+            chain.append(x)
+            x = parent[x]
+        anc[l_] = chain
+    n = len(labels)
+    D = np.zeros((n, n))
+    for i, a in enumerate(labels):
+        sa = {x: k for k, x in enumerate(anc[a])}
+        for j in range(i + 1, n):
+            for x in anc[labels[j]]:
+                if x in sa:
+                    D[i, j] = D[j, i] = depth[x]
+                    break
+    for i, a in enumerate(labels):
+        D[i, i] = depth[lab2node[a]]
+    return D
+
+
+def _shared_setup(t1, t2):
+    if isinstance(t1, dict):
+        t1 = from_nested(t1)
+    if isinstance(t2, dict):
+        t2 = from_nested(t2)
+    m1 = _label_nodes_depths(t1)
+    m2 = _label_nodes_depths(t2)
+    labels = sorted(set(m1[0]) & set(m2[0]))
+    D1 = _lca_depth_matrix(labels, *m1)
+    D2 = _lca_depth_matrix(labels, *m2)
+    return labels, D1, D2
+
+
+def cophenetic_spearman(t1, t2):
+    """Spearman correlation of pairwise LCA depths over the labels
+    shared by both trees. Uses full ancestry structure; partial credit
+    for near-miss placements; a star (constant distances) scores 0."""
+    labels, D1, D2 = _shared_setup(t1, t2)
+    iu = np.triu_indices(len(labels), k=1)
+    a, b = D1[iu], D2[iu]
+    if a.std() == 0 or b.std() == 0:
+        return 0.0
+    ra = np.argsort(np.argsort(a)).astype(float)
+    rb = np.argsort(np.argsort(b)).astype(float)
+    # average ties
+    for v in (ra, rb):
+        src = a if v is ra else b
+        for u in np.unique(src):
+            m = src == u
+            v[m] = v[m].mean()
+    ra -= ra.mean()
+    rb -= rb.mean()
+    return float((ra @ rb) / np.sqrt((ra @ ra) * (rb @ rb)))
+
+
+def triplet_scores(t1, t2):
+    """(recovery, agreement) over label triplets.
+
+    A triplet {a,b,c} is RESOLVED when one pair's LCA is strictly
+    deeper than the other two (that pair is 'closest'); otherwise
+    unresolved (polytomy). recovery = among triplets RESOLVED IN t2
+    (the reference), fraction t1 resolves identically — a star scores
+    exactly 0. agreement = fraction of all triplets with the same
+    category (matching resolution, or both unresolved)."""
+    labels, D1, D2 = _shared_setup(t1, t2)
+    n = len(labels)
+
+    def resolution(D):
+        # code per triplet (i<j<k): 0=ij,1=ik,2=jk closest, 3=unresolved
+        codes = {}
+        for i in range(n):
+            for j in range(i + 1, n):
+                dij = D[i, j]
+                for k in range(j + 1, n):
+                    dik, djk = D[i, k], D[j, k]
+                    m = max(dij, dik, djk)
+                    top = [dij == m, dik == m, djk == m]
+                    if sum(top) > 1:
+                        codes[(i, j, k)] = 3
+                    else:
+                        codes[(i, j, k)] = top.index(True)
+        return codes
+    c1, c2 = resolution(D1), resolution(D2)
+    keys = list(c2)
+    resolved_ref = [k for k in keys if c2[k] != 3]
+    rec = (sum(c1[k] == c2[k] for k in resolved_ref) /
+           len(resolved_ref)) if resolved_ref else 0.0
+    agr = sum(c1[k] == c2[k] for k in keys) / len(keys)
+    return float(rec), float(agr)

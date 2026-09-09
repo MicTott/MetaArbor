@@ -96,3 +96,44 @@ def test_from_nested_roundtrip():
     assert n.label == "root"
     assert [c.label for c in n.children] == ["X&Y", "Z"]
     assert n.children[0].children[2].label == "w&q"
+
+
+def test_cophenetic_and_triplets_basics():
+    from metrics import cophenetic_spearman, triplet_scores
+    # identical trees: perfect scores
+    assert cophenetic_spearman(T2, T2) == pytest.approx(1.0)
+    rec, agr = triplet_scores(T1, T1)
+    assert rec == 1.0 and agr == 1.0
+    # a STAR cannot game either metric
+    star = {"label": "root", "children": [
+        {"label": l, "children": []}
+        for l in ("A1", "A2", "B1", "B2", "C1")]}
+    ref = {"label": "root", "children": [
+        {"label": "A", "children": [{"label": "A1", "children": []},
+                                    {"label": "A2", "children": []}]},
+        {"label": "B", "children": [{"label": "B1", "children": []},
+                                    {"label": "B2", "children": []}]},
+        {"label": "C1", "children": []}]}
+    assert cophenetic_spearman(star, ref) == 0.0
+    rec, _agr = triplet_scores(star, ref)
+    assert rec == 0.0                      # recovers nothing resolved
+    # a correct two-family tree recovers everything
+    good = {"label": "root", "children": [
+        {"label": "X", "children": [{"label": "A1", "children": []},
+                                    {"label": "A2", "children": []}]},
+        {"label": "Y", "children": [{"label": "B1", "children": []},
+                                    {"label": "B2", "children": []}]},
+        {"label": "C1", "children": []}]}
+    rec, agr = triplet_scores(good, ref)
+    assert rec == 1.0 and agr == 1.0
+    assert cophenetic_spearman(good, ref) == pytest.approx(1.0)
+    # a WRONG grouping scores clearly lower
+    bad = {"label": "root", "children": [
+        {"label": "X", "children": [{"label": "A1", "children": []},
+                                    {"label": "B1", "children": []}]},
+        {"label": "Y", "children": [{"label": "A2", "children": []},
+                                    {"label": "B2", "children": []}]},
+        {"label": "C1", "children": []}]}
+    rec_b, _ = triplet_scores(bad, ref)
+    assert rec_b == 0.0
+    assert cophenetic_spearman(bad, ref) < 0.1

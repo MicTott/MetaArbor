@@ -20,7 +20,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "..", "pkgs", "python",
                                 "src"))
-from metrics import MyNode, score_all  # noqa: E402
+from metrics import (MyNode, cophenetic_spearman,  # noqa: E402
+                     score_all, triplet_scores)
 from metaarbor.consensus.cut import consensus_cut  # noqa: E402
 
 D = os.path.join(HERE, "..", "..", "data", "wmb_plilaorb")
@@ -138,10 +139,14 @@ for fn in sorted(os.listdir(HERE)):
 rows = []
 for method, tag, tree in runs:
     got = score_all(tree, REF)
+    got["COPH"] = cophenetic_spearman(tree, REF)
+    got["TRIP_REC"], got["TRIP_AGR"] = triplet_scores(tree, REF)
     rows.append({"method": method, "run": tag,
                  **{k: round(v, 4) for k, v in got.items()}})
     print(f"{method:12s} {tag:24s} TEDS={got['TEDS']:.4f} "
-          f"PCBS={got['PCBS']:.4f} AH_F1={got['AH_F1']:.4f}")
+          f"PCBS={got['PCBS']:.4f} AH_F1={got['AH_F1']:.4f} "
+          f"COPH={got['COPH']:.4f} TRIP_REC={got['TRIP_REC']:.4f} "
+          f"TRIP_AGR={got['TRIP_AGR']:.4f}")
 with open(os.path.join(HERE, "rescore_current.csv"), "w",
           newline="") as fh:
     w = csv.DictWriter(fh, fieldnames=list(rows[0]))
