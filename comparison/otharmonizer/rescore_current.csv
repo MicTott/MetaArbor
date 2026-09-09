@@ -1,4 +1,7 @@
 method,run,TED,TEDS,PCB,RFS,PCBS,AH_F1
+MetaArbor,current_assembly,64.0,0.7311,18,0.3571,0.9167,0.8944
+MetaArbor,default_cut,64.0,0.7311,18,0.3571,0.9167,0.8944
+MetaArbor,strict_cut,100.0,0.2701,17,0.0,0.2033,0.4454
 MetaArbor,frozen_v0.8_assembly,60.0,0.7479,19,0.3448,0.9145,0.8998
 MetaArbor,frozen_v0.8_default_cut,60.0,0.7479,19,0.3448,0.9145,0.8998
 MetaArbor,frozen_v0.8_strict_cut,99.0,0.2826,17,0.0,0.2106,0.451
