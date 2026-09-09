@@ -1,4 +1,7 @@
 method,run,TED,TEDS,PCB,RFS,PCBS,AH_F1
+baseline,flat_union_star,46.0,0.8122,17,0.0,0.929,0.4112
+baseline,v2_input_star,103.0,0.2746,17,0.0,0.2322,0.1237
+baseline,v3_input_star,23.0,0.8964,17,0.0,0.739,0.2902
 MetaArbor,current_assembly,64.0,0.7311,18,0.3571,0.9167,0.8944
 MetaArbor,default_cut,64.0,0.7311,18,0.3571,0.9167,0.8944
 MetaArbor,strict_cut,100.0,0.2701,17,0.0,0.2033,0.4454

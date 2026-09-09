@@ -94,7 +94,24 @@ def load_nested(path):
 
 
 REF = ref_tree()
-runs = []
+
+
+def star(lbls):
+    r = MyNode("root")
+    for l in sorted(lbls):
+        r.addkid(MyNode(l))
+    return r
+
+
+# STRUCTURE-FREE BASELINES (essential context: TEDS and PCBS are both
+# beaten by a flat star of labels, so neither can headline a method
+# comparison; AH-F1 is the only one of the three that requires genuine
+# relational content — see the finding in the commit log)
+v2_l = {f"v2-{s_}" for s_ in subclasses_v2}
+v3_l = {f"v3-{c}" for c in truth}
+runs = [("baseline", "flat_union_star", star(v2_l | v3_l)),
+        ("baseline", "v2_input_star", star(v2_l)),
+        ("baseline", "v3_input_star", star(v3_l))]
 cur_path = os.path.join(MA, "metaarbor_tree_current.json")
 if os.path.exists(cur_path):
     cur = load_nested(cur_path)
