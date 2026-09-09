@@ -17,6 +17,18 @@ coverage-risk curve. Scores are computed on SHARED labels, so each
 point is scored over its own coverage (inherent to selective
 evaluation; stated on the figure).
 
+STATUS: illustrative, not frozen. The threshold sweep was inspected
+against Allen truth, so no specific t (e.g. 0.9) is a prespecified
+operating point — citing one as such would be Allen-informed tuning.
+The frontier's role is exhibit A for the contained_in relationship
+vocabulary (evidence attachment vs input-parentage); the frozen
+full-tree result remains the primary comparison number. Note also
+that 70/93 attachments reproduce existing input-tree parentage
+(direct hits on certified members), so only ~23 placements can differ
+from the full tree — the modest score deltas are expected, and mean
+the molecular evidence largely AGREES with independently inferred
+structure.
+
 Run: PYTHONPATH=../../pkgs/python/src python containment_frontier.py
 """
 import csv

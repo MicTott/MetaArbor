@@ -98,6 +98,116 @@ def test_from_nested_roundtrip():
     assert n.children[0].children[2].label == "w&q"
 
 
+def test_internal_label_equals_pendant_leaf():
+    """A label on an internal node is scored exactly as if it were a
+    pendant leaf attached at that node: every pairwise LCA (and hence
+    both metrics) is identical under the two encodings."""
+    from metrics import cophenetic_spearman, triplet_scores
+    internal = {"label": "root", "children": [
+        {"label": "P", "children": [{"label": "x", "children": []},
+                                    {"label": "y", "children": []}]},
+        {"label": "Q", "children": [{"label": "z", "children": []}]}]}
+    pendant = {"label": "root", "children": [
+        {"label": "__i1__", "children": [
+            {"label": "P", "children": []},
+            {"label": "x", "children": []},
+            {"label": "y", "children": []}]},
+        {"label": "__i2__", "children": [
+            {"label": "Q", "children": []},
+            {"label": "z", "children": []}]}]}
+    ref = {"label": "root", "children": [
+        {"label": "P", "children": [{"label": "x", "children": []},
+                                    {"label": "z", "children": []}]},
+        {"label": "Q", "children": [{"label": "y", "children": []}]}]}
+    assert cophenetic_spearman(internal, ref) == pytest.approx(
+        cophenetic_spearman(pendant, ref))
+    assert triplet_scores(internal, ref) == pytest.approx(
+        triplet_scores(pendant, ref))
+    # and the parent-of-its-children triplet is UNRESOLVED, not scored:
+    # {P, x, y} has all three pairwise LCAs at P's node in `internal`
+    rec, agr = triplet_scores(internal, internal)
+    assert rec == 1.0 and agr == 1.0   # self-score sanity under both
+
+
+def test_reference_unresolved_triplets_not_counted():
+    """Triplets the reference leaves unresolved (polytomies) are
+    excluded from recovery's denominator: a tree that RESOLVES them
+    (rightly or wrongly) is neither rewarded nor punished there."""
+    from metrics import triplet_scores
+    ref = {"label": "root", "children": [
+        {"label": "A", "children": [{"label": "a", "children": []},
+                                    {"label": "b", "children": []}]},
+        {"label": "c", "children": []},
+        {"label": "d", "children": []}]}
+    # groups (a,b) correctly AND invents (c,d) — ref is silent on {c,d}
+    over = {"label": "root", "children": [
+        {"label": "X", "children": [{"label": "a", "children": []},
+                                    {"label": "b", "children": []}]},
+        {"label": "Y", "children": [{"label": "c", "children": []},
+                                    {"label": "d", "children": []}]}]}
+    rec, agr = triplet_scores(over, ref)
+    assert rec == 1.0            # every ref-resolved triplet recovered
+    assert agr < 1.0             # extra resolution shows up ONLY here
+
+
+def test_unary_chain_invariance():
+    """Inserting unary (single-child) anonymous chains never changes
+    triplet resolution; cophenetic Spearman may move (depth-sensitive)
+    and is documented as convention/depth-profile-bound."""
+    from metrics import triplet_scores
+    base = {"label": "root", "children": [
+        {"label": "A", "children": [{"label": "a1", "children": []},
+                                    {"label": "a2", "children": []}]},
+        {"label": "B", "children": [{"label": "b1", "children": []},
+                                    {"label": "b2", "children": []}]}]}
+    chained = {"label": "root", "children": [
+        {"label": "__u1__", "children": [{"label": "__u2__", "children": [
+            {"label": "A", "children": [
+                {"label": "a1", "children": []},
+                {"label": "__u3__", "children": [
+                    {"label": "a2", "children": []}]}]}]}]},
+        {"label": "B", "children": [{"label": "b1", "children": []},
+                                    {"label": "b2", "children": []}]}]}
+    ref = {"label": "root", "children": [
+        {"label": "F", "children": [{"label": "a1", "children": []},
+                                    {"label": "b1", "children": []}]},
+        {"label": "G", "children": [{"label": "a2", "children": []},
+                                    {"label": "b2", "children": []},
+                                    {"label": "A", "children": []},
+                                    {"label": "B", "children": []}]}]}
+    assert triplet_scores(base, ref) == pytest.approx(
+        triplet_scores(chained, ref))
+    assert triplet_scores(base, base) == pytest.approx(
+        triplet_scores(chained, base))
+
+
+def test_scores_restricted_to_shared_labels():
+    """Labels present in only one tree are excluded (pairwise shared
+    universe); adding tree-only extra labels changes nothing."""
+    from metrics import cophenetic_spearman, triplet_scores
+    ref = {"label": "root", "children": [
+        {"label": "A", "children": [{"label": "a1", "children": []},
+                                    {"label": "a2", "children": []}]},
+        {"label": "B", "children": [{"label": "b1", "children": []},
+                                    {"label": "b2", "children": []}]}]}
+    tree = {"label": "root", "children": [
+        {"label": "X", "children": [{"label": "a1", "children": []},
+                                    {"label": "a2", "children": []}]},
+        {"label": "Y", "children": [{"label": "b1", "children": []},
+                                    {"label": "b2", "children": []}]}]}
+    extra = {"label": "root", "children": [
+        {"label": "X", "children": [{"label": "a1", "children": []},
+                                    {"label": "a2", "children": []},
+                                    {"label": "novel1", "children": []}]},
+        {"label": "Y", "children": [{"label": "b1", "children": []},
+                                    {"label": "b2", "children": []}]},
+        {"label": "novel2", "children": []}]}
+    assert cophenetic_spearman(tree, ref) == pytest.approx(
+        cophenetic_spearman(extra, ref))
+    assert triplet_scores(tree, ref) == pytest.approx(
+        triplet_scores(extra, ref))
+
+
 def test_cophenetic_and_triplets_basics():
     from metrics import cophenetic_spearman, triplet_scores
     # identical trees: perfect scores
