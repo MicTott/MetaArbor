@@ -116,9 +116,12 @@ print(f"certified core labels: {len(core_labels)} | attachable one-way "
       f"labels: {len(attach)} | excluded: {excluded}")
 
 
-def frontier_tree(t):
+def frontier_tree(t, keep_structure=False):
     """MyNode label-space tree: certified topology + one-way labels
-    with support >= t as children of their evidence targets."""
+    with support >= t as children of their evidence targets. With
+    keep_structure, unlabeled certified internals become anonymous
+    nodes instead of being spliced (COPH_K/TRIP_*_K columns; the
+    phylogenetic convention — see rescore_current.py docstring)."""
     kids = {i: list(nd["children"]) for i, nd in strict["nodes"].items()}
     extra = {}
     for ds, lab, node, supp in attach:
@@ -135,7 +138,12 @@ def frontier_tree(t):
     def build(i, parent_node):
         nd = strict["nodes"][i]
         pp = parts(nd)
-        node = MyNode("&".join(pp)) if pp else None
+        if pp:
+            node = MyNode("&".join(pp))
+        elif keep_structure:
+            node = MyNode(f"__a{i}__")
+        else:
+            node = None
         if node is not None:
             parent_node.addkid(node)
         anchor = node or parent_node
@@ -151,16 +159,23 @@ def frontier_tree(t):
 rows = []
 for t in (1.01, 1.0, 0.99, 0.95, 0.9, 0.8, 0.7, 0.6, 0.0):
     tr = frontier_tree(t)
+    tr_k = frontier_tree(t, keep_structure=True)
     n_att = sum(1 for *_x, s in attach if s >= t)
     cov = (len(core_labels) + n_att) / (len(labels["v2"]) +
                                         len(labels["v3"]))
     coph = cophenetic_spearman(tr, REF)
     rec, agr = triplet_scores(tr, REF)
+    coph_k = cophenetic_spearman(tr_k, REF)
+    rec_k, agr_k = triplet_scores(tr_k, REF)
     rows.append({"threshold": t, "n_labels": len(core_labels) + n_att,
                  "coverage": round(cov, 4), "COPH": round(coph, 4),
-                 "TRIP_REC": round(rec, 4), "TRIP_AGR": round(agr, 4)})
+                 "TRIP_REC": round(rec, 4), "TRIP_AGR": round(agr, 4),
+                 "COPH_K": round(coph_k, 4),
+                 "TRIP_REC_K": round(rec_k, 4),
+                 "TRIP_AGR_K": round(agr_k, 4)})
     print(f"t={t:<5} labels={len(core_labels)+n_att:3d} "
-          f"cov={cov:.3f} COPH={coph:.4f} TRIP_REC={rec:.4f}")
+          f"cov={cov:.3f} COPH={coph:.4f} TRIP_REC={rec:.4f} | "
+          f"kept: COPH={coph_k:.4f} TRIP_REC={rec_k:.4f}")
 with open(os.path.join(HERE, "containment_frontier.csv"), "w",
           newline="") as fh:
     w = csv.DictWriter(fh, fieldnames=list(rows[0]))
