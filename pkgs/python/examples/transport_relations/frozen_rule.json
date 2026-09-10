@@ -1,0 +1,23 @@
+{
+ "HI": 0.7,
+ "LO": 0.3,
+ "lift_min": 2.0,
+ "survival_min": 0.5,
+ "robustness": "recursive+abundance agreement",
+ "selected_on": {
+  "sim_seeds": [
+   0,
+   1,
+   2
+  ],
+  "allen_direction": "v2_source"
+ },
+ "validation": {
+  "sim_seeds": [
+   5,
+   6
+  ],
+  "sim_macroF1": 0.7869,
+  "allen_v3_macroF1": 0.7771
+ }
+}
