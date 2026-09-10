@@ -50,6 +50,31 @@ attachment arms = fraction of attached labels whose target node's
 member labels have a majority curated CLASS different from the
 attached label's curated class (prespecified secondary).
 
+Notes for readers (added with the fairness checks; no construction or
+rule was changed):
+- ARM ARITHMETIC: core+transport (113) is NOT the union of walk_core
+  (25) and transport_alone (59). transport_alone's backbone has only 4
+  accepted equal-merges, so most containment proposals find no
+  backbone image and are DROPPED; the certified core supplies 25
+  anchors, so the same proposals land there (88 attachments). The
+  hybrid places more labels than the sum because the core provides
+  the anchors Transport's own equivalences cannot.
+- COVERAGE MATCHING: the frontier row quoted next to core+transport
+  is t=0.9 because 114 labels ~ 113 labels — coverage matching, not
+  truth-maximization. The full frontier sweep is printed and saved;
+  t=0.9 is in fact a local LOW of the frontier curve (t=1.0 scores
+  higher at lower coverage), so the choice is conservative toward
+  Transport.
+- MATCHED-DIFFICULTY CHECKS (matched coverage is not matched
+  difficulty when the two arms place different labels): TRIP_REC is
+  recomputed (1) on the INTERSECTION of the two arms' placed labels,
+  and (2) on the UNION, with each arm's missing labels attached at
+  its root so absence counts as unresolved rather than being dropped.
+- The 453-vs-48 containment counts are also reported as rates per
+  eligible source node — the raw asymmetry partly reflects v3 simply
+  having more nodes; the result is CONSISTENT WITH fine-to-coarse
+  containment, and the raw count is not itself evidence of biology.
+
 Run: PYTHONPATH=../../pkgs/python/src python transport_stage3.py
 (needs pot; data/wmb_plilaorb present)
 """
@@ -239,6 +264,15 @@ n_ct2 = sum(1 for v in rel["v3_source"].values()
             if v == "source_in_target")
 print(f"frozen-rule relations: {n_eq} equal (v2-source view), "
       f"{n_ct} v2-in-v3 containments, {n_ct2} v3-in-v2 containments")
+src_v2 = {na for (na, _nb), v in rel["v2_source"].items()
+          if v == "source_in_target"}
+src_v3 = {na for (na, _nb), v in rel["v3_source"].items()
+          if v == "source_in_target"}
+print(f"rate-normalized: v2-in-v3 {len(src_v2)}/{len(A_nodes)} source "
+      f"nodes with >=1 containment ({len(src_v2)/len(A_nodes):.2f}); "
+      f"v3-in-v2 {len(src_v3)}/{len(B_nodes)} "
+      f"({len(src_v3)/len(B_nodes):.2f}) — consistent with fine-to-"
+      "coarse containment; raw counts reflect node-inventory sizes")
 
 # ---- arm 1: certified core ------------------------------------------------
 strict = consensus_cut(tree_nodes, level="strict", leaf_labels=labels)
@@ -438,3 +472,62 @@ with open(os.path.join(HERE, "transport_stage3.csv"), "w",
     w.writeheader()
     w.writerows(rows)
 print("wrote transport_stage3.csv")
+
+# ---- matched-difficulty fairness checks (see header notes) ----------------
+import containment_frontier as cf  # noqa: E402  (runs its own sweep)
+
+lab4 = {disp(l) for l in core_labels} | {disp(l) for l, _ in att4}
+labF = ({disp(l) for l in cf.core_labels} |
+        {disp(l) for ds_, l, _n, s_ in cf.attach if s_ >= 0.9})
+inter, union = lab4 & labF, lab4 | labF
+print(f"\nmatched-difficulty: arm4 places {len(lab4)} labels, "
+      f"frontier(t=0.9) {len(labF)}; intersection {len(inter)}, "
+      f"union {len(union)}, symmetric difference {len(union - inter)}")
+
+
+def ref_subset(allowed):
+    root = MyNode("root")
+    by = {}
+    for cl, s in truth.items():
+        by.setdefault(s, []).append(cl)
+    for s in sorted(by):
+        cls = [c for c in sorted(by[s]) if f"v3-{c}" in allowed]
+        has2 = s in subclasses_v2 and f"v2-{s}" in allowed
+        if not cls and not has2:
+            continue
+        if has2 and len(by[s]) == 1 and cls:
+            root.addkid(MyNode(f"v2-{s}&v3-{cls[0]}"))
+            continue
+        sn = MyNode(f"v2-{s}" if has2 else f"__fam_{s}__")
+        root.addkid(sn)
+        for cl in cls:
+            sn.addkid(MyNode(f"v3-{cl}"))
+    return root
+
+
+REF_INT = ref_subset(inter)
+for name, tr_ in (("core_plus_transport", arm4),
+                  ("walk_frontier_t0.9",
+                   cf.frontier_tree(0.9, keep_structure=True))):
+    rec, _ = triplet_scores(tr_, REF_INT)
+    print(f"  intersection ({len(inter)} labels): {name:22s} "
+          f"TRIP_REC={rec:.4f}")
+
+
+def with_unresolved(tree_, placed):
+    """Missing union labels attach at root: absence scores as
+    unresolved, not as a dropped label."""
+    for lab in sorted(union - placed):
+        tree_.addkid(MyNode(lab))
+    return tree_
+
+
+for name, tr_ in (
+        ("core_plus_transport", with_unresolved(core_tree(extra4),
+                                                lab4)),
+        ("walk_frontier_t0.9",
+         with_unresolved(cf.frontier_tree(0.9, keep_structure=True),
+                         labF))):
+    rec, _ = triplet_scores(tr_, REF)
+    print(f"  union+unresolved ({len(union)} labels): {name:22s} "
+          f"TRIP_REC={rec:.4f}")
