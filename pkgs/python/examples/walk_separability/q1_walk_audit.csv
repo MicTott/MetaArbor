@@ -1,0 +1,22 @@
+query,split,best,second,actual,frozen_sib_lo,global_all_lo,global_all_desc,global_sibs_lo,global_sibs_desc,local_all_lo,local_all_desc,local_sibs_lo,local_sibs_desc
+v2|003 L5/6 IT TPE-ENT Glut,n72,v3|0029 L5/6 IT TPE-ENT Glut_3,n01,stop_not_concentrated,-0.0087,-0.0087,False,-0.0145,False,-0.0056,False,0.0446,True
+v2|004 L6 IT CTX Glut,n72,n30,n29,descend,0.0339,0.0339,True,0.0668,True,0.0452,True,0.0613,True
+v2|004 L6 IT CTX Glut,n30,n03,v3|0042 L6 IT CTX Glut_2,descend,0.035,0.0353,True,0.07,True,0.0976,True,0.4516,True
+v2|004 L6 IT CTX Glut,n03,v3|0041 L6 IT CTX Glut_2,v3|0038 L6 IT CTX Glut_2,stop_parent_better,0.0181,0.0175,True,0.0421,True,0.3675,True,0.4551,True
+v2|005 L5 IT CTX Glut,n72,n48,v3|0065 L5 IT CTX Glut_5,descend,0.1618,0.1618,True,0.2887,True,0.2756,True,0.2414,True
+v2|005 L5 IT CTX Glut,n48,n31,n04,descend,0.0968,0.0968,True,0.126,True,0.6601,True,0.4366,True
+v2|005 L5 IT CTX Glut,n31,v3|0055 L5 IT CTX Glut_1,v3|0056 L5 IT CTX Glut_1,stop_not_concentrated,-0.0729,-0.0728,False,-0.0726,False,-0.0665,False,0.1332,True
+v2|006 L4/5 IT CTX Glut,n72,n49,n32,descend,0.0363,0.0363,True,0.0598,True,0.2235,True,0.0767,True
+v2|006 L4/5 IT CTX Glut,n49,n33,n05,stop_not_concentrated,-0.0102,-0.01,False,-0.0289,False,0.0896,True,-0.1848,False
+v2|007 L2/3 IT CTX Glut,n50,n34,n08,stop_not_concentrated,-0.0061,-0.0061,False,-0.0138,False,0.0189,True,0.2861,True
+v2|022 L5 ET CTX Glut,n54,n36,n35,stop_not_concentrated,-0.0001,-0.0001,False,-0.0002,False,-0.0207,False,0.0441,True
+v2|027 L6b CTX Glut,n64,v3|0430 L6b CTX Glut_3,v3|0421 L6b CTX Glut_1,stop_not_concentrated,-0.0005,-0.0005,False,-0.0029,False,-0.1137,False,-0.0412,False
+v2|028 L6 CT CTX Glut,n64,n37,n13,stop_not_concentrated,0.0036,0.0036,False,0.0447,True,-0.0608,False,0.077,True
+v2|030 L5 NP CTX Glut,n38,n14,v3|0463 L5 NP CTX Glut_2,stop_not_concentrated,-0.0,-0.0,False,-0.0004,False,-0.3845,False,-0.4622,False
+v2|036 Vip Gaba,n61,n57,n15,stop_not_concentrated,0.01,0.01,False,0.1547,True,0.6607,True,0.7013,True
+v2|037 Sncg Gaba,n39,n17,v3|0553 Sncg Gaba_3,stop_not_concentrated,-0.0002,-0.0002,False,-0.0015,False,0.2613,True,0.1601,True
+v2|039 Lamp5 Gaba,n40,n18,v3|0580 Lamp5 Gaba_1,stop_not_concentrated,-0.0007,-0.0007,False,-0.0083,False,0.3239,True,0.5293,True
+v2|042 Pvalb Gaba,n60,n58,v3|0607 Pvalb Gaba_1,stop_not_concentrated,0.0035,0.0035,False,0.0246,True,0.5971,True,0.3299,True
+v2|043 Sst Gaba,n68,n66,n21,stop_not_concentrated,0.0099,0.0099,False,0.0997,True,0.5904,True,0.7064,True
+v2|295 Oligo NN,n47,n27,n26,stop_not_concentrated,0.0067,0.0067,False,0.5055,True,0.3843,True,0.4846,True
+v2|301 Endo NN,n28,v3|5188 Endo NN,v3|5182 Peri NN,stop_not_concentrated,0.0065,0.0065,False,0.9707,True,0.8601,True,1.0,True
