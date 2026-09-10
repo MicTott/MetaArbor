@@ -1,0 +1,13 @@
+arm,n_labels,coverage,TRIP_REC_K,COPH_K
+walk_core,25,0.198,1.0,0.3298
+transport_alone,59,0.468,0.7148,0.3856
+core_plus_transport,113,0.897,0.9018,0.4668
+walk_frontier_t1.01,25,0.1984,1.0,0.3298
+walk_frontier_t1.0,85,0.6746,0.95,0.4723
+walk_frontier_t0.99,93,0.7381,0.9393,0.4747
+walk_frontier_t0.95,108,0.8571,0.9298,0.4739
+walk_frontier_t0.9,114,0.9048,0.9309,0.475
+walk_frontier_t0.8,115,0.9127,0.9262,0.4743
+walk_frontier_t0.7,116,0.9206,0.9191,0.4745
+walk_frontier_t0.6,116,0.9206,0.9191,0.4745
+walk_frontier_t0.0,118,0.9365,0.9205,0.4734
