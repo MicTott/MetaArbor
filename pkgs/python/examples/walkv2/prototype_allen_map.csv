@@ -1,24 +1,24 @@
-query,frozen_sel,frozen_rel,v2_sel,v2_rel,v2_ledger
-v2|001 Car3 Glut,v3|0004 Car3 Glut_1,EXACT,v3|0004 Car3 Glut_1,EXACT,
-v2|003 L5/6 IT TPE-ENT Glut,n72,coarse,n72,coarse,n72:veto:n01;v3|0029 L5/6 IT TPE-ENT Glut_3;v3|0049 L6 IT CTX Glut_4;v3|0065 L5 IT CTX Glut_5;v3|0083 L4/5 IT CTX Glut_3
-v2|004 L6 IT CTX Glut,n03,inside-truth,n72,coarse,n72:veto:n02;n30
-v2|005 L5 IT CTX Glut,n31,off,n31,off,n31:unresolved_breadth
-v2|006 L4/5 IT CTX Glut,n49,inside-truth,n72,coarse,n72:veto:n32;n49
-v2|007 L2/3 IT CTX Glut,n50,coarse,n50,coarse,n50:veto:n08;n34
-v2|022 L5 ET CTX Glut,n54,EXACT,n54,EXACT,n54:veto:n35;n36
-v2|027 L6b CTX Glut,n64,coarse,n64,coarse,n64:veto:v3|0421 L6b CTX Glut_1;v3|0430 L6b CTX Glut_3;v3|0449 L6 CT CTX Glut_5
-v2|028 L6 CT CTX Glut,n64,coarse,n64,coarse,n64:veto:n13;n37;v3|0445 L6 CT CTX Glut_3;v3|0452 L6 CT CTX Glut_5
-v2|030 L5 NP CTX Glut,n38,inside-truth,n45,EXACT,n45:veto:n38;v3|0470 L5 NP CTX Glut_4
-v2|036 Vip Gaba,n61,coarse,n61,coarse,n61:unresolved_breadth
-v2|037 Sncg Gaba,n39,EXACT,n39,EXACT,n39:veto:n17;v3|0553 Sncg Gaba_3
-v2|039 Lamp5 Gaba,n40,inside-truth,n40,inside-truth,n40:veto:n18;v3|0580 Lamp5 Gaba_1
-v2|041 Pvalb chandelier Gaba,v3|0605 Pvalb chandelier Gaba,EXACT,v3|0605 Pvalb chandelier Gaba,EXACT,
-v2|042 Pvalb Gaba,n60,EXACT,n60,EXACT,n60:veto:n58;v3|0607 Pvalb Gaba_1
-v2|043 Sst Gaba,n68,EXACT,n68,EXACT,n68:veto:n21;n66
-v2|046 Sst Chodl Gaba,v3|0731 Sst Chodl Gaba_4,EXACT,v3|0731 Sst Chodl Gaba_4,EXACT,
-v2|287 Astro-TE NN,v3|5113 Astro-TE NN_3,EXACT,v3|5113 Astro-TE NN_3,EXACT,
-v2|294 OPC NN,v3|5146 OPC NN_1,EXACT,v3|5146 OPC NN_1,EXACT,
-v2|295 Oligo NN,n47,EXACT,n47,EXACT,n47:unresolved_breadth
-v2|299 Peri NN,v3|5182 Peri NN,EXACT,v3|5182 Peri NN,EXACT,
-v2|301 Endo NN,n28,coarse,v3|5188 Endo NN,EXACT,n28:local_descend:v3|5188 Endo NN
-v2|302 Microglia NN,v3|5190 Microglia NN,EXACT,v3|5190 Microglia NN,EXACT,
+query,frozen_sel,frozen_rel,frozen_discordant,frozen_deficit,v2_sel,v2_rel,v2_discordant,v2_deficit,v2_ledger
+v2|001 Car3 Glut,v3|0004 Car3 Glut_1,EXACT,False,0,v3|0004 Car3 Glut_1,EXACT,False,0,
+v2|003 L5/6 IT TPE-ENT Glut,n72,coarse,False,0,n72,coarse,False,0,n72:veto:n01;v3|0029 L5/6 IT TPE-ENT Glut_3;v3|0049 L6 IT CTX Glut_4;v3|0065 L5 IT CTX Glut_5;v3|0083 L4/5 IT CTX Glut_3
+v2|004 L6 IT CTX Glut,n03,inside-truth,True,,n72,coarse,False,0,n72:veto:n02;n30
+v2|005 L5 IT CTX Glut,n31,off,True,,n31,off,True,,n31:unresolved_breadth
+v2|006 L4/5 IT CTX Glut,n49,inside-truth,False,,n72,coarse,False,0,n72:veto:n32;n49
+v2|007 L2/3 IT CTX Glut,n50,coarse,False,0,n50,coarse,False,0,n50:veto:n08;n34
+v2|022 L5 ET CTX Glut,n54,EXACT,False,0,n54,EXACT,False,0,n54:veto:n35;n36
+v2|027 L6b CTX Glut,n64,coarse,False,0,n64,coarse,False,0,n64:veto:v3|0421 L6b CTX Glut_1;v3|0430 L6b CTX Glut_3;v3|0449 L6 CT CTX Glut_5
+v2|028 L6 CT CTX Glut,n64,coarse,False,0,n64,coarse,False,0,n64:veto:n13;n37;v3|0445 L6 CT CTX Glut_3;v3|0452 L6 CT CTX Glut_5
+v2|030 L5 NP CTX Glut,n38,inside-truth,False,,n45,EXACT,False,0,n45:veto:n38;v3|0470 L5 NP CTX Glut_4
+v2|036 Vip Gaba,n61,coarse,False,0,n61,coarse,False,0,n61:unresolved_breadth
+v2|037 Sncg Gaba,n39,EXACT,False,0,n39,EXACT,False,0,n39:veto:n17;v3|0553 Sncg Gaba_3
+v2|039 Lamp5 Gaba,n40,inside-truth,False,,n40,inside-truth,False,,n40:veto:n18;v3|0580 Lamp5 Gaba_1
+v2|041 Pvalb chandelier Gaba,v3|0605 Pvalb chandelier Gaba,EXACT,False,0,v3|0605 Pvalb chandelier Gaba,EXACT,False,0,
+v2|042 Pvalb Gaba,n60,EXACT,False,0,n60,EXACT,False,0,n60:veto:n58;v3|0607 Pvalb Gaba_1
+v2|043 Sst Gaba,n68,EXACT,False,0,n68,EXACT,False,0,n68:veto:n21;n66
+v2|046 Sst Chodl Gaba,v3|0731 Sst Chodl Gaba_4,EXACT,False,0,v3|0731 Sst Chodl Gaba_4,EXACT,False,0,
+v2|287 Astro-TE NN,v3|5113 Astro-TE NN_3,EXACT,False,0,v3|5113 Astro-TE NN_3,EXACT,False,0,
+v2|294 OPC NN,v3|5146 OPC NN_1,EXACT,False,0,v3|5146 OPC NN_1,EXACT,False,0,
+v2|295 Oligo NN,n47,EXACT,False,0,n47,EXACT,False,0,n47:unresolved_breadth
+v2|299 Peri NN,v3|5182 Peri NN,EXACT,False,0,v3|5182 Peri NN,EXACT,False,0,
+v2|301 Endo NN,n28,coarse,False,1,v3|5188 Endo NN,EXACT,False,0,n28:local_descend:v3|5188 Endo NN
+v2|302 Microglia NN,v3|5190 Microglia NN,EXACT,False,0,v3|5190 Microglia NN,EXACT,False,0,
