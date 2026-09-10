@@ -223,7 +223,7 @@ for conv, _w in CONVENTIONS:
                 "lift": round(capture / share, 3) if share > 0 else np.nan,
                 "src_depth": da, "tgt_depth": db,
                 "src_leaves": len(ia), "tgt_leaves": len(ib)})
-write_csv(rows, os.path.join(OUT2, "relation_table.csv"))
+write_csv(rows, os.path.join(OUT2, "relation_table.csv.gz"))
 print(f"wrote relation_table.csv ({len(rows)} rows, "
       f"{len(CONVENTIONS)} conventions)")
 
