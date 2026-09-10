@@ -36,6 +36,19 @@ plus the reviewer-required contract additions:
      node and the smallest node containing all of truth) is
      reported for both arms.
 
+REVISION 3 (reviewer closes before the amygdala run):
+ R-e TRUE COMPACTNESS SEMANTICS: both the RAW selected node and the
+     ACCEPTED placement (after AUROC and compactness gates - a
+     compactness failure is an abstention under the harmonization
+     contract, not a placement) are classified and G1-G7 are
+     evaluated on BOTH tables; the overall gate requires both.
+ R-f INTERNAL-NODE EXECUTION: query_masks() generalizes positives to
+     P_Q = {i : y_i in D(Q)} and the local context to
+     D(parent(Q)) (unary chains climbed) - regression-tested in
+     tests/test_walkv2_guard.py before any K=3 use.
+ R-g the committed CSV is produced by an exact-HEAD execution of
+     this file (no post-run source edits).
+
 DECISION RULE at every multi-child split (frozen navigation and
 vote-override unchanged; frozen stream for frozen tests, independent
 stream for local tests):
@@ -124,16 +137,31 @@ def guard(split, q, best, tgt_tree, rev_dec, canon_map, src_tree,
     return "UNRESOLVED", maps
 
 
-def source_sibling_leaves(q, src_tree, leaves_under_fn):
-    """The source input tree's sibling context: leaves under Q's
-    parent, climbing unary chains; root context -> all leaves."""
+def source_context_leaves(q, src_tree, leaves_under_fn):
+    """The source input tree's local context: leaves under Q's
+    parent (climbing unary chains; root context -> all leaves).
+    Works for leaf AND internal queries."""
+    own = (set(leaves_under_fn(src_tree, q))
+           if q in src_tree["parent"] else {q})
     p = src_tree["parent"].get(q)
     while p not in (None, "root"):
         lvs = set(leaves_under_fn(src_tree, p))
-        if lvs != {q}:
+        if lvs != own:
             return lvs
         p = src_tree["parent"].get(p)
     return set(src_tree["leaves"])
+
+
+def query_masks(query, labels, src_tree, leaves_under_fn):
+    """Positive mask P_Q = {i: y_i in D(Q)} and the local sibling
+    context mask (D(parent(Q)) union P_Q), for leaf or internal Q."""
+    import numpy as _np
+    own = (set(leaves_under_fn(src_tree, query))
+           if query in src_tree["parent"] else {query})
+    positive = _np.isin(labels, sorted(own))
+    ctx = source_context_leaves(query, src_tree, leaves_under_fn)
+    sib_mask = _np.isin(labels, sorted(ctx)) | positive
+    return positive, sib_mask
 
 
 if __name__ == "__main__":
@@ -209,12 +237,11 @@ if __name__ == "__main__":
         return lc["V"][:, idx].sum(axis=1)
 
     def select_node_v2(query, seed):
-        positive = labA == query
+        positive, sib_mask = query_masks(query, labA, tv2,
+                                         leaves_under)
         rng_f, rng_l = Minstd(seed), Minstd(seed + 10007)
         ms = cache["V"][positive] / cache["leaf_sizes"]
         top_leaf = np.asarray(cache["leaves"])[ms.argmax(axis=1)]
-        sibs = source_sibling_leaves(query, tv2, leaves_under)
-        sib_mask = np.isin(labA, sorted(sibs)) | positive
 
         def votes_for(kids):
             return np.asarray([np.isin(
@@ -272,8 +299,10 @@ if __name__ == "__main__":
         selected = current if matched else None
         comp = (compactness(cache, positive, tree, selected)
                 if matched else np.nan)
-        return {"selected": selected, "auroc": float(sel_auc),
-                "at_root": current == "root",
+        accepted = (selected if matched and comp == comp and
+                    comp >= 0.7 else None)
+        return {"selected": selected, "accepted": accepted,
+                "auroc": float(sel_auc), "at_root": current == "root",
                 "compactness": float(comp) if comp == comp else None,
                 "ledger": ledger}
 
@@ -318,17 +347,21 @@ if __name__ == "__main__":
         fr = select_node(cache, labA, q, tree, seed=BASE_SEED + qi)
         fcomp = (compactness(cache, labA == q, tree, fr["selected"])
                  if fr["matched"] else np.nan)
+        f_acc = (fr["selected"] if fr["matched"] and fcomp == fcomp
+                 and fcomp >= 0.7 else None)
         v2r = select_node_v2(q, BASE_SEED + qi)
         T = truth.get(q, set())
         rows.append({
             "query": q,
             "frozen_sel": fr["selected"],
             "frozen_rel": truth_rel(fr["selected"], T),
+            "frozen_acc_rel": truth_rel(f_acc, T),
             "frozen_discordant": bool(fr["matched"] and
                                       fcomp == fcomp and fcomp < 0.7),
             "frozen_deficit": deficit(fr["selected"], T),
             "v2_sel": v2r["selected"],
             "v2_rel": truth_rel(v2r["selected"], T),
+            "v2_acc_rel": truth_rel(v2r["accepted"], T),
             "v2_discordant": bool(v2r["selected"] is not None and
                                   v2r["compactness"] is not None and
                                   v2r["compactness"] < 0.7),
@@ -348,11 +381,15 @@ if __name__ == "__main__":
     def count(col, val):
         return sum(1 for r in rows if r[col] == val)
 
-    print("\nplacement counts (frozen -> walk-v2):")
-    for rel in ("EXACT", "coarse", "inside-truth", "off",
-                "unmatched"):
-        print(f"  {rel:13s} {count('frozen_rel', rel):2d} -> "
-              f"{count('v2_rel', rel):2d}")
+    for tag, fcol, vcol in (("RAW selected", "frozen_rel", "v2_rel"),
+                            ("ACCEPTED (post AUROC+compactness)",
+                             "frozen_acc_rel", "v2_acc_rel")):
+        print(f"\nplacement counts, {tag} (frozen -> walk-v2):")
+        for rel in ("EXACT", "coarse", "inside-truth", "off",
+                    "unmatched"):
+            fc = sum(1 for r in rows if r[fcol] == rel)
+            vc = sum(1 for r in rows if r[vcol] == rel)
+            print(f"  {rel:13s} {fc:2d} -> {vc:2d}")
     fd = [r["frozen_deficit"] for r in rows
           if r["frozen_deficit"] is not None]
     vd = [r["v2_deficit"] for r in rows if r["v2_deficit"] is not None]
@@ -362,29 +399,37 @@ if __name__ == "__main__":
     ndis_v = sum(1 for r in rows if r["v2_discordant"])
     print(f"compactness-discordant: frozen {ndis_f} -> v2 {ndis_v}")
 
-    g1 = all(r["v2_rel"] == "EXACT" for r in rows
-             if r["frozen_rel"] == "EXACT")
-    g2 = count("v2_rel", "EXACT") >= count("frozen_rel", "EXACT")
-    g3 = count("v2_rel", "inside-truth") <= count("frozen_rel",
-                                                  "inside-truth")
-    g4 = count("v2_rel", "off") <= count("frozen_rel", "off")
+    def gate_on(fcol, vcol, label):
+        cf = lambda rel: sum(1 for r in rows if r[fcol] == rel)
+        cv = lambda rel: sum(1 for r in rows if r[vcol] == rel)
+        g1 = all(r[vcol] == "EXACT" for r in rows
+                 if r[fcol] == "EXACT")
+        g2 = cv("EXACT") >= cf("EXACT")
+        g3 = cv("inside-truth") <= cf("inside-truth")
+        g4 = cv("off") <= cf("off")
+        g6 = cv("unmatched") <= cf("unmatched")
+        checks = [("G1 no EXACT degraded", g1),
+                  ("G2 EXACT non-decreasing", g2),
+                  ("G3 partial over-descents non-increasing", g3),
+                  ("G4 off-lineage non-increasing", g4),
+                  ("G6 unmatched/abstain non-increasing", g6)]
+        print(f"\n[{label}]")
+        for name, ok in checks:
+            print(f"  {name}: {'PASS' if ok else 'FAIL'}")
+        return all(ok for _n, ok in checks)
+
+    raw_ok = gate_on("frozen_rel", "v2_rel", "RAW gate")
+    acc_ok = gate_on("frozen_acc_rel", "v2_acc_rel", "ACCEPTED gate")
     g5 = True
     for r in rows:
         for entry in r["v2_ledger"].split(" | "):
             if ":veto" in entry and not entry.split(":veto", 1)[1]:
                 g5 = False
-    g6 = count("v2_rel", "unmatched") <= count("frozen_rel",
-                                               "unmatched")
     g7 = ndis_v <= ndis_f
-    for name, ok in (("G1 no EXACT degraded", g1),
-                     ("G2 EXACT non-decreasing", g2),
-                     ("G3 partial over-descents non-increasing", g3),
-                     ("G4 off-lineage non-increasing", g4),
-                     ("G5 veto provenance", g5),
-                     ("G6 unmatched/root non-increasing", g6),
-                     ("G7 discordant non-increasing", g7)):
-        print(f"{name}: {'PASS' if ok else 'FAIL'}")
-    verdict = g1 and g2 and g3 and g4 and g5 and g6 and g7
-    msg = ("PASS — Walk-v2 rev2 accepted on Allen" if verdict else
+    print(f"\nG5 veto provenance: {'PASS' if g5 else 'FAIL'}")
+    print(f"G7 discordant non-increasing: {'PASS' if g7 else 'FAIL'}")
+    verdict = raw_ok and acc_ok and g5 and g7
+    msg = ("PASS — Walk-v2 rev3 accepted on Allen (raw AND "
+           "contract-gated)" if verdict else
            "FAIL — prototype rejected; frozen Walk stands")
     print(f"\nGATE: {msg}")

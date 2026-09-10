@@ -88,3 +88,30 @@ def test_uninformative_sibling_blocks_permit():
     rev = {"A": mk("QL"), "B": mk("QI")}   # B's call covers QL's parent
     g, _ = guard("P", "QL", "A", TGT, rev, CANON, SRC, leaves_under)
     assert g == "UNRESOLVED"
+
+
+def test_query_masks_internal_and_leaf():
+    """R-f: internal-node positives P_Q = cells under D(Q), local
+    context = D(parent(Q)); leaf behavior unchanged."""
+    import numpy as np
+    from walkv2_prototype import query_masks
+    src = mk_tree({"P": "root", "Q": "P", "R": "P", "QL1": "Q",
+                   "QL2": "Q", "RL": "R", "X": "root"})
+    labels = np.asarray(["QL1", "QL2", "RL", "X", "QL1"])
+    pos, sib = query_masks("Q", labels, src, leaves_under)
+    assert pos.tolist() == [True, True, False, False, True]
+    assert sib.tolist() == [True, True, True, False, True]
+    pos2, sib2 = query_masks("QL1", labels, src, leaves_under)
+    assert pos2.tolist() == [True, False, False, False, True]
+    assert sib2.tolist() == [True, True, False, False, True]
+
+
+def test_query_masks_unary_chain():
+    """Unary chains are climbed until the context grows."""
+    import numpy as np
+    from walkv2_prototype import query_masks
+    src = mk_tree({"P": "root", "U": "P", "Q": "U", "R": "P"})
+    labels = np.asarray(["Q", "R", "Q"])
+    pos, sib = query_masks("Q", labels, src, leaves_under)
+    assert pos.tolist() == [True, False, True]
+    assert sib.tolist() == [True, True, True]
