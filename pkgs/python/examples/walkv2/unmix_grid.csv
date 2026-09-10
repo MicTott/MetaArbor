@@ -1,0 +1,6 @@
+tau,false_span,missed_veto,ok
+0.02,0.333,0.667,False
+0.05,0.333,0.667,False
+0.1,0.0,0.667,False
+0.15,0.0,0.667,False
+0.2,0.0,0.778,False

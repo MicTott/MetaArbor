@@ -9,13 +9,15 @@ into v2: guard says CONTAINED when all children's targets lie on one
 root-path in the v2 tree, SPANS otherwise. Truth: the node's curated
 cluster set maps to > 1 v2 subclass.
 
-Result on the committed dumps (recorded 2026-09-10): 76 evaluable
-nodes; guard-SPANS precision 1.00 (14/14), recall 0.56 (11 true
-spanning nodes missed when children's calls collapse onto one coarse
-target). Perfect precision is the property a veto needs: when this
-guard fires it is always right; its misses fall through to the
-per-cell breadth statistic (still unfrozen — see
-walkv2_breadth_freeze.py for the recorded v1-v3 failures).
+STATUS: high-precision EXPLORATORY veto, not validated — 14-ish
+positive calls, moderate recall, retrospective Allen-only evaluation,
+unmatched source children ignored; and it is INAPPLICABLE to the five
+operational over-descent cases (v2 subclass queries are LEAVES of the
+v2 input tree — no labeled children), so the unmixing statistic is
+load-bearing exactly where the guard cannot reach. An earlier version
+of this script had a comparability bug (targets checked against the
+first target only, not pairwise) — fixed here; numbers below are from
+the corrected pairwise test.
 
 Run: python examples/walkv2_source_guard.py
 """
@@ -64,8 +66,12 @@ for n in sorted(set(canon["v3"].values())):
             tgts.append(r["selected"])
     if len(tgts) < 2:
         continue
-    same_branch = all(t == tgts[0] or t in path(tgts[0])
-                      or tgts[0] in path(t) for t in tgts)
+    # pairwise comparability: ALL targets must lie on one root-path
+    # (comparable-to-first is NOT sufficient: an ancestor plus two
+    # incomparable descendants would wrongly pass — reviewer-caught)
+    same_branch = all(
+        a == b or a in path(b) or b in path(a)
+        for i, a in enumerate(tgts) for b in tgts[i + 1:])
     guard = "contained" if same_branch else "spans"
     truth = "spans" if len(truth_subs(n)) > 1 else "contained"
     rows.append({"node": n, "n_child_calls": len(tgts),
