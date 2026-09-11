@@ -260,3 +260,70 @@ def test_component_statuses():
     assert any(s["has_directional_evidence"]
                for s in g3["statuses"].values())
     assert all("conflicting" in s for s in g3["statuses"].values())
+
+
+def _vid_of(g):
+    out = {}
+    for r, v in g["vertices"].items():
+        for ds, m in v["members"].items():
+            out[(ds, m)] = r
+    return out
+
+
+def test_equal_support_disjoint_endpoint_cycle_unresolved():
+    """Reviewer's adversarial case: two tied candidates with
+    DISJOINT endpoints that conflict through ancestry. nA<->b1 and
+    a1<->nB are each valid alone but together create a cycle
+    ([a1,nB] <= [nA,b1] via A, [nA,b1] <= [a1,nB] via B). Neither
+    may win by processing order: both must be ledgered unresolved
+    and neither merged."""
+    ta = tree({"a1": "nA", "nA": "root"})
+    tb = tree({"b1": "nB", "nB": "root"})
+    trees = {"A": ta, "B": tb}
+    canon = {"A": ident(ta), "B": ident(tb)}
+    dec = {"A>B": {"nA": mk("b1"), "a1": mk("nB")},
+           "B>A": {"b1": mk("nA"), "nB": mk("a1")}}
+    g = quotient_assemble(trees, canon, dec)
+    vid_of = _vid_of(g)
+    assert vid_of[("A", "nA")] != vid_of[("B", "b1")]
+    assert vid_of[("A", "a1")] != vid_of[("B", "nB")]
+    reasons = [u["reason"] for u in g["ledger"]["unresolved_ties"]]
+    assert reasons == ["order_dependent_within_tie"] * 2
+    assert g["ledger"]["refused"] == []
+    assert g["is_forest"]
+
+
+def test_equal_support_cycle_renaming_invariant():
+    """Renaming the adversarial case's nodes (reversing every
+    lexicographic order) must not change the outcome: still no
+    merge, both candidates unresolved."""
+    # 'z*' names sort opposite to the originals in every position
+    ta = tree({"za1": "znA", "znA": "root"})
+    tb = tree({"ab1": "anB", "anB": "root"})
+    trees = {"A": ta, "B": tb}
+    canon = {"A": ident(ta), "B": ident(tb)}
+    dec = {"A>B": {"znA": mk("ab1"), "za1": mk("anB")},
+           "B>A": {"ab1": mk("znA"), "anB": mk("za1")}}
+    g = quotient_assemble(trees, canon, dec)
+    vid_of = _vid_of(g)
+    assert vid_of[("A", "znA")] != vid_of[("B", "ab1")]
+    assert vid_of[("A", "za1")] != vid_of[("B", "anB")]
+    assert len(g["ledger"]["unresolved_ties"]) == 2
+    assert g["ledger"]["refused"] == []
+
+
+def test_conflicting_flag_covers_certificate_parents():
+    """`conflicting` marks every vertex appearing in a certificate:
+    the multi-parent child AND its incomparable minimal parents."""
+    ta = tree({"a1": "nA1", "a2": "nA2", "nA1": "root",
+               "nA2": "root"})
+    tb = tree({"b1": "nB", "b2": "nB", "nB": "root"})
+    trees = {"A": ta, "B": tb}
+    canon = {"A": ident(ta), "B": ident(tb)}
+    dec = {"A>B": {"a1": mk("b1")}, "B>A": {"b1": mk("a1")}}
+    g = quotient_assemble(trees, canon, dec)
+    assert len(g["certificates"]) == 1
+    cert = g["certificates"][0]
+    flagged = {r for r, s in g["statuses"].items()
+               if s["conflicting"]}
+    assert flagged == {cert["vertex"], *cert["minimal_parents"]}

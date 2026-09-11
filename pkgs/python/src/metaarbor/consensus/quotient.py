@@ -23,8 +23,26 @@ own: everything it consumes is frozen-Walk output.
 
 Statuses (derived, ASSEMBLY2 Section 5):
   vertex:    shared | atlas_specific  (+ has_directional_evidence,
-             conflicting flags)
+             conflicting flags; `conflicting` marks every vertex
+             appearing in a certificate — the multi-parent child
+             and its incomparable minimal parents)
   component: anchored | unanchored
+
+RESULT CONTRACT (the output may be a DAG, not a tree):
+  `parents` (vid -> sorted minimal-parent vids) IS the result — an
+  acyclic quotient ancestry graph. Consumers MUST branch on
+  `is_forest`:
+  - is_forest=True: every parent list has <= 1 element; rendering
+    the parent map as a forest is faithful and any tree metric of
+    it is a score of the result.
+  - is_forest=False: `certificates` enumerates the unreconciled
+    multiple-parent constraints. ANY tree obtained by choosing one
+    minimal parent per certified vertex is a PROJECTION — a view,
+    never the result. A single tree score of a projection is not a
+    score of the result; report certificate-aware ranges or
+    DAG-level quantities instead, and label projections as views.
+  Downstream code that can only consume trees must surface the
+  certificates it dropped, never silently pick a projection.
 """
 from __future__ import annotations
 
@@ -174,41 +192,78 @@ def quotient_assemble(trees, canonical, decisions):
             else:
                 refused.append({"support": s, "pair": c,
                                 "reason": "incompatible"})
-        # 2. connected components by shared endpoints. Shared
-        #    endpoints are NOT automatically competing: A<->C plus
-        #    C<->B is exactly how a three-atlas meta-clade forms
-        #    (equivalence = transitive closure of accepted pairs).
-        #    Each component is evaluated JOINTLY for injectivity and
-        #    ancestry compatibility.
-        ep_cands = {}
-        for idx, (va, vb) in enumerate(possible):
-            ep_cands.setdefault(va, []).append(idx)
-            ep_cands.setdefault(vb, []).append(idx)
-        seen = set()
-        for start in range(len(possible)):
-            if start in seen:
-                continue
-            comp, stack = [], [start]
-            while stack:
-                k = stack.pop()
-                if k in seen:
-                    continue
-                seen.add(k)
-                comp.append(k)
-                va, vb = possible[k]
-                stack.extend(ep_cands[va])
-                stack.extend(ep_cands[vb])
-            cand = [possible[k] for k in sorted(comp)]
-            if acyclic_and_injective(cand):
-                for va, vb in cand:
+        # 2. group by STRUCTURAL INTERACTION, not merely shared
+        #    endpoints. Shared endpoints are NOT automatically
+        #    competing: A<->C plus C<->B is exactly how a
+        #    three-atlas meta-clade forms (equivalence = transitive
+        #    closure of accepted pairs). But candidates with
+        #    DISJOINT endpoints can still conflict through ancestry
+        #    (two individually-valid merges whose union is a cycle),
+        #    so the interaction relation is: shared endpoint OR
+        #    pairwise joint infeasibility. Each interaction
+        #    component is evaluated JOINTLY; feasible components
+        #    whose UNION is infeasible are coarsened together (a
+        #    fixed point), so acceptance never depends on candidate
+        #    order or on names (I4). Components that survive accept
+        #    wholesale; the rest are ledgered unresolved.
+        if not possible:
+            continue
+        n = len(possible)
+        pi = list(range(n))
+
+        def fi(i):
+            while pi[i] != i:
+                pi[i] = pi[pi[i]]
+                i = pi[i]
+            return i
+
+        def ui(i, j):
+            ri, rj = fi(i), fi(j)
+            if ri != rj:
+                pi[max(ri, rj)] = min(ri, rj)
+        for i in range(n):
+            for j in range(i + 1, n):
+                a, b = possible[i], possible[j]
+                if set(a) & set(b) or \
+                        not acyclic_and_injective([a, b]):
+                    ui(i, j)
+        while True:
+            comps = {}
+            for i in range(n):
+                comps.setdefault(fi(i), []).append(i)
+            cand_of = {r: [possible[i] for i in idx]
+                       for r, idx in comps.items()}
+            feas = {r: acyclic_and_injective(cand_of[r])
+                    for r in comps}
+            ok_roots = sorted(r for r in comps if feas[r])
+            joint = [c for r in ok_roots for c in cand_of[r]]
+            if acyclic_and_injective(joint):
+                for va, vb in joint:
                     uf.union(va, vb)
-            else:
-                # jointly incompatible though individually possible:
-                # order within the tie would decide -> unresolved
-                unresolved_ties.extend(
-                    {"support": s, "pair": c,
-                     "reason": "order_dependent_within_tie"}
-                    for c in cand)
+                for r in comps:
+                    if not feas[r]:
+                        # jointly incompatible though individually
+                        # possible: order within the tie would
+                        # decide -> unresolved, nothing forced
+                        unresolved_ties.extend(
+                            {"support": s, "pair": c,
+                             "reason": "order_dependent_within_tie"}
+                            for c in cand_of[r])
+                break
+            # feasible components conflict ACROSS components:
+            # coarsen every offending pair (or, for a strictly
+            # higher-order conflict, all of them) and re-evaluate
+            merged = False
+            for x in range(len(ok_roots)):
+                for y in range(x + 1, len(ok_roots)):
+                    if not acyclic_and_injective(
+                            cand_of[ok_roots[x]] +
+                            cand_of[ok_roots[y]]):
+                        ui(ok_roots[x], ok_roots[y])
+                        merged = True
+            if not merged:
+                for r in ok_roots[1:]:
+                    ui(ok_roots[0], r)
 
     # ---- vertices -----------------------------------------------------
     cls = {v: uf.find(v) for v in verts}
@@ -277,7 +332,11 @@ def quotient_assemble(trees, canonical, decisions):
     # ---- derived statuses (kind + documented flags) -------------------
     ann_sources = {a["source_vid"] for a in annotations
                    if not a["within_merge"]}
+    # `conflicting` marks every vertex APPEARING in a certificate:
+    # the multi-parent child AND its incomparable minimal parents
     cert_verts = {c["vertex"] for c in certificates}
+    cert_verts |= {p for c in certificates
+                   for p in c["minimal_parents"]}
     statuses = {r: {"kind": ("shared" if vertices[r]["shared"]
                              else "atlas_specific"),
                     "has_directional_evidence": r in ann_sources,

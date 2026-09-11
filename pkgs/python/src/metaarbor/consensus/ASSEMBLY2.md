@@ -243,3 +243,25 @@ support.
   reduction rule are frozen together; new biology must never add a
   branch to the assembly again — if it cannot be expressed as
   evidence (`e`), acceptance, or rendering, it does not belong.
+
+## 11. Result contract (the output may be a DAG)
+
+The authoritative result is the minimal-parent map over vertices —
+an acyclic quotient ancestry graph — and consumers MUST branch on
+`is_forest`. When `is_forest` is true, every vertex has at most one
+minimal parent, the forest rendering is faithful, and a tree metric
+of it scores the result. When false, the certificates enumerate the
+unreconciled multiple-parent constraints; any tree obtained by
+choosing one minimal parent per certified vertex is a PROJECTION —
+a view, never the result — and a single tree score of a projection
+is not a score of the result: report certificate-aware ranges over
+compatible projections or DAG-level quantities, and label
+projections as views. Downstream code that can only consume trees
+must surface the certificates it dropped, never silently pick a
+projection. The `conflicting` vertex flag marks every vertex
+appearing in a certificate: the multi-parent child and its
+incomparable minimal parents. Tie acceptance groups candidates by
+STRUCTURAL INTERACTION (shared endpoints or joint infeasibility,
+coarsened to a fixed point), not merely shared endpoints, so
+disjoint-endpoint ancestry conflicts within a tie are ledgered
+unresolved rather than resolved by processing order (I4).

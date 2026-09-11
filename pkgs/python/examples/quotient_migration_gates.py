@@ -20,12 +20,19 @@ improvement over the committed assembly (0.9116); that claim is
 WITHDRAWN — the projection was arbitrary. This gate instead
 reports (a) the shared-vertex accounting, (b) each unreconciled
 constraint with its incomparable minimal parents (verified
-incomparable structurally), and (c) the TRIP range over the
-sampled compatible forest projections (baseline first-parent
-projection plus every single-constraint alternative flip — a
-sampled range, not exhaustive over all combinations). The range is
-descriptive; PASS = the accounting is complete and every listed
-constraint is genuinely incomparable.
+incomparable structurally), and (c) OBSERVED SCORES AMONG SAMPLED
+PROJECTIONS (baseline first-parent projection plus every
+single-constraint alternative flip; combinations not evaluated) —
+NOT a projection range. Set QUOTIENT_GATE_EXHAUSTIVE=1 to
+enumerate ALL 2^11 = 2048 parent-choice combinations (about 5-10
+minutes on several cores), which yields the true min/max over
+compatible forest projections. RESULT OF THE EXHAUSTIVE RUN
+(2026-09-10): min=0.9129 max=0.9263 over all 2048 projections —
+numerically identical to the sampled endpoints, so the one-flip
+sample happened to bracket the full range here (that was not
+guaranteed in advance). The numbers are descriptive either way;
+PASS = the accounting is complete and every listed constraint is
+genuinely incomparable.
 
 Run: PYTHONPATH=src:../../comparison/otharmonizer \
      python examples/quotient_migration_gates.py
@@ -120,6 +127,25 @@ def gate_retina():
     return ok
 
 
+_SC = {}
+
+
+def _score_init(g, labels, ref):
+    _SC["g"], _SC["labels"], _SC["ref"] = g, labels, ref
+
+
+def _score_choice(choice):
+    g, labels, ref = _SC["g"], _SC["labels"], _SC["ref"]
+
+    def nm(v):
+        labs = sorted(f"{ds}-{m.split('|', 1)[-1]}"
+                      for ds, m in v["members"].items()
+                      if m in labels.get(ds, ()))
+        return "&".join(labs)
+    s, _ = triplet_scores(render(g, nm, choice), ref)
+    return s
+
+
 def gate_allen():
     MA = os.path.join(HERE, "harmonize_demo")
     it = json.load(open(f"{MA}/allen_input_trees.json"))
@@ -174,23 +200,46 @@ def gate_allen():
         print("   constraint:", sorted(v["members"].items()),
               f"minimal_parents={len(ps)} incomparable={inc}")
 
-    # (c) TRIP range over sampled compatible forest projections:
+    # (c) descriptive scores of forest projections. Default:
     # baseline (first minimal parent everywhere) + one flip per
-    # constraint alternative. Descriptive only — no single number
-    # scores a DAG, and no superiority claim is made.
-    scores = []
-    base, _ = triplet_scores(render(g, nm), ref)
-    scores.append(base)
-    for c in g["certificates"]:
-        for alt in c["minimal_parents"][1:]:
-            s, _ = triplet_scores(
-                render(g, nm, {c["vertex"]: alt}), ref)
-            scores.append(s)
-    print(f"   TRIP over {len(scores)} sampled projections "
-          f"(views, not results): min={min(scores):.4f} "
-          f"max={max(scores):.4f} "
-          f"(committed assembly 0.9116 for reference; "
-          f"no improvement claim)")
+    # constraint alternative — OBSERVED SCORES AMONG SAMPLED
+    # PROJECTIONS, not a range. Exhaustive mode enumerates every
+    # parent-choice combination and IS the projection range. Either
+    # way: views, not results; no single number scores a DAG and no
+    # superiority claim is made.
+    if os.environ.get("QUOTIENT_GATE_EXHAUSTIVE"):
+        import itertools
+        from concurrent.futures import ProcessPoolExecutor
+        certs = g["certificates"]
+        combos = list(itertools.product(
+            *[c["minimal_parents"] for c in certs]))
+        vxs = [c["vertex"] for c in certs]
+        jobs = [dict(zip(vxs, combo)) for combo in combos]
+        with ProcessPoolExecutor(
+                initializer=_score_init,
+                initargs=(g, labels, ref)) as ex:
+            scores = list(ex.map(_score_choice, jobs,
+                                 chunksize=32))
+        print(f"   TRIP over ALL {len(scores)} compatible forest "
+              f"projections (views, not results): "
+              f"min={min(scores):.4f} max={max(scores):.4f} "
+              f"(committed assembly 0.9116 for reference; "
+              f"no improvement claim)")
+    else:
+        scores = []
+        base, _ = triplet_scores(render(g, nm), ref)
+        scores.append(base)
+        for c in g["certificates"]:
+            for alt in c["minimal_parents"][1:]:
+                s, _ = triplet_scores(
+                    render(g, nm, {c["vertex"]: alt}), ref)
+                scores.append(s)
+        print(f"   TRIP observed among {len(scores)} SAMPLED "
+              f"projections (baseline + one-at-a-time flips; "
+              f"combinations not evaluated; views, not results): "
+              f"min={min(scores):.4f} max={max(scores):.4f} "
+              f"(committed assembly 0.9116 for reference; "
+              f"no improvement claim)")
     ok = all_incomparable and len(g["certificates"]) > 0
     print(f"GATE 2 -> {'PASS (accounting complete)' if ok else 'FAIL'}")
     return ok
