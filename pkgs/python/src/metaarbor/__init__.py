@@ -73,6 +73,10 @@ from .walk import baseline_map, compactness, select_node
 # still change. Transport-derived synthesis is not yet available.
 from .consensus.harmonize import harmonize  # noqa: E402
 from .consensus.plot_reconciled import plot_reconciled_tree  # noqa: E402
+# audit-view renderer (the package's default figure conventions)
+from .viz import (audit_legend, canonical_order,  # noqa: E402
+                  nested_from_harmonize, nested_from_input_tree,
+                  plot_audit_tree, split_root_dumped)
 
 __version__ = "0.7.0"
 
@@ -92,6 +96,9 @@ __all__ = [
     "patristic_matrix",
     "infer_tree", "star_tree", "is_star_tree", "annotate_star_relations",
     "plot_alignment_phylogram", "plot_harmonized_phylogram",
+    "plot_audit_tree", "audit_legend", "canonical_order",
+    "nested_from_harmonize", "nested_from_input_tree",
+    "split_root_dumped",
     "to_newick", "to_ete4",
     "Minstd", "MassCollapsedError", "molecular_only",
     "harmonize", "plot_reconciled_tree",   # beta/experimental

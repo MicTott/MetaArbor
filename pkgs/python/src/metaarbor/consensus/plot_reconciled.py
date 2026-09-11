@@ -1,10 +1,15 @@
-"""Reconciled-hierarchy figure: the two (or K) input trees beside the
-merged output, every original label shown, colored by dataset. The merged
-panel is a genuinely new tree — meta-clade nodes carry all their aliases,
-coarse labels sit above finer descendants, private branches in accent,
-single-atlas (correspondence-unresolved) nodes open-marked, conflict
-count annotated."""
+"""DEPRECATED — superseded by metaarbor.viz (the audit-view
+renderer with the standardized six-encoding conventions: group
+bands, dataset colors, black reciprocal merges, certified/
+containment/ancestry edge kinds, shared canonical order, root-dumped
+regions). This module is retained for frozen-era scripts and will be
+removed with the planned viz consolidation.
+
+Reconciled-hierarchy figure: the two (or K) input trees beside the
+merged output, every original label shown, colored by dataset."""
 from __future__ import annotations
+
+import warnings as _warnings
 
 import numpy as np
 
@@ -78,6 +83,7 @@ def _draw_input_tree(ax, tree, color, title):
 
 
 def plot_reconciled_tree(harm, trees, dataset_names=None, figsize=None):
+    _warnings.warn("plot_reconciled_tree is deprecated; use metaarbor.viz.plot_audit_tree (audit-view conventions)", DeprecationWarning, stacklevel=2)
     """K input trees beside the merged reconciled hierarchy."""
     with pub_style() as plt:
         keys = sorted(trees)
