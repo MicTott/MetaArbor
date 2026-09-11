@@ -1,11 +1,21 @@
-# Assembly redesign memo: quotient-graph synthesis
+# Assembly redesign memo: quotient-graph synthesis (revision 2)
 
-Status: DESIGN ONLY — no code changed. Written 2026-09-10 at the
-reviewer's request, after the retina K=2 campaign exposed the c27
-splice-hoist and its interleaving repair. The evidence layer (frozen
-Walk, all molecular gates and thresholds) is untouched throughout
-this memo; everything here concerns what happens AFTER directional
-evidence exists.
+Status: DESIGN ONLY — no code changed. Revision 2 incorporates the
+reviewer's corrections to revision 1 (d7421bf), the most important
+of which is SEMANTIC: revision 1 treated one-way Walk selections as
+containment edges participating in the quotient preorder. That was
+wrong, and this project's own c27 audit is the counterexample —
+`c27 -> BC3B` at support 1.0 is an ARGMAX LANDING (c27's cells in
+fact spread 0.44/0.34 across BC3B and BC4), not evidence that c27's
+cells lie within BC3B. Revision 1's phrase calling that edge an
+"honest containment record" was an overinterpretation and is
+retracted here. One-way calls are `directional_evidence`
+ANNOTATIONS; they never order the graph; a separately validated
+containment rule may later promote a subset to the stronger word.
+
+The evidence layer (frozen Walk, all molecular gates and
+thresholds) is untouched throughout; everything here concerns what
+happens AFTER directional evidence exists.
 
 ## 1. The problem with the current assembly
 
@@ -32,13 +42,19 @@ INPUT.
   (containment-or-equality), asserted from atlas i's evidence, at
   support `s`.
 
-OUTPUT. An annotated quotient graph `G = (V, E_anc, E_dir, ~)` plus,
-when it exists, its forest reduction:
+OUTPUT. An annotated quotient graph `G = (V, E_anc, A_dir, ~)`
+plus, when it exists, its forest reduction:
 - `~` : an equivalence relation on `⋃_k C_k`, generated ONLY by
   accepted reciprocal pairs (Section 4). `V = (⋃_k C_k) / ~`.
 - `E_anc` : the image of every input parent edge. NEVER deleted.
-- `E_dir` : accepted one-way evidence edges `[a] -> [b]` with
-  support, endpoints NOT merged.
+  E_anc and the merges are the ONLY sources of order: the quotient
+  preorder is built from ancestry alone.
+- `A_dir` : one-way Walk selections stored as `directional_evidence`
+  ANNOTATIONS `[a] ~~> [b]` with support. They are data attached to
+  the graph — renderable, filterable, auditable — and are NEVER
+  ordering edges. (A future, separately validated containment rule
+  may promote a qualified subset; until then the honest name is
+  `maps_to`.)
 - A conflict ledger of refused merges and incompatibility
   certificates (Section 6).
 - Statuses are DERIVED from `G` (Section 5), not produced by
@@ -51,9 +67,11 @@ when it exists, its forest reduction:
   Completeness holds by construction; there is no repair step
   because deletion is impossible.
 - I2 EVIDENCE GROUNDING. Every merge is licensed by accepted
-  reciprocal evidence at frozen thresholds; every `E_dir` edge is a
-  matched one-way selection. Every output relationship carries a
-  citable evidence record.
+  reciprocal evidence at frozen thresholds; every `A_dir`
+  annotation is a matched one-way selection carrying its support.
+  Every output relationship carries a citable evidence record, and
+  no annotation is presented with stronger semantics than the
+  evidence supports (a selection is `maps_to`, not containment).
 - I3 ORDER PRESERVATION. The quotient map is order-preserving on
   every input tree: `x <_k y` implies `[x] ≤ [y]`. A merge whose
   addition would create a cycle or an order reversal is REFUSED and
@@ -72,33 +90,40 @@ when it exists, its forest reduction:
 
 Candidate merges are reciprocal pairs
 `e_{i->j}(a) = (b, s1)` and `e_{j->i}(b) = (a, s2)` passing the
-frozen gates. The acceptance problem is: choose a maximal-weight
-subset of candidates whose generated `~` satisfies I3 and per-atlas
-injectivity (no vertex holds two nodes of one atlas). This is
-combinatorial; the shipped algorithm is greedy by (min support desc,
-name) — STATED as an approximation to the maximal consistent set,
-which is what the current greedy_backbone already is, minus its
-routing duties.
+frozen gates. The acceptance problem is: choose a subset of candidates whose
+generated `~` satisfies I3 and per-atlas injectivity (no vertex
+holds two nodes of one atlas). The shipped algorithm is greedy in
+descending support and yields a DETERMINISTIC INCLUSION-MAXIMAL
+compatible set — no maximum-weight or approximation-ratio claim is
+made or needed (none is proven). Tie-breaking must be structural or
+evidence-derived, never by label/canonical NAME (name ties violate
+label-renaming invariance); candidates tied on every structural
+criterion are LEDGERED as unresolved rather than broken
+arbitrarily.
 
-The reconciled-tier extension (same-branch near-miss pairs:
-`e_{i->j}(a) = b` with `e_{j->i}(b)` an ancestor/descendant of `a`
-on one root path — truth-certified by the retina n04<->n10 case)
-changes ONLY this acceptance predicate. It adds no assembly
-machinery, which is the cleanest argument for this formulation.
+The reconciled-tier idea (same-branch near-miss pairs, e.g. the
+truth-certified retina n04<->n10 case) is NOT a mere parameter of
+this predicate: it changes what counts as equivalence EVIDENCE.
+It remains a separately specified, separately validated extension —
+out of scope for the v1 implementation below.
 
 ## 5. Statuses become theorems, not branches
 
+Two levels, kept distinct (a single-atlas vertex beneath a shared
+ancestor — c27 — is atlas-specific yet anchored):
+VERTEX statuses:
 - `shared`         : vertex with members from ≥ 2 atlases.
-- `atlas_specific` : vertex whose entire component (under `E_anc`)
-                     touches one atlas — the current "private" and
-                     ordinary single-atlas subtrees, unified.
-- `contained`      : source of an accepted `E_dir` edge — the
-                     current one-way frontier and "affiliates",
-                     unified as directional annotation.
+- `atlas_specific` : vertex whose members come from one atlas
+                     (regardless of where it sits).
+- `has_directional_evidence` : source of an `A_dir` annotation —
+                     the current one-way frontier and "affiliates",
+                     unified as annotation (NOT a containment
+                     claim).
 - `conflicting`    : vertex appearing in a certificate.
-- `unresolved`     : root of a component with no accepted incident
-                     cross-atlas relationship — the current
-                     "unplaced", now just a disconnected component.
+COMPONENT statuses (under `E_anc` + merges):
+- `anchored`       : component containing ≥ 1 shared vertex.
+- `unanchored`     : component with none — the current "unplaced",
+                     now simply a disconnected component.
 
 ## 6. When a single tree is impossible
 
@@ -108,12 +133,16 @@ failure certificates:
 - CYCLE: mutual containment claims across incomparable clades
   (through any mix of `E_anc` and accepted merges).
 - MULTIPLE INCOMPARABLE MINIMAL ANCESTORS: a vertex constrained
-  below two ≤-incomparable vertices — the signature of CROSSCUTTING
-  partitions. The retina transfer matrix shows this is real
-  biology, not an edge case: Macosko's OFF clusters crosscut
-  Shekhar's OFF types (BC2/BC3A/BC4/BC1A all majority-assign to
-  c28), so a fully resolved common tree of both partitions does
-  not exist below the OFF level.
+  below two ≤-incomparable vertices. NOTE ON SCOPE: with ancestry
+  as the only order source, this certificate arises from merge
+  interactions; single-target directional maps cannot by themselves
+  express many-to-many structure, so the quotient graph does NOT
+  certify crosscutting partitions (the retina transfer matrix
+  SUGGESTS mac/she OFF crosscutting, but that is a cell-level
+  observation outside this graph's constraint language). Claiming a
+  crosscutting certificate would require many-to-many constraints
+  the current evidence maps do not carry — deliberately out of
+  scope.
 Return in that case: the DAG, the certificates, and (for display
 only, ledgered) a maximal-forest view obtained by dropping the
 minimal-support `E_dir`/merge edges — clearly labeled as a view,
@@ -129,7 +158,7 @@ never as the result.
 | dataset-set uniqueness          | per-atlas injectivity in I3    |
 | candidate ordering (greedy)     | I4 tie-breaking, stated as     |
 |                                 | approximation (Section 4)      |
-| affiliates                      | `E_dir` edges (demoted)        |
+| affiliates                      | `A_dir` annotations (demoted)  |
 | private cand. + consolidation   | derived `atlas_specific`       |
 | rejection fallback routing      | GONE — nothing ever leaves     |
 | completeness repair             | GONE — I1 by construction      |
@@ -148,38 +177,42 @@ merge `[n01, n10]` has ancestry constraints `[n01] ≤ n04 ≤ [n06]`
 merges with n06) — compatible; the reduction nests
 `[n01,n10]` under `n04` under `[n06,n12]` automatically. This is
 byte-for-byte the interleaved result (truth TRIP 51/51 on the mac
-side) with no interleaving rule in existence. c27's support-1.0 call
-to BC3B persists as an `E_dir` edge — the honest containment record
-the per-cell audit endorsed.
+side) with no interleaving rule in existence. c27's support-1.0
+call to BC3B persists as a `directional_evidence` ANNOTATION —
+which is all the per-cell audit licenses (cells spread 0.44/0.34
+across BC3B/BC4; the revision-1 phrase 'honest containment record'
+is retracted).
 
-AMYGDALA INHIBITORY: 58 components with sparse reciprocity emerge as
-exactly that — a forest of components plus `E_dir` edges. The
-"containment frontier" stops being a construction and becomes a
-RENDERING of `E_dir` at a support threshold. Nothing is forced;
-`unresolved` is a fact of the graph.
+AMYGDALA INHIBITORY: 58 components with sparse reciprocity emerge
+as exactly that — a forest of components plus `A_dir` annotations.
+The "containment frontier" stops being a construction and becomes a
+RENDERING of annotations at a support threshold — explicitly a
+view, carrying `maps_to` semantics. Nothing is forced; `unanchored`
+is a fact of the graph.
 
-CROSSCUTTING (retina OFF level): the mac and she OFF partitions
-yield incomparable-minimal-ancestor certificates below the OFF
-vertex — the correct mathematical statement of what the transfer
-matrix measured. Current machinery has no way to SAY this; the
-quotient output states it as a certificate.
+CROSSCUTTING (retina OFF level): NOT certified by this graph (see
+Section 6) — the transfer matrix's crosscutting observation lives
+at the cell level, outside the graph's constraint language, and is
+reported as such.
 
-## 9. The half-page algorithm (paper form)
+## 9. The half-page algorithm (paper form, v1 = the reviewer's
+narrow quotient)
 
-1. Form the disjoint union of the K canonical input trees; keep
-   every ancestry edge.
-2. Accept reciprocal evidence pairs greedily by support, refusing
-   any merge that would violate order preservation or per-atlas
-   injectivity (refusals ledgered); quotient by the accepted pairs.
-3. Add every surviving one-way selection as a directional
-   containment edge, endpoints unmerged.
-4. If the resulting preorder is a forest, emit the reconciled
-   forest; otherwise emit the DAG with minimal conflict
-   certificates. Statuses (shared, atlas-specific, contained,
-   conflicting, unresolved) are read off the graph.
-Every input label is present by construction; every relationship in
-the output carries its evidence record; nothing is ever repaired
-because nothing is ever discarded.
+1. Keep every node and ancestry edge from every input tree
+   (disjoint union of canonical trees).
+2. Merge only accepted reciprocal-equivalence nodes (greedy by
+   support; refusals ledgered; structural tie rule, exact ties
+   unresolved).
+3. Inspect the quotient ancestry graph.
+4. If it is a forest, render the reconciled forest.
+5. If not, retain the DAG and report the incompatible
+   relationships as certificates.
+6. Store one-way Walk calls as `directional_evidence` annotations —
+   data on the graph, never structural edges.
+Every input label is present by construction; every relationship
+carries its evidence record; nothing is repaired because nothing is
+discarded; nothing is asserted beyond what the evidence semantics
+support.
 
 ## 10. Migration and gates (when implementation is approved)
 
@@ -191,8 +224,10 @@ because nothing is ever discarded.
   documented node-by-node); amygdala structural counts compared and
   explained; the full synthetic suite (structural review, cut,
   interleave-shaped cases) re-expressed against the invariants.
-- The reconciled-tier acceptance extension is a separate,
-  subsequently-gated change to Section 4 only.
+- The reconciled-tier extension (new equivalence-evidence class)
+  and any promotion of `directional_evidence` to genuine
+  containment are SEPARATE, subsequently specified and validated
+  changes — neither ships in v1.
 - Freeze point: after migration, the acceptance predicate and the
   reduction rule are frozen together; new biology must never add a
   branch to the assembly again — if it cannot be expressed as
