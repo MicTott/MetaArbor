@@ -1,0 +1,30 @@
+{
+ "RBC_group": [
+  "she|RBC",
+  "mac|c26"
+ ],
+ "OFF": [
+  "she|BC1A",
+  "she|BC1B",
+  "she|BC2",
+  "she|BC3A",
+  "she|BC3B",
+  "she|BC4",
+  "mac|c27",
+  "mac|c28",
+  "mac|c29"
+ ],
+ "ON": [
+  "she|BC5A",
+  "she|BC5B",
+  "she|BC5C",
+  "she|BC5D",
+  "she|BC6",
+  "she|BC7",
+  "she|BC8_9",
+  "mac|c30",
+  "mac|c31",
+  "mac|c32",
+  "mac|c33"
+ ]
+}
