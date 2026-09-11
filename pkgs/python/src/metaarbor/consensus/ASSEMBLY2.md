@@ -77,13 +77,16 @@ plus, when it exists, its forest reduction:
   addition would create a cycle or an order reversal is REFUSED and
   ledgered — never linearized, never silently resolved.
 - I4 DETERMINISM. Output is invariant to dataset insertion order
-  and label ordering; ties break by (support desc, canonical name).
+  AND to label renaming; ties break by support then by structural /
+  evidence-derived criteria only (Section 4); exact ties are
+  ledgered unresolved, never broken by name.
 - I5 CONFLICT TRANSPARENCY. If the combined preorder is not a
   forest, the output is the DAG together with minimal certificates
   (the offending cycle, or the incomparable-minimal-ancestor set).
   A tree is returned only when a tree exists.
-- I6 DERIVED STATUS. `shared` / `atlas_specific` / `contained` /
-  `conflicting` / `unresolved` are functions of `G` (Section 5),
+- I6 DERIVED STATUS. Vertex statuses (`shared`, `atlas_specific`,
+  `has_directional_evidence`, `conflicting`) and component statuses
+  (`anchored`, `unanchored`) are functions of `G` (Section 5),
   never side effects of processing order.
 
 ## 4. Acceptance (the one place judgment lives)
@@ -144,9 +147,10 @@ failure certificates:
   the current evidence maps do not carry — deliberately out of
   scope.
 Return in that case: the DAG, the certificates, and (for display
-only, ledgered) a maximal-forest view obtained by dropping the
-minimal-support `E_dir`/merge edges — clearly labeled as a view,
-never as the result.
+only, ledgered) a maximal-forest view obtained by withholding the
+minimal-support MERGES — clearly labeled as a view, never as the
+result. (`A_dir` annotations never participate: they carry no
+order.)
 
 ## 7. What the current rules become
 
