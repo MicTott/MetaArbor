@@ -38,9 +38,10 @@ INPUT.
 - Directional evidence: for each ordered pair (i, j), a partial map
   `e_{i->j} : C_i ⇀ C_j × [0,1]` — the frozen Walk's selection and
   support, surviving all molecular gates. Semantics of
-  `e_{i->j}(a) = (b, s)`: the cells of `a` lie within `b`
-  (containment-or-equality), asserted from atlas i's evidence, at
-  support `s`.
+  `e_{i->j}(a) = (b, s)`: `b` is the supported Walk landing
+  selected for `a`, at support `s`. This is DIRECTIONAL SIMILARITY
+  EVIDENCE and does not itself establish equivalence or
+  containment.
 
 OUTPUT. An annotated quotient graph `G = (V, E_anc, A_dir, ~)`
 plus, when it exists, its forest reduction:
@@ -100,9 +101,13 @@ descending support and yields a DETERMINISTIC INCLUSION-MAXIMAL
 compatible set — no maximum-weight or approximation-ratio claim is
 made or needed (none is proven). Tie-breaking must be structural or
 evidence-derived, never by label/canonical NAME (name ties violate
-label-renaming invariance); candidates tied on every structural
-criterion are LEDGERED as unresolved rather than broken
-arbitrarily.
+label-renaming invariance). Within a tie group, INDEPENDENT
+compatible candidates (sharing no endpoint and jointly compatible)
+are ALL accepted; only MUTUALLY COMPETING tied candidates — those
+sharing an endpoint slot, or whose outcome depends on acceptance
+order within the tie — are ledgered unresolved. (Supports of
+exactly 1.0 are common; a broad tie rule would discard many valid
+merges.)
 
 The reconciled-tier idea (same-branch near-miss pairs, e.g. the
 truth-certified retina n04<->n10 case) is NOT a mere parameter of
@@ -133,8 +138,9 @@ COMPONENT statuses (under `E_anc` + merges):
 The reduction to a forest exists iff the quotient preorder
 (`E_anc` edges as ≤, quotient by `~`) is a forest order. The two
 failure certificates:
-- CYCLE: mutual containment claims across incomparable clades
-  (through any mix of `E_anc` and accepted merges).
+- CYCLE: reciprocal merges identifying nodes in ways incompatible
+  with the original ancestry orders (a directed cycle through
+  `E_anc` under the quotient).
 - MULTIPLE INCOMPARABLE MINIMAL ANCESTORS: a vertex constrained
   below two ≤-incomparable vertices. NOTE ON SCOPE: with ancestry
   as the only order source, this certificate arises from merge
@@ -160,8 +166,8 @@ order.)
 | canonical-node matching         | unchanged (defines `C_k`)      |
 | ancestry compatibility          | I3 — THE acceptance check      |
 | dataset-set uniqueness          | per-atlas injectivity in I3    |
-| candidate ordering (greedy)     | I4 tie-breaking, stated as     |
-|                                 | approximation (Section 4)      |
+| candidate ordering (greedy)     | deterministic inclusion-       |
+|                                 | maximal selection (Section 4)  |
 | affiliates                      | `A_dir` annotations (demoted)  |
 | private cand. + consolidation   | derived `atlas_specific`       |
 | rejection fallback routing      | GONE — nothing ever leaves     |
@@ -179,9 +185,10 @@ start; c27's ancestry edge into it is never deleted. The accepted
 merge `[n01, n10]` has ancestry constraints `[n01] ≤ n04 ≤ [n06]`
 (mac chain) and `[n01] ≤ [n06]` (she chain, since n10's parent n12
 merges with n06) — compatible; the reduction nests
-`[n01,n10]` under `n04` under `[n06,n12]` automatically. This is
-byte-for-byte the interleaved result (truth TRIP 51/51 on the mac
-side) with no interleaving rule in existence. c27's support-1.0
+`[n01,n10]` under `n04` under `[n06,n12]` automatically. This is EXPECTED to reproduce the interleaved
+result (truth TRIP 51/51 on the mac side) with no interleaving
+rule in existence; exact reproduction is a MIGRATION GATE, not yet
+a fact. c27's support-1.0
 call to BC3B persists as a `directional_evidence` ANNOTATION —
 which is all the per-cell audit licenses (cells spread 0.44/0.34
 across BC3B/BC4; the revision-1 phrase 'honest containment record'
