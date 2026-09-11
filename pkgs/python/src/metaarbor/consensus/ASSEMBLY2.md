@@ -265,3 +265,37 @@ STRUCTURAL INTERACTION (shared endpoints or joint infeasibility,
 coarsened to a fixed point), not merely shared endpoints, so
 disjoint-endpoint ancestry conflicts within a tie are ledgered
 unresolved rather than resolved by processing order (I4).
+
+## 12. Ontology freeze (design principle, adopted 2026-09-11)
+
+The user-facing ontology is FOUR statuses and no more:
+- merged/shared: reciprocal evidence passed the single
+  certification rule;
+- dataset-specific: not merged;
+- unresolved constraint: ancestry from merged trees cannot be
+  represented uniquely (a certificate);
+- directional annotation: evidence points somewhere but does not
+  justify a merge.
+
+New evidence classes are REJECTED as a design principle. Every
+future improvement — balanced subsampling, compactness variants,
+alternative contrasts, same-branch handling — must arrive as a
+globally validated change to the UNCERTAINTY ESTIMATE or to the
+single certification rule, never as a new named relationship
+category or decision branch. If an improved estimator makes a
+pair's reciprocal evidence pass the same rule, it merges; if not,
+it abstains; the measurements explaining the outcome are recorded,
+unlabeled. This supersedes the Section 4 reserved "reconciled-tier
+evidence class": the same-branch near-miss cases follow the same
+path as every other pair. Methods evolve internally; the exposed
+ontology stays small and stable.
+
+Balanced within-comparison subsampling is adopted as a DIAGNOSTIC
+(does a correspondence survive equal-sized comparison; is a failure
+caused by imbalance; at what per-type cell count does certification
+power collapse), evaluated by a prespecified synthetic experiment
+(downsampled true reciprocal pairs at 20/30/50/100 cells, planted
+absent-partner and near-neighbor cases; scored on correct
+certification, abstention, false certification) — never as a rescue
+tier. Expectation stated in advance: BC1A/BC1B are power
+near-misses and balancing will characterize, not fix, the limit.
