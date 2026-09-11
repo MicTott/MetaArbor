@@ -1,0 +1,85 @@
+{
+ "RBC_group": {
+  "cherries": [
+   [
+    "she|RBC",
+    "mrca|RBC"
+   ]
+  ],
+  "mac": [
+   "mac|c26"
+  ]
+ },
+ "OFF": {
+  "cherries": [
+   [
+    "she|BC1A",
+    "mrca|BC1A"
+   ],
+   [
+    "she|BC1B",
+    "mrca|BC1B"
+   ],
+   [
+    "she|BC2",
+    "mrca|BC2"
+   ],
+   [
+    "she|BC3A",
+    "mrca|BC3A"
+   ],
+   [
+    "she|BC3B",
+    "mrca|BC3B"
+   ],
+   [
+    "she|BC4",
+    "mrca|BC4"
+   ]
+  ],
+  "mac": [
+   "mac|c27",
+   "mac|c28",
+   "mac|c29"
+  ]
+ },
+ "ON": {
+  "cherries": [
+   [
+    "she|BC5A",
+    "mrca|BC5A"
+   ],
+   [
+    "she|BC5B",
+    "mrca|BC5B"
+   ],
+   [
+    "she|BC5C",
+    "mrca|BC5C"
+   ],
+   [
+    "she|BC5D",
+    "mrca|BC5D"
+   ],
+   [
+    "she|BC6",
+    "mrca|BC6"
+   ],
+   [
+    "she|BC7",
+    "mrca|BC7"
+   ],
+   [
+    "she|BC8_9",
+    "mrca|BC8",
+    "mrca|BC9"
+   ]
+  ],
+  "mac": [
+   "mac|c30",
+   "mac|c31",
+   "mac|c32",
+   "mac|c33"
+  ]
+ }
+}

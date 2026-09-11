@@ -1,0 +1,324 @@
+{
+ "mac": {
+  "parent": {
+   "root": null,
+   "n01": "n04",
+   "n02": "n05",
+   "n03": "n05",
+   "n04": "n06",
+   "n05": "n06",
+   "n06": "root",
+   "mac|c26": "root",
+   "mac|c27": "n04",
+   "mac|c28": "n01",
+   "mac|c29": "n01",
+   "mac|c30": "n02",
+   "mac|c31": "n02",
+   "mac|c32": "n03",
+   "mac|c33": "n03"
+  },
+  "children": {
+   "root": [
+    "mac|c26",
+    "n06"
+   ],
+   "n01": [
+    "mac|c28",
+    "mac|c29"
+   ],
+   "n02": [
+    "mac|c30",
+    "mac|c31"
+   ],
+   "n03": [
+    "mac|c32",
+    "mac|c33"
+   ],
+   "n04": [
+    "mac|c27",
+    "n01"
+   ],
+   "n05": [
+    "n02",
+    "n03"
+   ],
+   "n06": [
+    "n04",
+    "n05"
+   ],
+   "mac|c26": [],
+   "mac|c27": [],
+   "mac|c28": [],
+   "mac|c29": [],
+   "mac|c30": [],
+   "mac|c31": [],
+   "mac|c32": [],
+   "mac|c33": []
+  },
+  "leaves": [
+   "mac|c26",
+   "mac|c27",
+   "mac|c28",
+   "mac|c29",
+   "mac|c30",
+   "mac|c31",
+   "mac|c32",
+   "mac|c33"
+  ],
+  "support": {
+   "n01": 0.94,
+   "n02": 1.0,
+   "n03": 0.94,
+   "n04": 0.94,
+   "n05": 0.88,
+   "n06": 1.0
+  }
+ },
+ "she": {
+  "parent": {
+   "root": null,
+   "n01": "n08",
+   "n02": "n10",
+   "n03": "n08",
+   "n04": "n09",
+   "n05": "n09",
+   "n06": "n07",
+   "n07": "n11",
+   "n08": "n10",
+   "n09": "n11",
+   "n10": "n12",
+   "n11": "n12",
+   "n12": "root",
+   "she|BC1A": "n01",
+   "she|BC1B": "n01",
+   "she|BC2": "n02",
+   "she|BC3A": "n02",
+   "she|BC3B": "n03",
+   "she|BC4": "n03",
+   "she|BC5A": "n04",
+   "she|BC5B": "n05",
+   "she|BC5C": "n05",
+   "she|BC5D": "n04",
+   "she|BC6": "n06",
+   "she|BC7": "n06",
+   "she|BC8_9": "n07",
+   "she|RBC": "root"
+  },
+  "children": {
+   "root": [
+    "n12",
+    "she|RBC"
+   ],
+   "n01": [
+    "she|BC1A",
+    "she|BC1B"
+   ],
+   "n02": [
+    "she|BC2",
+    "she|BC3A"
+   ],
+   "n03": [
+    "she|BC3B",
+    "she|BC4"
+   ],
+   "n04": [
+    "she|BC5A",
+    "she|BC5D"
+   ],
+   "n05": [
+    "she|BC5B",
+    "she|BC5C"
+   ],
+   "n06": [
+    "she|BC6",
+    "she|BC7"
+   ],
+   "n07": [
+    "n06",
+    "she|BC8_9"
+   ],
+   "n08": [
+    "n01",
+    "n03"
+   ],
+   "n09": [
+    "n04",
+    "n05"
+   ],
+   "n10": [
+    "n02",
+    "n08"
+   ],
+   "n11": [
+    "n07",
+    "n09"
+   ],
+   "n12": [
+    "n10",
+    "n11"
+   ],
+   "she|BC1A": [],
+   "she|BC1B": [],
+   "she|BC2": [],
+   "she|BC3A": [],
+   "she|BC3B": [],
+   "she|BC4": [],
+   "she|BC5A": [],
+   "she|BC5B": [],
+   "she|BC5C": [],
+   "she|BC5D": [],
+   "she|BC6": [],
+   "she|BC7": [],
+   "she|BC8_9": [],
+   "she|RBC": []
+  },
+  "leaves": [
+   "she|BC1A",
+   "she|BC1B",
+   "she|BC2",
+   "she|BC3A",
+   "she|BC3B",
+   "she|BC4",
+   "she|BC5A",
+   "she|BC5B",
+   "she|BC5C",
+   "she|BC5D",
+   "she|BC6",
+   "she|BC7",
+   "she|BC8_9",
+   "she|RBC"
+  ],
+  "support": {
+   "n01": 1.0,
+   "n02": 0.92,
+   "n03": 1.0,
+   "n04": 1.0,
+   "n05": 1.0,
+   "n06": 1.0,
+   "n07": 1.0,
+   "n08": 0.9,
+   "n09": 1.0,
+   "n10": 1.0,
+   "n11": 1.0,
+   "n12": 1.0
+  }
+ },
+ "mrca": {
+  "parent": {
+   "root": null,
+   "n01": "root",
+   "n02": "root",
+   "n03": "root",
+   "n04": "n08",
+   "n05": "n08",
+   "n06": "n09",
+   "n07": "n09",
+   "n08": "root",
+   "n09": "root",
+   "mrca|BC1A": "n01",
+   "mrca|BC1B": "n01",
+   "mrca|BC2": "n02",
+   "mrca|BC3A": "n02",
+   "mrca|BC3B": "n03",
+   "mrca|BC4": "n03",
+   "mrca|BC5A": "n04",
+   "mrca|BC5B": "n05",
+   "mrca|BC5C": "n05",
+   "mrca|BC5D": "n04",
+   "mrca|BC6": "n06",
+   "mrca|BC7": "n06",
+   "mrca|BC8": "n07",
+   "mrca|BC9": "n07",
+   "mrca|RBC": "root"
+  },
+  "children": {
+   "root": [
+    "mrca|RBC",
+    "n01",
+    "n02",
+    "n03",
+    "n08",
+    "n09"
+   ],
+   "n01": [
+    "mrca|BC1A",
+    "mrca|BC1B"
+   ],
+   "n02": [
+    "mrca|BC2",
+    "mrca|BC3A"
+   ],
+   "n03": [
+    "mrca|BC3B",
+    "mrca|BC4"
+   ],
+   "n04": [
+    "mrca|BC5A",
+    "mrca|BC5D"
+   ],
+   "n05": [
+    "mrca|BC5B",
+    "mrca|BC5C"
+   ],
+   "n06": [
+    "mrca|BC6",
+    "mrca|BC7"
+   ],
+   "n07": [
+    "mrca|BC8",
+    "mrca|BC9"
+   ],
+   "n08": [
+    "n04",
+    "n05"
+   ],
+   "n09": [
+    "n06",
+    "n07"
+   ],
+   "mrca|BC1A": [],
+   "mrca|BC1B": [],
+   "mrca|BC2": [],
+   "mrca|BC3A": [],
+   "mrca|BC3B": [],
+   "mrca|BC4": [],
+   "mrca|BC5A": [],
+   "mrca|BC5B": [],
+   "mrca|BC5C": [],
+   "mrca|BC5D": [],
+   "mrca|BC6": [],
+   "mrca|BC7": [],
+   "mrca|BC8": [],
+   "mrca|BC9": [],
+   "mrca|RBC": []
+  },
+  "leaves": [
+   "mrca|BC1A",
+   "mrca|BC1B",
+   "mrca|BC2",
+   "mrca|BC3A",
+   "mrca|BC3B",
+   "mrca|BC4",
+   "mrca|BC5A",
+   "mrca|BC5B",
+   "mrca|BC5C",
+   "mrca|BC5D",
+   "mrca|BC6",
+   "mrca|BC7",
+   "mrca|BC8",
+   "mrca|BC9",
+   "mrca|RBC"
+  ],
+  "support": {
+   "n01": 0.7,
+   "n02": 1.0,
+   "n03": 1.0,
+   "n04": 1.0,
+   "n05": 1.0,
+   "n06": 1.0,
+   "n07": 1.0,
+   "n08": 1.0,
+   "n09": 1.0
+  }
+ }
+}
