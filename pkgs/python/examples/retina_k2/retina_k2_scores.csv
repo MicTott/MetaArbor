@@ -1,0 +1,6 @@
+tree,TRIP_REC_K,COPH_K
+mac_input,1.0,0.9875
+she_input,1.0,0.9717
+assembly,0.9318,0.9415
+strict_cut,1.0,0.9907
+default_cut,0.9318,0.9437

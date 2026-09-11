@@ -1,0 +1,358 @@
+{
+ "MA-C0001": {
+  "parent": null,
+  "status": "backbone",
+  "members": {
+   "mac": "n06",
+   "she": "n12"
+  },
+  "aliases": [
+   "n06",
+   "n12"
+  ],
+  "display": "n12",
+  "assembly_repair": false
+ },
+ "MA-C0002": {
+  "parent": null,
+  "status": "backbone",
+  "members": {
+   "mac": "mac|c26",
+   "she": "she|RBC"
+  },
+  "aliases": [
+   "mac|c26",
+   "she|RBC"
+  ],
+  "display": "RBC",
+  "assembly_repair": false
+ },
+ "MA-C0003": {
+  "parent": "MA-C0001",
+  "status": "backbone",
+  "members": {
+   "mac": "n01",
+   "she": "n10"
+  },
+  "aliases": [
+   "n01",
+   "n10"
+  ],
+  "display": "n10",
+  "assembly_repair": false
+ },
+ "MA-C0004": {
+  "parent": "MA-C0001",
+  "status": "backbone",
+  "members": {
+   "mac": "n05",
+   "she": "n11"
+  },
+  "aliases": [
+   "n05",
+   "n11"
+  ],
+  "display": "n11",
+  "assembly_repair": false
+ },
+ "MA-C0005": {
+  "parent": "MA-C0004",
+  "status": "backbone",
+  "members": {
+   "mac": "n02",
+   "she": "n09"
+  },
+  "aliases": [
+   "n02",
+   "n09"
+  ],
+  "display": "n09",
+  "assembly_repair": false
+ },
+ "MA-C0006": {
+  "parent": "MA-C0004",
+  "status": "backbone",
+  "members": {
+   "mac": "n03",
+   "she": "n06"
+  },
+  "aliases": [
+   "n03",
+   "n06"
+  ],
+  "display": "n06",
+  "assembly_repair": false
+ },
+ "MA-C0007": {
+  "parent": "MA-C0003",
+  "status": "backbone",
+  "members": {
+   "mac": "mac|c28",
+   "she": "n02"
+  },
+  "aliases": [
+   "mac|c28",
+   "n02"
+  ],
+  "display": "n02",
+  "assembly_repair": false
+ },
+ "MA-C0008": {
+  "parent": "MA-C0005",
+  "status": "backbone",
+  "members": {
+   "mac": "mac|c30",
+   "she": "n04"
+  },
+  "aliases": [
+   "mac|c30",
+   "n04"
+  ],
+  "display": "n04",
+  "assembly_repair": false
+ },
+ "MA-C0009": {
+  "parent": "MA-C0006",
+  "status": "backbone",
+  "members": {
+   "mac": "mac|c32",
+   "she": "she|BC7"
+  },
+  "aliases": [
+   "mac|c32",
+   "she|BC7"
+  ],
+  "display": "BC7",
+  "assembly_repair": false
+ },
+ "MA-C0010": {
+  "parent": "MA-C0005",
+  "status": "backbone",
+  "members": {
+   "mac": "mac|c31",
+   "she": "n05"
+  },
+  "aliases": [
+   "mac|c31",
+   "n05"
+  ],
+  "display": "n05",
+  "assembly_repair": false
+ },
+ "MA-U0001": {
+  "parent": "MA-C0001",
+  "status": "single_atlas",
+  "members": {
+   "mac": "mac|c27"
+  },
+  "aliases": [
+   "mac|c27"
+  ],
+  "display": "c27",
+  "assembly_repair": false
+ },
+ "MA-U0002": {
+  "parent": "MA-C0003",
+  "status": "single_atlas",
+  "members": {
+   "mac": "mac|c29"
+  },
+  "aliases": [
+   "mac|c29"
+  ],
+  "display": "c29",
+  "assembly_repair": false
+ },
+ "MA-U0003": {
+  "parent": "MA-C0003",
+  "status": "single_atlas",
+  "members": {
+   "she": "n08"
+  },
+  "aliases": [
+   "n08"
+  ],
+  "display": "n08",
+  "assembly_repair": false
+ },
+ "MA-U0004": {
+  "parent": "MA-C0004",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC8_9"
+  },
+  "aliases": [
+   "she|BC8_9"
+  ],
+  "display": "BC8_9",
+  "assembly_repair": false
+ },
+ "MA-U0005": {
+  "parent": "MA-C0006",
+  "status": "single_atlas",
+  "members": {
+   "mac": "mac|c33"
+  },
+  "aliases": [
+   "mac|c33"
+  ],
+  "display": "c33",
+  "assembly_repair": false
+ },
+ "MA-U0006": {
+  "parent": "MA-C0007",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC2"
+  },
+  "aliases": [
+   "she|BC2"
+  ],
+  "display": "BC2",
+  "assembly_repair": false
+ },
+ "MA-U0007": {
+  "parent": "MA-C0007",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC3A"
+  },
+  "aliases": [
+   "she|BC3A"
+  ],
+  "display": "BC3A",
+  "assembly_repair": false
+ },
+ "MA-U0008": {
+  "parent": "MA-C0006",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC6"
+  },
+  "aliases": [
+   "she|BC6"
+  ],
+  "display": "BC6",
+  "assembly_repair": false
+ },
+ "MA-U0009": {
+  "parent": "MA-C0008",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC5A"
+  },
+  "aliases": [
+   "she|BC5A"
+  ],
+  "display": "BC5A",
+  "assembly_repair": false
+ },
+ "MA-U0010": {
+  "parent": "MA-C0010",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC5B"
+  },
+  "aliases": [
+   "she|BC5B"
+  ],
+  "display": "BC5B",
+  "assembly_repair": false
+ },
+ "MA-U0011": {
+  "parent": "MA-C0010",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC5C"
+  },
+  "aliases": [
+   "she|BC5C"
+  ],
+  "display": "BC5C",
+  "assembly_repair": false
+ },
+ "MA-U0012": {
+  "parent": "MA-C0008",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC5D"
+  },
+  "aliases": [
+   "she|BC5D"
+  ],
+  "display": "BC5D",
+  "assembly_repair": false
+ },
+ "MA-U0003.01": {
+  "parent": "MA-U0003",
+  "status": "single_atlas",
+  "members": {
+   "she": "n01"
+  },
+  "aliases": [
+   "n01"
+  ],
+  "display": "n01",
+  "assembly_repair": false
+ },
+ "MA-U0003.02": {
+  "parent": "MA-U0003",
+  "status": "single_atlas",
+  "members": {
+   "she": "n03"
+  },
+  "aliases": [
+   "n03"
+  ],
+  "display": "n03",
+  "assembly_repair": false
+ },
+ "MA-U0003.03": {
+  "parent": "MA-U0003.01",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC1A"
+  },
+  "aliases": [
+   "she|BC1A"
+  ],
+  "display": "BC1A",
+  "assembly_repair": false
+ },
+ "MA-U0003.04": {
+  "parent": "MA-U0003.01",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC1B"
+  },
+  "aliases": [
+   "she|BC1B"
+  ],
+  "display": "BC1B",
+  "assembly_repair": false
+ },
+ "MA-U0003.05": {
+  "parent": "MA-U0003.02",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC3B"
+  },
+  "aliases": [
+   "she|BC3B"
+  ],
+  "display": "BC3B",
+  "assembly_repair": false
+ },
+ "MA-U0003.06": {
+  "parent": "MA-U0003.02",
+  "status": "single_atlas",
+  "members": {
+   "she": "she|BC4"
+  },
+  "aliases": [
+   "she|BC4"
+  ],
+  "display": "BC4",
+  "assembly_repair": false
+ }
+}

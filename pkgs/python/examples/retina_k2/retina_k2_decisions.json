@@ -1,0 +1,246 @@
+{
+ "mac>she": {
+  "mac|c26": {
+   "selected": "she|RBC",
+   "matched": true,
+   "support": 0.997744700045106,
+   "relation": null
+  },
+  "mac|c27": {
+   "selected": "she|BC3B",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mac|c28": {
+   "selected": "n02",
+   "matched": true,
+   "support": 0.98,
+   "relation": null
+  },
+  "mac|c29": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "mac|c30": {
+   "selected": "n04",
+   "matched": true,
+   "support": 0.985,
+   "relation": null
+  },
+  "mac|c31": {
+   "selected": "n05",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mac|c32": {
+   "selected": "she|BC7",
+   "matched": true,
+   "support": 0.978125,
+   "relation": null
+  },
+  "mac|c33": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "n01": {
+   "selected": "n10",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n02": {
+   "selected": "n09",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n03": {
+   "selected": "n06",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n04": {
+   "selected": "n10",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n05": {
+   "selected": "n11",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n06": {
+   "selected": "n12",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  }
+ },
+ "she>mac": {
+  "n01": {
+   "selected": "n01",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n02": {
+   "selected": "mac|c28",
+   "matched": true,
+   "support": 0.9780420860018298,
+   "relation": null
+  },
+  "n03": {
+   "selected": "n04",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n04": {
+   "selected": "mac|c30",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n05": {
+   "selected": "mac|c31",
+   "matched": true,
+   "support": 0.9497568881685575,
+   "relation": null
+  },
+  "n06": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n07": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n08": {
+   "selected": "n04",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n09": {
+   "selected": "n02",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n10": {
+   "selected": "n01",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n11": {
+   "selected": "n05",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n12": {
+   "selected": "n06",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC1A": {
+   "selected": "n01",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC1B": {
+   "selected": "n01",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC2": {
+   "selected": "mac|c28",
+   "matched": true,
+   "support": 0.974910394265233,
+   "relation": null
+  },
+  "she|BC3A": {
+   "selected": "mac|c28",
+   "matched": true,
+   "support": 0.9813084112149533,
+   "relation": null
+  },
+  "she|BC3B": {
+   "selected": "n04",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC4": {
+   "selected": "n04",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC5A": {
+   "selected": "mac|c30",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC5B": {
+   "selected": "mac|c31",
+   "matched": true,
+   "support": 0.9498956158663883,
+   "relation": null
+  },
+  "she|BC5C": {
+   "selected": "mac|c31",
+   "matched": true,
+   "support": 0.9497084548104956,
+   "relation": null
+  },
+  "she|BC5D": {
+   "selected": "mac|c30",
+   "matched": true,
+   "support": 0.9421338155515371,
+   "relation": null
+  },
+  "she|BC6": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC7": {
+   "selected": "mac|c32",
+   "matched": true,
+   "support": 0.9818078453666856,
+   "relation": null
+  },
+  "she|BC8_9": {
+   "selected": "mac|c32",
+   "matched": true,
+   "support": 0.9169329073482428,
+   "relation": null
+  },
+  "she|RBC": {
+   "selected": "mac|c26",
+   "matched": true,
+   "support": 0.9994489346069066,
+   "relation": null
+  }
+ }
+}

@@ -1,0 +1,9 @@
+{
+ "order_swap_agreement": 1.0,
+ "checks": {
+  "C1": true,
+  "C2": true,
+  "C3": false,
+  "C4": true
+ }
+}
