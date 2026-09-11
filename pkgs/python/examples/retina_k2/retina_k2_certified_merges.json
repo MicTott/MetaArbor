@@ -1,0 +1,82 @@
+[
+ {
+  "members": {
+   "mac": "n06",
+   "she": "n12"
+  },
+  "support": 1.0,
+  "id": "MA-C0001"
+ },
+ {
+  "members": {
+   "mac": "mac|c26",
+   "she": "she|RBC"
+  },
+  "support": 0.9985968173260062,
+  "id": "MA-C0002"
+ },
+ {
+  "members": {
+   "mac": "n01",
+   "she": "n10"
+  },
+  "support": 1.0,
+  "id": "MA-C0003"
+ },
+ {
+  "members": {
+   "mac": "n05",
+   "she": "n11"
+  },
+  "support": 1.0,
+  "id": "MA-C0004"
+ },
+ {
+  "members": {
+   "mac": "n02",
+   "she": "n09"
+  },
+  "support": 1.0,
+  "id": "MA-C0005"
+ },
+ {
+  "members": {
+   "mac": "n03",
+   "she": "n06"
+  },
+  "support": 1.0,
+  "id": "MA-C0006"
+ },
+ {
+  "members": {
+   "mac": "mac|c28",
+   "she": "n02"
+  },
+  "support": 0.979021043000915,
+  "id": "MA-C0007"
+ },
+ {
+  "members": {
+   "mac": "mac|c30",
+   "she": "n04"
+  },
+  "support": 0.9924999999999999,
+  "id": "MA-C0008"
+ },
+ {
+  "members": {
+   "mac": "mac|c32",
+   "she": "she|BC7"
+  },
+  "support": 0.9799664226833429,
+  "id": "MA-C0009"
+ },
+ {
+  "members": {
+   "mac": "mac|c31",
+   "she": "n05"
+  },
+  "support": 0.9748784440842788,
+  "id": "MA-C0010"
+ }
+]

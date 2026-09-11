@@ -1,0 +1,43 @@
+{
+ "k2": {
+  "certified": {
+   "vertices": 32,
+   "shared": 10,
+   "three_atlas": 0,
+   "forest": true,
+   "certs": 0,
+   "wrong_group": 0
+  },
+  "raw": {
+   "vertices": 32,
+   "shared": 10,
+   "three_atlas": 0,
+   "forest": true,
+   "certs": 0,
+   "wrong_group": 0
+  },
+  "trip_min": 1.0,
+  "trip_max": 1.0
+ },
+ "k3": {
+  "certified": {
+   "vertices": 41,
+   "shared": 18,
+   "three_atlas": 8,
+   "forest": false,
+   "certs": 3,
+   "wrong_group": 0
+  },
+  "raw": {
+   "vertices": 40,
+   "shared": 20,
+   "three_atlas": 7,
+   "forest": false,
+   "certs": 5,
+   "wrong_group": 0
+  },
+  "name_pairs": 11,
+  "full_trip_min": 0.6773653787648312,
+  "full_trip_max": 0.854578643139641
+ }
+}

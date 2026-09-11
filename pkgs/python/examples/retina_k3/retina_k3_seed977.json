@@ -1,0 +1,151 @@
+{
+ "agreement_shared_names": 0.7580645161290323,
+ "certified": [
+  {
+   "members": {
+    "mac": "mac|c26",
+    "mrca": "mrca|RBC",
+    "she": "she|RBC"
+   },
+   "support": 0.99833659200149
+  },
+  {
+   "members": {
+    "mac": "n06",
+    "she": "n10"
+   },
+   "support": 1.0
+  },
+  {
+   "members": {
+    "mac": "mac|c27",
+    "mrca": "mrca|BC3B",
+    "she": "she|BC3B"
+   },
+   "support": 0.9784441044471643
+  },
+  {
+   "members": {
+    "mac": "n05",
+    "she": "n09"
+   },
+   "support": 1.0
+  },
+  {
+   "members": {
+    "mac": "n02",
+    "mrca": "n08",
+    "she": "n07"
+   },
+   "support": 1.0
+  },
+  {
+   "members": {
+    "mac": "n03",
+    "mrca": "n09",
+    "she": "n05"
+   },
+   "support": 1.0
+  },
+  {
+   "members": {
+    "mac": "mac|c28",
+    "mrca": "mrca|BC2",
+    "she": "she|BC2"
+   },
+   "support": 0.9789426523297491
+  },
+  {
+   "members": {
+    "mrca": "mrca|BC4",
+    "she": "she|BC4"
+   },
+   "support": 0.9805194805194806
+  },
+  {
+   "members": {
+    "mrca": "mrca|BC3A",
+    "she": "she|BC3A"
+   },
+   "support": 0.9694696261682243
+  },
+  {
+   "members": {
+    "mac": "mac|c31",
+    "mrca": "n05",
+    "she": "n04"
+   },
+   "support": 0.9826409823518819
+  },
+  {
+   "members": {
+    "mac": "mac|c32",
+    "mrca": "mrca|BC7",
+    "she": "she|BC7"
+   },
+   "support": 0.9770866851430737
+  },
+  {
+   "members": {
+    "mrca": "n04",
+    "she": "n03"
+   },
+   "support": 1.0
+  },
+  {
+   "members": {
+    "mrca": "mrca|BC6",
+    "she": "she|BC6"
+   },
+   "support": 0.9545470035252643
+  },
+  {
+   "members": {
+    "mac": "mac|c30",
+    "mrca": "mrca|BC5A",
+    "she": "she|BC5A"
+   },
+   "support": 0.9721835046937862
+  },
+  {
+   "members": {
+    "mrca": "mrca|BC5C",
+    "she": "she|BC5C"
+   },
+   "support": 0.98725
+  },
+  {
+   "members": {
+    "mrca": "mrca|BC5B",
+    "she": "she|BC5B"
+   },
+   "support": 0.9725485386221295
+  },
+  {
+   "members": {
+    "mrca": "mrca|BC5D",
+    "she": "she|BC5D"
+   },
+   "support": 0.9367585895117541
+  }
+ ],
+ "quotient": {
+  "shared": 17,
+  "three_atlas": 8,
+  "forest": false,
+  "certs": 4,
+  "name_pairs": [
+   "BC2",
+   "BC3A",
+   "BC3B",
+   "BC4",
+   "BC5A",
+   "BC5B",
+   "BC5C",
+   "BC5D",
+   "BC6",
+   "BC7",
+   "RBC"
+  ]
+ }
+}
