@@ -4,18 +4,28 @@ GATE 1 (retina): the quotient must reproduce the interleaved result
 with the interleave module unused. RESULT: PASS — TRIP 1.0000 /
 COPH 0.9700 exactly; 10 shared vertices; forest; empty ledger.
 
-GATE 2 (allen): statuses and structure accounted against the
-committed assembly. RESULT: 25 shared vertices (committed backbone:
-24); TRIP 0.9172 on the curated reference — ABOVE both the
-committed assembly (0.9116) and the interleaved repair (0.9129);
-and, crucially, forest=False with 11 multi-parent CERTIFICATES.
-Those 11 are the documented supersession: cases the current
-assembly silently resolved into a tree (routing/placement picking
-one parent) that the quotient exposes as genuinely incomparable
-ancestry constraints (e.g. the Car3 merge, whose v2-side and
-v3-side input parents are unmerged and incomparable). Scoring here
-uses the deterministic first-minimal-parent VIEW of the DAG,
-labeled as a view per ASSEMBLY2 Section 6.
+GATE 2 (allen): ACCOUNTING gate, not a superiority gate. The
+quotient output on Allen is a DAG (forest=False) with 11
+UNRECONCILED MULTIPLE-PARENT CONSTRAINTS — vertices whose input
+ancestry places them below two incomparable minimal ancestors
+(e.g. the Car3 merge, whose v2-side and v3-side input parents are
+unmerged and incomparable). These are not conflicts between
+evidence records; they are relationships the old assembly silently
+resolved into a tree by routing order and the quotient declines to
+resolve. Because the result is a DAG, NO single TRIP number is a
+valid score of it: any tree score depends on an arbitrary
+projection choice. An earlier revision of this file reported
+TRIP=0.9172 from the first-minimal-parent projection and claimed
+improvement over the committed assembly (0.9116); that claim is
+WITHDRAWN — the projection was arbitrary. This gate instead
+reports (a) the shared-vertex accounting, (b) each unreconciled
+constraint with its incomparable minimal parents (verified
+incomparable structurally), and (c) the TRIP range over the
+sampled compatible forest projections (baseline first-parent
+projection plus every single-constraint alternative flip — a
+sampled range, not exhaustive over all combinations). The range is
+descriptive; PASS = the accounting is complete and every listed
+constraint is genuinely incomparable.
 
 Run: PYTHONPATH=src:../../comparison/otharmonizer \
      python examples/quotient_migration_gates.py
@@ -32,11 +42,16 @@ from metrics import MyNode, cophenetic_spearman, triplet_scores  # noqa
 from metaarbor.consensus.quotient import quotient_assemble  # noqa
 
 
-def render(g, label_name):
+def render(g, label_name, choice=None):
+    """Forest projection of the quotient graph. `choice` maps a
+    multi-parent vertex to the minimal parent used in this
+    projection (default: first). Any such tree is a VIEW, never the
+    result (ASSEMBLY2 Section 6)."""
+    choice = choice or {}
     kids, roots = {}, []
     for r, ps in g["parents"].items():
         if ps:
-            kids.setdefault(ps[0], []).append(r)
+            kids.setdefault(choice.get(r, ps[0]), []).append(r)
         else:
             roots.append(r)
     root = MyNode("root")
@@ -49,6 +64,20 @@ def render(g, label_name):
     for r in sorted(roots, key=str):
         emit(r, root)
     return root
+
+
+def ancestor_closure(parents):
+    memo = {}
+
+    def anc(r):
+        if r not in memo:
+            memo[r] = set()
+            for p in parents[r]:
+                memo[r] |= {p} | anc(p)
+        return memo[r]
+    for r in parents:
+        anc(r)
+    return memo
 
 
 def gate_retina():
@@ -110,7 +139,6 @@ def gate_allen():
                       for ds, m in v["members"].items()
                       if m in labels.get(ds, ()))
         return "&".join(labs)
-    tree = render(g, nm)
 
     def refA():
         rt = MyNode("root")
@@ -127,16 +155,44 @@ def gate_allen():
             for cl in cls:
                 sn.addkid(MyNode(f"v3-{cl}"))
         return rt
-    rec, _ = triplet_scores(tree, refA())
+    ref = refA()
+
     sh = sum(1 for v in g["vertices"].values() if v["shared"])
     print(f"GATE 2 allen: shared={sh} (committed backbone 24) "
-          f"TRIP={rec:.4f} (assembly 0.9116, interleaved 0.9129) "
-          f"forest={g['is_forest']} certs={len(g['certificates'])}")
+          f"forest={g['is_forest']} "
+          f"unreconciled_constraints={len(g['certificates'])}")
+
+    # (b) each constraint listed and VERIFIED incomparable
+    anc = ancestor_closure(g["parents"])
+    all_incomparable = True
     for c in g["certificates"]:
         v = g["vertices"][c["vertex"]]
-        print("   cert:", sorted(v["members"].items()))
-    ok = rec >= 0.9116
-    print(f"GATE 2 -> {'PASS (supersession documented above)' if ok else 'FAIL'}")
+        ps = c["minimal_parents"]
+        inc = all(p not in anc[q] and q not in anc[p]
+                  for i, p in enumerate(ps) for q in ps[i + 1:])
+        all_incomparable &= inc
+        print("   constraint:", sorted(v["members"].items()),
+              f"minimal_parents={len(ps)} incomparable={inc}")
+
+    # (c) TRIP range over sampled compatible forest projections:
+    # baseline (first minimal parent everywhere) + one flip per
+    # constraint alternative. Descriptive only — no single number
+    # scores a DAG, and no superiority claim is made.
+    scores = []
+    base, _ = triplet_scores(render(g, nm), ref)
+    scores.append(base)
+    for c in g["certificates"]:
+        for alt in c["minimal_parents"][1:]:
+            s, _ = triplet_scores(
+                render(g, nm, {c["vertex"]: alt}), ref)
+            scores.append(s)
+    print(f"   TRIP over {len(scores)} sampled projections "
+          f"(views, not results): min={min(scores):.4f} "
+          f"max={max(scores):.4f} "
+          f"(committed assembly 0.9116 for reference; "
+          f"no improvement claim)")
+    ok = all_incomparable and len(g["certificates"]) > 0
+    print(f"GATE 2 -> {'PASS (accounting complete)' if ok else 'FAIL'}")
     return ok
 
 

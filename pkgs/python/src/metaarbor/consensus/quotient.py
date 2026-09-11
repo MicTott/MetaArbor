@@ -164,31 +164,51 @@ def quotient_assemble(trees, canonical, decisions):
         by_support.setdefault(s, []).append((va, vb))
     for s in sorted(by_support, reverse=True):
         group = sorted(by_support[s])
-        # endpoint-competing candidates within the tie group
-        count = {}
-        for va, vb in group:
-            count[va] = count.get(va, 0) + 1
-            count[vb] = count.get(vb, 0) + 1
-        competing = [c for c in group
-                     if count[c[0]] > 1 or count[c[1]] > 1]
-        independent = [c for c in group if c not in competing]
-        unresolved_ties.extend(
-            {"support": s, "pair": c} for c in competing)
-        # jointly-compatible check for the independent set; if joint
-        # addition fails, order within the tie would matter -> those
-        # interacting members are unresolved too
-        if independent and acyclic_and_injective(independent):
-            for va, vb in independent:
-                uf.union(va, vb)
-        else:
-            for c in independent:
-                if acyclic_and_injective([c]):
-                    unresolved_ties.append(
-                        {"support": s, "pair": c,
-                         "reason": "order_dependent_within_tie"})
-                else:
-                    refused.append({"support": s, "pair": c,
-                                    "reason": "incompatible"})
+        # 1. drop candidates individually impossible against the
+        #    current accepted state (they can never be accepted; an
+        #    impossible candidate must not drag down safe ones)
+        possible = []
+        for c in group:
+            if acyclic_and_injective([c]):
+                possible.append(c)
+            else:
+                refused.append({"support": s, "pair": c,
+                                "reason": "incompatible"})
+        # 2. connected components by shared endpoints. Shared
+        #    endpoints are NOT automatically competing: A<->C plus
+        #    C<->B is exactly how a three-atlas meta-clade forms
+        #    (equivalence = transitive closure of accepted pairs).
+        #    Each component is evaluated JOINTLY for injectivity and
+        #    ancestry compatibility.
+        ep_cands = {}
+        for idx, (va, vb) in enumerate(possible):
+            ep_cands.setdefault(va, []).append(idx)
+            ep_cands.setdefault(vb, []).append(idx)
+        seen = set()
+        for start in range(len(possible)):
+            if start in seen:
+                continue
+            comp, stack = [], [start]
+            while stack:
+                k = stack.pop()
+                if k in seen:
+                    continue
+                seen.add(k)
+                comp.append(k)
+                va, vb = possible[k]
+                stack.extend(ep_cands[va])
+                stack.extend(ep_cands[vb])
+            cand = [possible[k] for k in sorted(comp)]
+            if acyclic_and_injective(cand):
+                for va, vb in cand:
+                    uf.union(va, vb)
+            else:
+                # jointly incompatible though individually possible:
+                # order within the tie would decide -> unresolved
+                unresolved_ties.extend(
+                    {"support": s, "pair": c,
+                     "reason": "order_dependent_within_tie"}
+                    for c in cand)
 
     # ---- vertices -----------------------------------------------------
     cls = {v: uf.find(v) for v in verts}
@@ -254,9 +274,14 @@ def quotient_assemble(trees, canonical, decisions):
                      "direction": f"{i}>{j}", "support": s1,
                      "within_merge": sv == tv})
 
-    # ---- derived statuses ---------------------------------------------
-    statuses = {r: ("shared" if vertices[r]["shared"]
-                    else "atlas_specific") for r in vids}
+    # ---- derived statuses (kind + documented flags) -------------------
+    ann_sources = {a["source_vid"] for a in annotations
+                   if not a["within_merge"]}
+    cert_verts = {c["vertex"] for c in certificates}
+    statuses = {r: {"kind": ("shared" if vertices[r]["shared"]
+                             else "atlas_specific"),
+                    "has_directional_evidence": r in ann_sources,
+                    "conflicting": r in cert_verts} for r in vids}
     comp = {}
     for r in vids:
         if r in comp:
@@ -289,13 +314,16 @@ def quotient_assemble(trees, canonical, decisions):
                     for ds, m in vertices[r]["members"].items()
                     if m in set(trees[ds]["leaves"]))
     assert placed == all_labels, "I1 conservation violated"
-    for ds, n in verts:                       # I3 order preservation
+    # I3 order preservation: every input edge maps to an ancestor
+    # relation in the quotient, and the quotient ancestry graph is
+    # acyclic (no vertex is its own ancestor).
+    for ds, n in verts:
         p = _canon_parent(ds, n, trees, canonical)
         if p is not None and cls[(ds, p)] != cls[(ds, n)]:
-            assert cls[(ds, n)] not in ancestors(cls[(ds, p)]) or \
-                cls[(ds, p)] not in ancestors(cls[(ds, n)]) or True
-            assert cls[(ds, p)] in ancestors(cls[(ds, n)]) or \
-                cls[(ds, p)] in raw_parents[cls[(ds, n)]]
+            assert cls[(ds, p)] in ancestors(cls[(ds, n)]), \
+                f"I3: input edge lost for {(ds, n)}"
+    for r in vids:
+        assert r not in ancestors(r), f"I3: cycle through {r}"
 
     return {"vertices": vertices, "parents": parents,
             "is_forest": is_forest, "certificates": certificates,
