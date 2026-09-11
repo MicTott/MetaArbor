@@ -1,0 +1,7 @@
+tree,n_labels,complete,TRIP_REC,COPH,retention_she,retention_mac,good_merges,wrong_group_merges,root_singletons
+MA_assembly,22,True,0.9318,0.9415,1.0,0.8431,2,0,1
+MA_interleaved,22,True,1.0,0.97,1.0,1.0,2,0,1
+OTH_default,22,True,0.1371,0.2606,0.0744,0.0,5,0,8
+OTH_default_r1,22,True,0.1371,0.2606,0.0744,0.0,5,0,8
+OTH_mac_first,22,True,0.1572,0.2837,0.1003,0.0,4,0,6
+OTH_she_first,22,True,0.0798,0.1786,0.0,0.0,7,0,13
