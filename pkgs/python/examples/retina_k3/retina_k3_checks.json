@@ -1,0 +1,18 @@
+{
+ "order_swap_agreement": 1.0,
+ "quotient": {
+  "vertices": 40,
+  "shared": 20,
+  "three_atlas": 7,
+  "is_forest": false,
+  "certificates": 5
+ },
+ "checks": {
+  "C1": false,
+  "C2": true,
+  "C3": false,
+  "C4": true,
+  "C5": true,
+  "C6": true
+ }
+}

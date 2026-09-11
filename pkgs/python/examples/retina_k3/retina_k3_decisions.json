@@ -1,0 +1,782 @@
+{
+ "mac>mrca": {
+  "mac|c26": {
+   "selected": "mrca|RBC",
+   "matched": true,
+   "support": 0.9959404600811907,
+   "relation": null
+  },
+  "mac|c27": {
+   "selected": "mrca|BC3B",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mac|c28": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "mac|c29": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "mac|c30": {
+   "selected": "n04",
+   "matched": true,
+   "support": 0.52,
+   "relation": null
+  },
+  "mac|c31": {
+   "selected": "n05",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mac|c32": {
+   "selected": "mrca|BC7",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mac|c33": {
+   "selected": "n09",
+   "matched": true,
+   "support": 0.20999999999999996,
+   "relation": null
+  },
+  "n01": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": null
+  },
+  "n02": {
+   "selected": "n08",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n03": {
+   "selected": "n09",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n04": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "n05": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": null
+  },
+  "n06": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  }
+ },
+ "mrca>mac": {
+  "mrca|BC1A": {
+   "selected": "mac|c29",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mrca|BC1B": {
+   "selected": "mac|c29",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mrca|BC2": {
+   "selected": "mac|c28",
+   "matched": true,
+   "support": 0.9444444444444444,
+   "relation": null
+  },
+  "mrca|BC3A": {
+   "selected": "mac|c28",
+   "matched": true,
+   "support": 0.9435,
+   "relation": null
+  },
+  "mrca|BC3B": {
+   "selected": "mac|c27",
+   "matched": true,
+   "support": 0.9925,
+   "relation": null
+  },
+  "mrca|BC4": {
+   "selected": "mac|c27",
+   "matched": true,
+   "support": 0.9805194805194806,
+   "relation": null
+  },
+  "mrca|BC5A": {
+   "selected": "mac|c30",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mrca|BC5B": {
+   "selected": "mac|c31",
+   "matched": true,
+   "support": 0.9845,
+   "relation": null
+  },
+  "mrca|BC5C": {
+   "selected": "mac|c31",
+   "matched": true,
+   "support": 0.912,
+   "relation": null
+  },
+  "mrca|BC5D": {
+   "selected": "mac|c30",
+   "matched": true,
+   "support": 0.929,
+   "relation": null
+  },
+  "mrca|BC6": {
+   "selected": "mac|c33",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mrca|BC7": {
+   "selected": "mac|c32",
+   "matched": true,
+   "support": 0.996,
+   "relation": null
+  },
+  "mrca|BC8": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mrca|BC9": {
+   "selected": "mac|c32",
+   "matched": true,
+   "support": 0.9275,
+   "relation": null
+  },
+  "mrca|RBC": {
+   "selected": "mac|c26",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n01": {
+   "selected": "mac|c29",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n02": {
+   "selected": "mac|c28",
+   "matched": true,
+   "support": 0.9435920577617328,
+   "relation": null
+  },
+  "n03": {
+   "selected": "mac|c27",
+   "matched": true,
+   "support": 0.9916434540389972,
+   "relation": null
+  },
+  "n04": {
+   "selected": "mac|c30",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n05": {
+   "selected": "mac|c31",
+   "matched": true,
+   "support": 0.94825,
+   "relation": null
+  },
+  "n06": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n07": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n08": {
+   "selected": "n02",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n09": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  }
+ },
+ "mac>she": {
+  "mac|c26": {
+   "selected": "she|RBC",
+   "matched": true,
+   "support": 0.9972936400541272,
+   "relation": null
+  },
+  "mac|c27": {
+   "selected": "she|BC3B",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mac|c28": {
+   "selected": "n02",
+   "matched": true,
+   "support": 0.95,
+   "relation": null
+  },
+  "mac|c29": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "mac|c30": {
+   "selected": "she|BC5A",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mac|c31": {
+   "selected": "n05",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mac|c32": {
+   "selected": "she|BC7",
+   "matched": true,
+   "support": 0.978125,
+   "relation": null
+  },
+  "mac|c33": {
+   "selected": "she|BC6",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n01": {
+   "selected": "n10",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n02": {
+   "selected": "n09",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n03": {
+   "selected": "n06",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n04": {
+   "selected": "n10",
+   "matched": true,
+   "support": 0.11499999999999999,
+   "relation": null
+  },
+  "n05": {
+   "selected": "n11",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n06": {
+   "selected": "n12",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  }
+ },
+ "she>mac": {
+  "n01": {
+   "selected": "n01",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n02": {
+   "selected": "mac|c28",
+   "matched": true,
+   "support": 0.9789569990850869,
+   "relation": null
+  },
+  "n03": {
+   "selected": "n04",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n04": {
+   "selected": "mac|c30",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n05": {
+   "selected": "mac|c31",
+   "matched": true,
+   "support": 0.9475958941112912,
+   "relation": null
+  },
+  "n06": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n07": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n08": {
+   "selected": "n04",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n09": {
+   "selected": "n02",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n10": {
+   "selected": "n01",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n11": {
+   "selected": "n05",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n12": {
+   "selected": "n06",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC1A": {
+   "selected": "n01",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC1B": {
+   "selected": "n01",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC2": {
+   "selected": "mac|c28",
+   "matched": true,
+   "support": 0.974910394265233,
+   "relation": null
+  },
+  "she|BC3A": {
+   "selected": "mac|c28",
+   "matched": true,
+   "support": 0.983177570093458,
+   "relation": null
+  },
+  "she|BC3B": {
+   "selected": "mac|c27",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC4": {
+   "selected": "n04",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC5A": {
+   "selected": "mac|c30",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC5B": {
+   "selected": "mac|c31",
+   "matched": true,
+   "support": 0.9457202505219207,
+   "relation": null
+  },
+  "she|BC5C": {
+   "selected": "mac|c31",
+   "matched": true,
+   "support": 0.9482507288629738,
+   "relation": null
+  },
+  "she|BC5D": {
+   "selected": "mac|c30",
+   "matched": true,
+   "support": 0.9367088607594937,
+   "relation": null
+  },
+  "she|BC6": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC7": {
+   "selected": "mac|c32",
+   "matched": true,
+   "support": 0.9823763501989767,
+   "relation": null
+  },
+  "she|BC8_9": {
+   "selected": "mac|c32",
+   "matched": true,
+   "support": 0.9233226837060703,
+   "relation": null
+  },
+  "she|RBC": {
+   "selected": "mac|c26",
+   "matched": true,
+   "support": 0.9994489346069066,
+   "relation": null
+  }
+ },
+ "mrca>she": {
+  "mrca|BC1A": {
+   "selected": "n01",
+   "matched": true,
+   "support": 0.39,
+   "relation": null
+  },
+  "mrca|BC1B": {
+   "selected": "she|BC1B",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mrca|BC2": {
+   "selected": "she|BC2",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mrca|BC3A": {
+   "selected": "she|BC3A",
+   "matched": true,
+   "support": 0.9595,
+   "relation": null
+  },
+  "mrca|BC3B": {
+   "selected": "she|BC3B",
+   "matched": true,
+   "support": 0.9565,
+   "relation": null
+  },
+  "mrca|BC4": {
+   "selected": "she|BC4",
+   "matched": true,
+   "support": 0.961038961038961,
+   "relation": null
+  },
+  "mrca|BC5A": {
+   "selected": "she|BC5A",
+   "matched": true,
+   "support": 0.954,
+   "relation": null
+  },
+  "mrca|BC5B": {
+   "selected": "she|BC5B",
+   "matched": true,
+   "support": 0.9785,
+   "relation": null
+  },
+  "mrca|BC5C": {
+   "selected": "she|BC5C",
+   "matched": true,
+   "support": 0.9745,
+   "relation": null
+  },
+  "mrca|BC5D": {
+   "selected": "she|BC5D",
+   "matched": true,
+   "support": 0.935,
+   "relation": null
+  },
+  "mrca|BC6": {
+   "selected": "she|BC6",
+   "matched": true,
+   "support": 0.989,
+   "relation": null
+  },
+  "mrca|BC7": {
+   "selected": "she|BC7",
+   "matched": true,
+   "support": 0.993,
+   "relation": null
+  },
+  "mrca|BC8": {
+   "selected": "she|BC8_9",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "mrca|BC9": {
+   "selected": "she|BC8_9",
+   "matched": true,
+   "support": 0.9495,
+   "relation": null
+  },
+  "mrca|RBC": {
+   "selected": "she|RBC",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n01": {
+   "selected": "she|BC1B",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n02": {
+   "selected": "n02",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n03": {
+   "selected": "n03",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n04": {
+   "selected": "n04",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n05": {
+   "selected": "n05",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n06": {
+   "selected": "n06",
+   "matched": true,
+   "support": 0.06499999999999995,
+   "relation": null
+  },
+  "n07": {
+   "selected": "she|BC8_9",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n08": {
+   "selected": "n09",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n09": {
+   "selected": "n07",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  }
+ },
+ "she>mrca": {
+  "n01": {
+   "selected": "n01",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n02": {
+   "selected": "n02",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n03": {
+   "selected": "mrca|BC3B",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n04": {
+   "selected": "n04",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n05": {
+   "selected": "n05",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n06": {
+   "selected": "n06",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n07": {
+   "selected": "n09",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n08": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "n09": {
+   "selected": "n08",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "n10": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "n11": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "n12": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "she|BC1A": {
+   "selected": "mrca|BC1A",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC1B": {
+   "selected": null,
+   "matched": false,
+   "support": null,
+   "relation": "discordant"
+  },
+  "she|BC2": {
+   "selected": "mrca|BC2",
+   "matched": true,
+   "support": 0.9408602150537635,
+   "relation": null
+  },
+  "she|BC3A": {
+   "selected": "mrca|BC3A",
+   "matched": true,
+   "support": 0.9794392523364486,
+   "relation": null
+  },
+  "she|BC3B": {
+   "selected": "mrca|BC3B",
+   "matched": true,
+   "support": 0.9216646266829865,
+   "relation": null
+  },
+  "she|BC4": {
+   "selected": "mrca|BC4",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC5A": {
+   "selected": "mrca|BC5A",
+   "matched": true,
+   "support": 0.9347340187751453,
+   "relation": null
+  },
+  "she|BC5B": {
+   "selected": "mrca|BC5B",
+   "matched": true,
+   "support": 0.9665970772442589,
+   "relation": null
+  },
+  "she|BC5C": {
+   "selected": "mrca|BC5C",
+   "matched": true,
+   "support": 1.0,
+   "relation": null
+  },
+  "she|BC5D": {
+   "selected": "mrca|BC5D",
+   "matched": true,
+   "support": 0.9385171790235082,
+   "relation": null
+  },
+  "she|BC6": {
+   "selected": "mrca|BC6",
+   "matched": true,
+   "support": 0.9200940070505288,
+   "relation": null
+  },
+  "she|BC7": {
+   "selected": "mrca|BC7",
+   "matched": true,
+   "support": 0.9130187606594656,
+   "relation": null
+  },
+  "she|BC8_9": {
+   "selected": "n07",
+   "matched": true,
+   "support": 0.15000000000000002,
+   "relation": null
+  },
+  "she|RBC": {
+   "selected": "mrca|RBC",
+   "matched": true,
+   "support": 0.9973365172667157,
+   "relation": null
+  }
+ }
+}
