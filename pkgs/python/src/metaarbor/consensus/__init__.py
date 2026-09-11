@@ -19,6 +19,7 @@ from .eligibility import (
                           support,
 )
 from .harmonize import harmonize
+from .quotient import quotient_assemble
 from .plot_reconciled import plot_reconciled_tree
 from .poset import compatible, pair_relation, relation
 from .simulate import latent_tree, scenario, simulate_donors
@@ -30,5 +31,5 @@ __all__ = [
     "provenance_table", "candidate_groups", "canonical_nodes",
     "pairwise_decisions", "compatible", "pair_relation", "relation",
     "latent_tree", "scenario", "simulate_donors", "diagnostics",
-    "harmonize", "plot_reconciled_tree",
+    "harmonize", "quotient_assemble", "plot_reconciled_tree",
 ]

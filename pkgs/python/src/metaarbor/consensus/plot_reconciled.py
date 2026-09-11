@@ -104,7 +104,12 @@ def plot_reconciled_tree(harm, trees, dataset_names=None, figsize=None):
         ax = axes[-1]
         nodes = harm["tree"]
         children = {i: nd["children"] for i, nd in nodes.items()}
-        parent = {i: nd["parent"] for i, nd in nodes.items()}
+        if any(len(nd.get("parents", [])) > 1 for nd in nodes.values()):
+            raise ValueError(
+                "plot_reconciled cannot draw a DAG result; use "
+                "metaarbor.viz with the projected-edge marking")
+        parent = {i: nd.get("projected_parent", nd.get("parent"))
+                  for i, nd in nodes.items()}
         depth, yof, _order = _layout(parent, children, harm["roots"])
         for i, nd in nodes.items():
             x1, y1 = depth[i], yof(i)

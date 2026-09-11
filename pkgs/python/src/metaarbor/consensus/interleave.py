@@ -1,4 +1,12 @@
-"""Core-ancestry interleaving: a deterministic post-assembly
+"""DEPRECATED (quotient migration): harmonize() now assembles via
+consensus.quotient, which never deletes input ancestry, so the
+splice-and-repair failure class this module fixed cannot occur and
+harmonize output needs no interleaving. The module is retained
+unchanged solely so the committed retina K=2 audit scripts keep
+running against their historical legacy-assembly dumps. Do not use
+in new code.
+
+Core-ancestry interleaving: a deterministic post-assembly
 transformation of a harmonize() tree that restores input-tree
 ancestry the assembly spliced out.
 

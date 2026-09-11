@@ -12,9 +12,25 @@ privileging any atlas:
   meta-clade as `single_atlas` nodes (existence is certain — it is that
   atlas's own data; only the cross-atlas correspondence is unresolved);
 - genuinely private branches persist with full internal topology;
-- affiliates (unreciprocated twins) ride as aliases on their meta-clade;
-- incompatible evidence is rejected into the conflict graph, leaving
-  polytomies rather than forced splits.
+- unreciprocated one-way calls (the old "affiliates") persist as
+  directional ANNOTATIONS, never as structure;
+- incompatible evidence is refused and ledgered, leaving the honest
+  graph: when merged ancestry admits no unique parent, the node keeps
+  ALL its minimal parents and the result is a DAG with certificates.
+
+ASSEMBLY = QUOTIENT (ASSEMBLY2): the certification layer
+(greedy_backbone: eligibility, detectability, stability,
+MIN_DATASETS, MIN_SUPPORT) outputs prequalified reciprocal merges;
+quotient assembly consumes ONLY those, preserves every input node
+and ancestry edge (I1 by construction — no routing, no repair, no
+interleaving), and exposes unresolved parentage explicitly.
+`tree` node records carry `parents` (ALL minimal parents — the
+authoritative field), `projected_parent` (the first minimal parent,
+a DISPLAY PROJECTION when `conflicting`), and `conflicting`. There
+is deliberately no plain `parent` key: tree-only consumers must
+check `is_forest` and either refuse a DAG, take an explicit
+projection policy, or visibly carry the certificates they drop
+(result contract, ASSEMBLY2 Section 11).
 """
 from __future__ import annotations
 
@@ -22,151 +38,7 @@ import numpy as np
 
 from .backbone import FROZEN, greedy_backbone
 from .candidates import candidate_groups, canonical_nodes, pairwise_decisions
-
-
-def route_rejected(nodes, trees, rejected, affiliates):
-    """Rejection routes the CLAIM, never its constituent labels.
-
-    A rejected candidate is a failed cross-atlas (or private) claim.
-    Its member labels fall back to their own atlases as explicit
-    `unplaced_single_atlas` nodes that carry the rejection reason
-    verbatim (`insufficient_support` / `no_support` /
-    `ancestry_incompatible` / `ancestry_cycle`) and the candidate id as
-    provenance — `ancestry_incompatible` and `ancestry_cycle` are
-    additionally conflict evidence, already recorded by the backbone in
-    its conflict list. Fallback placement is topologically ordered
-    (parents before children by input-tree depth). Neither category is
-    ever relabeled private. A member already represented elsewhere
-    (another accepted or unknown candidate, an expansion, an affiliate
-    alias) is skipped — no duplicate placement. A rejected consolidated
-    subtree surfaces with its original within-atlas topology preserved.
-
-    Returns the list of fallback placements performed.
-    """
-    from metaarbor.branch_fit import _collapse_chains
-    member_to_id = {}
-    for mid, nd in nodes.items():
-        for ds, m in nd["members"].items():
-            member_to_id.setdefault((ds, m), mid)
-    aff = {(a["dataset"], a["node"]) for a in affiliates}
-
-    def depth(ds, node):
-        rp, _ = _collapse_chains(trees[ds])
-        d, p = 0, rp.get(node)
-        while p not in (None, "root"):
-            d += 1
-            p = rp.get(p)
-        return d
-
-    # topological fallback order: a rejected parent must place before a
-    # rejected child, or the child attaches one level too high
-    jobs = []
-    for rej in rejected:
-        c = rej["candidate"]
-        for ds, node in sorted(c["members"].items()):
-            jobs.append((depth(ds, node), ds, node, rej))
-    routed, ucount = [], 0
-    for _d, ds, node, rej in sorted(
-            jobs, key=lambda t: (t[0], t[1], t[2])):
-        c = rej["candidate"]
-        reason = rej["reason"]
-        if (ds, node) in member_to_id or (ds, node) in aff:
-            continue                      # represented elsewhere
-        rp, _ = _collapse_chains(trees[ds])
-        p, parent_id = rp.get(node), None
-        while p not in (None, "root"):
-            if (ds, p) in member_to_id:
-                parent_id = member_to_id[(ds, p)]
-                break
-            p = rp.get(p)
-        ucount += 1
-        uid = f"MA-X{ucount:04d}"
-        rec = {"reason": reason, "candidate_id": c["candidate_id"]}
-        sub = c.get("provenance", {}).get("subtree_nodes") or []
-        sub_un = sorted(x for x in set(sub) - {node}
-                        if (ds, x) not in member_to_id and
-                        (ds, x) not in aff)
-        idmap = {node: uid}
-        for k, x in enumerate(sub_un, 1):
-            idmap[x] = f"{uid}.{k:02d}"
-        for x, xid in idmap.items():
-            if x == node:
-                px = parent_id
-            else:
-                p2 = rp.get(x)
-                while p2 not in (None, "root") and p2 not in idmap:
-                    p2 = rp.get(p2)
-                px = idmap.get(p2, uid)
-            nodes[xid] = {"parent": px,
-                          "status": "unplaced_single_atlas",
-                          "members": {ds: x}, "aliases": [x],
-                          "display": _display([x]),
-                          "support": None, "support_type": "unplaced",
-                          "subtree_parent": None,
-                          "rejection": dict(rec),
-                          **({"expanded": True} if x != node else {})}
-            member_to_id[(ds, x)] = xid
-            routed.append({"dataset": ds, "label": x,
-                           "node_id": xid, "reason": reason,
-                           "candidate_id": c["candidate_id"]})
-    return routed
-
-
-def repair_completeness(nodes, trees, affiliates):
-    """COMPLETENESS INVARIANT (core contract, not a display repair):
-    every input-tree leaf must occur in the assembly as a member, a
-    marked affiliate alias, or an explicitly unplaced single-atlas node.
-
-    Any label the upstream layers lost is reinstated here as an
-    `unplaced_single_atlas` node using its exact input-tree parentage
-    (nearest represented ancestor in that atlas's own tree; root when
-    none), flagged `assembly_repair` and given support (0, 0) so it is
-    excluded from inferred-support counts. The invariant is asserted
-    after repair; a violation past this point is a bug.
-
-    Returns the list of repairs performed (empty when upstream was
-    already complete).
-    """
-    from metaarbor.branch_fit import _collapse_chains
-    represented = {ds: set() for ds in trees}
-    for nd in nodes.values():
-        for ds, m in nd["members"].items():
-            represented.setdefault(ds, set()).add(m)
-    for aff in affiliates:
-        represented.setdefault(aff["dataset"], set()).add(aff["node"])
-    member_to_id = {}
-    for mid, nd in nodes.items():
-        for ds, m in nd["members"].items():
-            member_to_id.setdefault((ds, m), mid)
-    repairs = []
-    for ds in sorted(trees):
-        rp, _ = _collapse_chains(trees[ds])
-        for leaf in trees[ds]["leaves"]:
-            if leaf in represented[ds]:
-                continue
-            p, parent_id = rp.get(leaf), None
-            while p not in (None, "root"):
-                if (ds, p) in member_to_id:
-                    parent_id = member_to_id[(ds, p)]
-                    break
-                p = rp.get(p)
-            rid = f"MA-R{len(repairs) + 1:04d}"
-            nodes[rid] = {"parent": parent_id,
-                          "status": "unplaced_single_atlas",
-                          "members": {ds: leaf}, "aliases": [leaf],
-                          "display": _display([leaf]),
-                          "support": None, "support_type": "unplaced",
-                          "subtree_parent": None,
-                          "assembly_repair": True}
-            member_to_id[(ds, leaf)] = rid
-            represented[ds].add(leaf)
-            repairs.append({"dataset": ds, "label": leaf,
-                            "node_id": rid, "parent": parent_id})
-    for ds in trees:
-        missing = set(trees[ds]["leaves"]) - represented[ds]
-        assert not missing, \
-            f"completeness invariant violated for {ds}: {sorted(missing)}"
-    return repairs
+from .quotient import quotient_assemble
 
 
 def _display(labels):
@@ -236,118 +108,107 @@ def harmonize(datasets, trees, n_hvg=1000, n_boot=200, base_seed=211,
                          selections=dec["selections"],
                          stability=stability, frozen=frozen)
 
+    # ---- certification output: the ONLY judgments assembly consumes ----
+    keys = sorted(datasets)
+    canon = {k: canonical_nodes(trees[k])[1] for k in keys}
+    certified, priv = [], set()
+    for nd in bb["nodes"]:
+        if nd["status"] == "backbone" and len(nd["members"]) >= 2:
+            certified.append({"members": dict(nd["members"]),
+                              "support": float(nd["mean_boot_support"]),
+                              "id": nd["id"]})
+        elif nd["status"] == "private":
+            (pds, pnode), = nd["members"].items()
+            sub = nd.get("subtree_parent") or {pnode: None}
+            priv.update((pds, x) for x in sub)
+
+    sel_str = {f"{i}>{j}": recs
+               for (i, j), recs in dec["selections"].items()}
+    g = quotient_assemble(
+        {k: {"parent": trees[k]["parent"],
+             "children": trees[k]["children"],
+             "leaves": list(trees[k]["leaves"])} for k in keys},
+        canon, sel_str, certified=certified)
+
+    # ---- tree records over quotient vertices --------------------------
+    vids = sorted(g["vertices"], key=str)
+    vid2id = {r: f"MA-Q{k + 1:04d}" for k, r in enumerate(vids)}
+    cert_recs = [(frozenset(c["members"].items()), c)
+                 for c in certified]
     nodes = {}
-    for nd in bb["nodes"]:
-        aliases = sorted(nd["members"].values())
-        # affiliates ride as VISIBLY MARKED aliases and never count as
-        # reciprocal support (support tuples derive from members only)
-        aliases += sorted(f'\u2248 {a["node"]}'
-                          for a in nd.get("affiliates", []))
-        nodes[nd["id"]] = {
-            "parent": nd["parent"], "status": nd["status"],
-            "members": dict(nd["members"]), "aliases": aliases,
+    for r in vids:
+        v = g["vertices"][r]
+        mem = dict(v["members"])
+        mem_set = set(mem.items())
+        aliases = sorted(mem.values())
+        contributing = [c for fs, c in cert_recs if fs <= mem_set]
+        if v["shared"]:
+            status, stype = "backbone", "cross_atlas"
+            support = max((c["support"] for c in contributing),
+                          default=None)
+        else:
+            (ds1, m1), = mem.items()
+            status = "private" if (ds1, m1) in priv else "single_atlas"
+            support, stype = None, "input_topology"
+        pids = sorted(vid2id[p] for p in g["parents"][r])
+        nodes[vid2id[r]] = {
+            # NO plain "parent" key: `parents` is the authoritative
+            # (possibly multi-valued) minimal-parent set, and
+            # `projected_parent` is the first minimal parent — a
+            # DISPLAY PROJECTION when `conflicting`, never the result
+            "projected_parent": pids[0] if pids else None,
+            "parents": pids,
+            "conflicting": bool(g["statuses"][r]["conflicting"]),
+            "status": status, "members": mem, "aliases": aliases,
             "display": _display(aliases),
-            "support": nd["support"],
-            "support_type": "cross_atlas",
-            "subtree_parent": nd.get("subtree_parent"),
+            "support": support, "support_type": stype,
+            "certified_ids": [c["id"] for c in contributing],
+            "subtree_parent": None,
         }
-
-    # single-atlas placements: unknown-class singletons exist with
-    # certainty in their own atlas; attach beneath the nearest accepted
-    # ancestor with correspondence marked unresolved
-    from metaarbor.branch_fit import _collapse_chains
-    member_to_id = {}
-    for mid, nd in nodes.items():
-        for ds, n_ in nd["members"].items():
-            member_to_id[(ds, n_)] = mid
-    ucount = 0
-    for u in bb["unknown"]:
-        c = u["candidate"]
-        (ds, node), = c["members"].items()
-        rp, _ = _collapse_chains(trees[ds])
-        p, parent_id = rp.get(node), None
-        while p not in (None, "root"):
-            if (ds, p) in member_to_id:
-                parent_id = member_to_id[(ds, p)]
-                break
-            p = rp.get(p)
-        ucount += 1
-        uid = f"MA-U{ucount:04d}"
-        nodes[uid] = {"parent": parent_id, "status": "single_atlas",
-                      "members": {ds: node}, "aliases": [node],
-                      "display": _display([node]),
-                      # existence certain in its own atlas; NO
-                      # cross-atlas support is implied
-                      "support": None, "support_type": "input_topology",
-                      "subtree_parent": None}
-
-    # expand consolidated subtrees ("absorbed is never discarded" applies
-    # to the ASSEMBLED tree too): every private node and every
-    # single-atlas node whose candidate absorbed a subtree gets its full
-    # internal topology as expanded child nodes
-    def expand(uid, ds, root_node, sub_nodes):
-        rp, _ = _collapse_chains(trees[ds])
-        sub = set(sub_nodes)
-        idmap = {root_node: uid}
-        k = 0
-        for x in sorted(sub):
-            if x == root_node:
-                continue
-            k += 1
-            xid = f"{uid}.{k:02d}"
-            idmap[x] = xid
-        for x, xid in idmap.items():
-            if x == root_node:
-                continue
-            p = rp.get(x)
-            while p not in (None, "root") and p not in sub:
-                p = rp.get(p)
-            nodes[xid] = {"parent": idmap.get(p, uid),
-                          "status": nodes[uid]["status"],
-                          "members": {ds: x}, "aliases": [x],
-                          "display": _display([x]),
-                          "support": None,
-                          "support_type": "input_topology",
-                          "subtree_parent": None, "expanded": True}
-
-    for nd in bb["nodes"]:
-        sp = nd.get("subtree_parent")
-        if sp and len(sp) > 1:
-            (ds, root_node), = nd["members"].items()
-            expand(nd["id"], ds, root_node, sp.keys())
-    for u in bb["unknown"]:
-        c = u["candidate"]
-        sub = c.get("provenance", {}).get("subtree_nodes") or []
-        if len(sub) > 1:
-            (ds, root_node), = c["members"].items()
-            uid = [i for i, nd in nodes.items()
-                   if nd["members"].get(ds) == root_node]
-            if uid:
-                expand(uid[0], ds, root_node, sub)
-
-    routed = route_rejected(nodes, trees, bb["rejected"],
-                            bb["affiliates"])
-    # final tripwire: after rejection routing this must find NOTHING;
-    # a nonzero repair count means a new, undiagnosed loss pathway
-    repairs = repair_completeness(nodes, trees, bb["affiliates"])
 
     children = {i: [] for i in nodes}
     roots = []
     for i, nd in nodes.items():
-        if nd["parent"] is None:
+        if nd["projected_parent"] is None:
             roots.append(i)
         else:
-            children[nd["parent"]].append(i)
+            children[nd["projected_parent"]].append(i)
     for k in children:
         children[k].sort(key=lambda i: (nodes[i]["status"],
                                         nodes[i]["display"]))
     for i, nd in nodes.items():
         nd["children"] = children[i]
 
+    # completeness (I1 also asserted inside quotient_assemble)
+    placed = {(ds, m) for nd in nodes.values()
+              for ds, m in nd["members"].items()}
+    for ds in keys:
+        missing = [l for l in trees[ds]["leaves"]
+                   if (ds, l) not in placed]
+        assert not missing, \
+            f"completeness invariant violated for {ds}: {missing}"
+
+    certificates = [{"node": vid2id[c["vertex"]],
+                     "minimal_parents": [vid2id[p]
+                                         for p in c["minimal_parents"]]}
+                    for c in g["certificates"]]
+    annotations = [dict(a, source_id=vid2id[a["source_vid"]],
+                        target_id=vid2id[a["target_vid"]])
+                   for a in g["annotations"]]
+    bbid2new = {}
+    for nid, nd in nodes.items():
+        for cid in nd["certified_ids"]:
+            bbid2new[cid] = nid
+    affiliates = [dict(a, attached_to=bbid2new.get(a["attached_to"],
+                                                   a["attached_to"]))
+                  for a in bb["affiliates"]]
+
     return {"tree": nodes, "roots": sorted(roots),
-            "rejection_fallbacks": routed, "repairs": repairs,
+            "is_forest": g["is_forest"], "certificates": certificates,
+            "annotations": annotations, "ledger": g["ledger"],
+            "quotient": g,
             "decisions": dec, "candidates": cands, "backbone": bb,
-            "conflicts": bb["conflicts"], "affiliates": bb["affiliates"],
+            "conflicts": bb["conflicts"], "affiliates": affiliates,
             # internal nodes whose descendants matched but which
             # themselves formed no candidate: the topological signature of
             # incompatible grouping layers (they resolve as polytomies)

@@ -23,7 +23,7 @@ import pytest
 
 from metaarbor import tree_from_levels
 from metaarbor.consensus.backbone import greedy_backbone
-from metaarbor.consensus.harmonize import harmonize, route_rejected
+from metaarbor.consensus.harmonize import harmonize
 
 from test_backbone import cand, labels_for, toy_tree
 
@@ -264,9 +264,9 @@ def test_gene_reordering_is_corrected(small_pair):
                      gene_names=[GENES[i] for i in perm])
     out = harmonize(shuf, trees, n_hvg=500, n_boot=50,
                     trust_trees=True)
-    assert {i: (nd["parent"], nd["status"], nd["members"])
+    assert {i: (nd["parents"], nd["status"], nd["members"])
             for i, nd in out["tree"].items()} == \
-        {i: (nd["parent"], nd["status"], nd["members"])
+        {i: (nd["parents"], nd["status"], nd["members"])
          for i, nd in base["tree"].items()}
 
 
@@ -296,34 +296,10 @@ def test_dataset_insertion_order_invariance(small_pair):
     rev_tr = dict(reversed(list(trees.items())))
     rev = harmonize(rev_ds, rev_tr, n_hvg=500, n_boot=50,
                      trust_trees=True)
-    assert {i: (nd["parent"], nd["status"], nd["members"])
+    assert {i: (nd["parents"], nd["status"], nd["members"])
             for i, nd in fwd["tree"].items()} == \
-        {i: (nd["parent"], nd["status"], nd["members"])
+        {i: (nd["parents"], nd["status"], nd["members"])
          for i, nd in rev["tree"].items()}
-
-
-# ---- 8. topological rejection routing -------------------------------------
-def test_rejection_routing_is_topologically_ordered():
-    tree = tree_from_levels([("B|F1", "B|F1.a"), ("B|F1", "B|F1.b")],
-                            ["family", "leaf"])
-    trees = {"B": tree}
-    nodes = {}
-    rejected = [
-        # child listed FIRST: without topological ordering it would
-        # attach at root instead of under its routed parent
-        {"candidate": {"members": {"B": "B|F1.a"},
-                       "candidate_id": "cand:0002", "provenance": {}},
-         "reason": "no_support", "support": (0, 0)},
-        {"candidate": {"members": {"B": "family:B|F1"},
-                       "candidate_id": "cand:0001", "provenance": {}},
-         "reason": "insufficient_support", "support": (0, 0)},
-    ]
-    routed = route_rejected(nodes, trees, rejected, [])
-    by_label = {r["label"]: r for r in routed}
-    parent_id = by_label["family:B|F1"]["node_id"]
-    assert nodes[by_label["B|F1.a"]["node_id"]]["parent"] == parent_id
-    assert nodes[parent_id]["rejection"]["reason"] == \
-        "insufficient_support"
 
 
 # ---- 9. compactness gate on consensus walks -------------------------------

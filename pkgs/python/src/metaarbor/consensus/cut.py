@@ -60,7 +60,12 @@ def _norm_nodes(obj):
     nodes = obj.get("tree", obj) if isinstance(obj, dict) else obj
     out = {}
     for i, nd in nodes.items():
-        out[i] = {"parent": nd.get("parent"),
+        # quotient-era records carry parents/projected_parent (no
+        # plain "parent"); legacy serialized dumps carry "parent"
+        p = nd.get("projected_parent", nd.get("parent"))
+        out[i] = {"parent": p,
+                  "parents": list(nd.get("parents",
+                                         [p] if p is not None else [])),
                   "status": nd.get("status", ""),
                   "members": dict(nd.get("members", {})),
                   "aliases": list(nd.get("aliases", [])),
@@ -98,7 +103,7 @@ def _tier(nd):
 
 
 def consensus_cut(harm_or_nodes, level="default", leaf_labels=None,
-                  provenance_rows=None):
+                  provenance_rows=None, projection=None):
     """Derive the consensus taxonomy view at `level`.
 
     harm_or_nodes: harmonize() result, its tree mapping, or the
@@ -127,6 +132,29 @@ def consensus_cut(harm_or_nodes, level="default", leaf_labels=None,
     if level not in ("strict", "default", "complete"):
         raise ValueError(f"unknown level {level!r}")
     nodes = _norm_nodes(harm_or_nodes)
+    # ---- DAG contract (ASSEMBLY2 Section 11): a cut is a TREE view.
+    # When the assembly is a DAG, collapsing it requires an EXPLICIT
+    # projection policy, and the discarded certificates are carried
+    # in the returned cut — never silently dropped.
+    certificates = (harm_or_nodes.get("certificates")
+                    if isinstance(harm_or_nodes, dict) else None)
+    if certificates is None:
+        certificates = [
+            {"node": i, "minimal_parents": nd["parents"]}
+            for i, nd in nodes.items() if len(nd["parents"]) > 1]
+    is_dag = bool(certificates) or (
+        isinstance(harm_or_nodes, dict) and
+        harm_or_nodes.get("is_forest") is False)
+    if is_dag and projection != "projected_parent":
+        raise ValueError(
+            "the assembly is a DAG "
+            f"({len(certificates)} unresolved multi-parent "
+            "constraints); a consensus cut is a tree view and would "
+            "silently collapse them. Pass "
+            "projection='projected_parent' to accept the "
+            "first-minimal-parent DISPLAY projection — the cut then "
+            "carries the discarded certificates in "
+            "cut['certificates'].")
     tiers = {i: _tier(nd) for i, nd in nodes.items()}
 
     reasons = {}
@@ -242,6 +270,8 @@ def consensus_cut(harm_or_nodes, level="default", leaf_labels=None,
                 pa[tiers[i]] = pa.get(tiers[i], 0) + 1
     return {
         "level": level, "nodes": out_nodes, "roots": roots,
+        "projection": (projection if is_dag else None),
+        "certificates": certificates,
         "unresolved": unresolved, "alias_index": alias_index,
         "summary": {
             "n_nodes": len(out_nodes),
@@ -250,6 +280,7 @@ def consensus_cut(harm_or_nodes, level="default", leaf_labels=None,
             "tier_counts": tier_counts,
             "per_atlas_label_tiers": per_atlas,
             "n_unresolved": len(unresolved),
+            "n_certificates": len(certificates),
             "n_collapsed_anonymous": len(nodes) - len(out_nodes) -
                 sum(1 for i in nodes if tiers[i] == "unresolved"),
         },

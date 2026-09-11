@@ -16,6 +16,9 @@ caption archaeologist:
                    black bold '&'-joined text.
   4. EDGE KINDS    'certified' = solid black; 'containment' = dashed
                    gray (evidence-supported placement);
+                   'projected' = dashed red (a multi-parent vertex
+                   drawn under ONE of its N minimal parents — a
+                   display projection of a DAG, never the result);
                    'ancestry'  = light gray (inherited input-tree
                    parentage). Unknown kinds fall back to ancestry.
   5. SHARED ORDER  all panels of a comparison use one canonical
@@ -48,6 +51,7 @@ DEFAULT_GROUP_BANDS = ("#ede2f6", "#fcebdd", "#e2ecf9", "#e5f2e2",
                        "#f2e2ee")
 EDGE_STYLES = {"certified": ("k", "solid", 1.5),
                "containment": ("#999999", "dashed", 1.0),
+               "projected": ("#b03030", "dashed", 1.2),
                "ancestry": ("#bbbbbb", "solid", 1.0)}
 
 
@@ -73,7 +77,7 @@ def nested_from_harmonize(nodes, real_labels, matched_calls=None):
     matched_calls = matched_calls or set()
     kids, roots = {}, []
     for i in sorted(nodes):
-        p = nodes[i].get("parent")
+        p = nodes[i].get("projected_parent", nodes[i].get("parent"))
         (roots if p is None else kids.setdefault(p, [])).append(i)
 
     def build(i):
@@ -81,7 +85,11 @@ def nested_from_harmonize(nodes, real_labels, matched_calls=None):
         labs = sorted(m for m in
                       (mm for _d, mm in nd.get("members", {}).items())
                       if m in real_labels)
-        if nd.get("status") == "backbone":
+        if len(nd.get("parents", [])) > 1:
+            # multi-parent vertex: the drawn edge is ONE of N minimal
+            # parents — a display projection, marked as such
+            edge = "projected"
+        elif nd.get("status") == "backbone":
             edge = "certified"
         elif len(labs) == 1 and labs[0] in matched_calls:
             edge = "containment"
@@ -257,6 +265,8 @@ def audit_legend(fig, groups=None, group_colors=None,
                    label="certified backbone edge"),
         plt.Line2D([0], [0], color="#999", ls="dashed",
                    label="containment-supported placement"),
+        plt.Line2D([0], [0], color="#b03030", ls="dashed",
+                   label="projected parent (1 of N; DAG view)"),
         plt.Line2D([0], [0], color="#bbb",
                    label="inherited input ancestry")]
     for ds, col in zip(dataset_names or [],

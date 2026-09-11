@@ -95,7 +95,9 @@ def test_view_ordering(world):
 def test_serialized_input_identical(world):
     harm, trees, labels = world
     serial = json.loads(json.dumps(
-        {i: {"parent": nd["parent"], "status": nd["status"],
+        {i: {"parent": nd.get("projected_parent",
+                              nd.get("parent")),
+             "status": nd["status"],
              "members": nd["members"], "aliases": nd["aliases"],
              "display": nd["display"],
              "assembly_repair": bool(nd.get("assembly_repair"))}
@@ -138,3 +140,68 @@ def test_unresolved_ledger_keeps_reason(world):
     led = {r["node_id"]: r for r in cut["unresolved"]}
     assert led["MA-X9999"]["reason"] == "ancestry_incompatible"
     assert "MA-X9999" not in cut["nodes"]
+
+
+def _dag_harm():
+    """Minimal quotient-era harm dict: one vertex with two minimal
+    parents (a real certificate)."""
+    nodes = {
+        "MA-Q0001": {"projected_parent": None, "parents": [],
+                     "conflicting": True, "status": "backbone",
+                     "members": {"A": "A|p1"}, "aliases": ["A|p1"],
+                     "display": "p1"},
+        "MA-Q0002": {"projected_parent": None, "parents": [],
+                     "conflicting": True, "status": "backbone",
+                     "members": {"B": "B|p2"}, "aliases": ["B|p2"],
+                     "display": "p2"},
+        "MA-Q0003": {"projected_parent": "MA-Q0001",
+                     "parents": ["MA-Q0001", "MA-Q0002"],
+                     "conflicting": True, "status": "backbone",
+                     "members": {"A": "A|x", "B": "B|x"},
+                     "aliases": ["A|x", "B|x"], "display": "x"},
+    }
+    return {"tree": nodes, "is_forest": False,
+            "certificates": [{"node": "MA-Q0003",
+                              "minimal_parents": ["MA-Q0001",
+                                                  "MA-Q0002"]}]}
+
+
+def test_cut_refuses_dag_without_projection_policy():
+    import pytest
+    from metaarbor.consensus.cut import consensus_cut
+    with pytest.raises(ValueError, match="DAG"):
+        consensus_cut(_dag_harm())
+
+
+def test_cut_projected_carries_certificates():
+    from metaarbor.consensus.cut import consensus_cut
+    cut = consensus_cut(_dag_harm(), projection="projected_parent")
+    assert cut["projection"] == "projected_parent"
+    assert cut["certificates"] == _dag_harm()["certificates"]
+    assert cut["summary"]["n_certificates"] == 1
+
+
+def test_from_harmonize_refuses_dag_without_policy():
+    import pytest
+    from metaarbor.projection import from_harmonize
+    h = _dag_harm()
+    with pytest.raises(ValueError, match="DAG"):
+        from_harmonize(h)
+    tree, _ = from_harmonize(h, projection="projected_parent")
+    assert "MA-Q0003" in tree["parent"]
+
+
+def test_viz_marks_projected_parent():
+    from metaarbor.viz import nested_from_harmonize
+    h = _dag_harm()
+    nested = nested_from_harmonize(h["tree"],
+                                   {"A|p1", "B|p2", "A|x", "B|x"})
+
+    def find(n):
+        hits = []
+        if n.get("edge") == "projected":
+            hits.append(n["label"])
+        for c in n["children"]:
+            hits.extend(find(c))
+        return hits
+    assert find(nested) == ["A|x&B|x"]

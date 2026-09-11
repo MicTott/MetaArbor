@@ -123,7 +123,8 @@ def main(manifest_path):
                 "node_display": nd.get("display", ""),
                 "status": nd.get("status", "MISSING"),
                 "placed_as": how,
-                "parent": (nd.get("parent") or "ROOT") if mid else "",
+                "parent": (nd.get("projected_parent") or "ROOT")
+                          if mid else "",
                 "co_members": "; ".join(
                     v for k2, v in nd.get("members", {}).items()
                     if k2 != key),
@@ -205,33 +206,42 @@ def main(manifest_path):
                     "reason": r["reason"],
                     "support": list(r["support"])}
                    for r in harm["backbone"]["rejected"]], fh, indent=1)
-    if harm["rejection_fallbacks"]:
-        from collections import Counter
-        byr = Counter(r["reason"] for r in harm["rejection_fallbacks"])
-        print(f"REJECTION FALLBACKS: {len(harm['rejection_fallbacks'])} "
-              f"labels routed to unplaced_single_atlas "
-              f"({dict(byr)}) — full trace in rejected.json + "
-              "provenance.csv rejection_reason column")
-        for r in harm["rejection_fallbacks"]:
-            print(f"  TRACE {r['dataset']}|{r['label'].split('|')[-1]} "
-                  f"<- {r['reason']} ({r['candidate_id']})")
-    if harm["repairs"]:
-        print(f"WARNING - TRIPWIRE: {len(harm['repairs'])} labels "
-              "reinstated by the completeness repair AFTER rejection "
-              "routing — an undiagnosed loss pathway; report this")
+    # quotient assembly: nothing is ever routed or repaired — every
+    # rejected CLAIM's labels remain placed by their own input
+    # ancestry (rejected.json still lists the failed claims), and
+    # unresolved parentage is reported as certificates
+    if not harm["is_forest"]:
+        print(f"DAG RESULT: {len(harm['certificates'])} unresolved "
+              "multi-parent constraints (tree renderings below are "
+              "projections; see certificates in tree.json)")
+        for c in harm["certificates"]:
+            nd = harm["tree"][c["node"]]
+            print("  CONSTRAINT", sorted(nd["members"].items()),
+                  "parents:", c["minimal_parents"])
 
     # ---- tree + figure ---------------------------------------------------
     with open(os.path.join(out, "tree.json"), "w") as fh:
-        json.dump({i: {"parent": nd["parent"], "status": nd["status"],
-                       "members": nd["members"], "aliases": nd["aliases"],
-                       "display": nd["display"],
-                       "assembly_repair": bool(nd.get("assembly_repair"))}
-                   for i, nd in nodes.items()}, fh, indent=1)
-    fig, _ = plot_reconciled_tree(
-        harm, trees,
-        dataset_names={k: k for k in sorted(trees)})
-    save_pub(fig, os.path.join(out, "reconciled"), formats=("png", "pdf"),
-             dpi=150)
+        json.dump({"is_forest": harm["is_forest"],
+                   "certificates": harm["certificates"],
+                   "nodes": {i: {
+                       "projected_parent": nd["projected_parent"],
+                       "parents": nd["parents"],
+                       "conflicting": nd["conflicting"],
+                       "status": nd["status"],
+                       "members": nd["members"],
+                       "aliases": nd["aliases"],
+                       "display": nd["display"]}
+                       for i, nd in nodes.items()}}, fh, indent=1)
+    if harm["is_forest"]:
+        fig, _ = plot_reconciled_tree(
+            harm, trees,
+            dataset_names={k: k for k in sorted(trees)})
+        save_pub(fig, os.path.join(out, "reconciled"),
+                 formats=("png", "pdf"), dpi=150)
+    else:
+        print("DAG result: legacy tree figure skipped (a tree "
+              "drawing would be a projection) — render with "
+              "metaarbor.viz, which marks projected edges")
     print("wrote reconciled.png/.pdf, provenance.csv, summary.csv, "
           "tree.json ->", out)
 

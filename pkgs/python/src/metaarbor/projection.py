@@ -162,16 +162,36 @@ def build_projector(refs, tree, label_maps=None,
             "n_hvg": n_hvg, "seed": seed}
 
 
-def from_harmonize(harm):
+def from_harmonize(harm, projection=None):
     """Adapt a metaarbor.harmonize() result into (tree, label_maps by
     dataset): a projector-ready tree over the reconciled node ids plus,
     per dataset, each original label's node. Coarse labels land on
-    internal nodes; unplaced labels on their unplaced nodes."""
+    internal nodes.
+
+    DAG contract (ASSEMBLY2 Section 11): when the assembly is a DAG
+    (harm['is_forest'] is False), a projector tree would silently
+    collapse the unresolved multi-parent constraints. This raises
+    unless projection='projected_parent' is passed explicitly; the
+    projected tree is then a DISPLAY/ANALYSIS VIEW, never the
+    biological result, and harm['certificates'] lists what was
+    dropped."""
     nodes = harm["tree"]
+    if isinstance(harm, dict) and harm.get("is_forest") is False \
+            and projection != "projected_parent":
+        raise ValueError(
+            "harmonize result is a DAG "
+            f"({len(harm.get('certificates', []))} unresolved "
+            "multi-parent constraints); pass "
+            "projection='projected_parent' to project it "
+            "explicitly (a view, not the result) — see "
+            "harm['certificates'] for what the projection drops.")
+
+    def par(nd):
+        return nd.get("projected_parent", nd.get("parent"))
     parent = {"root": None}
     children = {"root": []}
     for i, nd in nodes.items():
-        parent[i] = nd["parent"] if nd["parent"] is not None else "root"
+        parent[i] = par(nd) if par(nd) is not None else "root"
         children.setdefault(i, [])
     for i in nodes:
         children.setdefault(parent[i], []).append(i)

@@ -1,6 +1,9 @@
 # Assembly redesign memo: quotient-graph synthesis (revision 2)
 
-Status: DESIGN ONLY — no code changed. Revision 2 incorporates the
+Status: MIGRATED — harmonize() assembles via consensus.quotient
+(certified merges only) as of the migration commit; routing,
+rejection fallback, completeness repair are deleted and interleave
+is deprecated. Originally: Revision 2 incorporates the
 reviewer's corrections to revision 1 (d7421bf), the most important
 of which is SEMANTIC: revision 1 treated one-way Walk selections as
 containment edges participating in the quotient preorder. That was
