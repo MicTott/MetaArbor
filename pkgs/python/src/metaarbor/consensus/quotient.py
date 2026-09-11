@@ -76,7 +76,7 @@ class _UF:
             self.p[hi] = lo
 
 
-def quotient_assemble(trees, canonical, decisions):
+def quotient_assemble(trees, canonical, decisions, certified=None):
     """v1 narrow quotient assembly.
 
     trees:      ds -> {parent, children, leaves} (canonical input
@@ -84,6 +84,21 @@ def quotient_assemble(trees, canonical, decisions):
     canonical:  ds -> {node -> canonical node}
     decisions:  '<i>><j>' -> {node -> {selected, matched, support}}
                 (frozen Walk directional selections)
+    certified:  optional list of PREQUALIFIED merges from the frozen
+                certification layer (greedy_backbone accepted
+                multi-dataset nodes): [{"members": {ds: canonical
+                node}, "support": float}]. THIS IS THE PRODUCTION
+                PATH: eligibility, detectability, stability,
+                MIN_DATASETS and MIN_SUPPORT judgments live in the
+                certification layer, and the quotient consumes its
+                output — a clique contributes its within-clique
+                pairs at the clique's support. When `certified` is
+                None the quotient falls back to RAW extraction
+                (every reciprocal matched pair at min directional
+                support) — a prototype/diagnostic mode that BYPASSES
+                certification and must not be used for biological
+                results. Either way `decisions` still supplies the
+                directional-evidence annotations.
 
     Returns a dict:
       vertices    vid -> {members: {ds: node}, shared: bool}
@@ -111,17 +126,25 @@ def quotient_assemble(trees, canonical, decisions):
         return None, None
 
     cands = []
-    for i in datasets:
-        for j in datasets:
-            if j <= i:
-                continue
-            for a in nodes[i]:
-                b, s1 = call(i, j, a)
-                if b is None:
+    if certified is not None:
+        for m in certified:
+            mem = sorted(m["members"].items())
+            s = float(m.get("support", 1.0))
+            for x in range(len(mem)):
+                for y in range(x + 1, len(mem)):
+                    cands.append((s, mem[x], mem[y]))
+    else:
+        for i in datasets:
+            for j in datasets:
+                if j <= i:
                     continue
-                a2, s2 = call(j, i, b)
-                if a2 == a:
-                    cands.append((min(s1, s2), (i, a), (j, b)))
+                for a in nodes[i]:
+                    b, s1 = call(i, j, a)
+                    if b is None:
+                        continue
+                    a2, s2 = call(j, i, b)
+                    if a2 == a:
+                        cands.append((min(s1, s2), (i, a), (j, b)))
 
     uf = _UF()
     verts = [(ds, n) for ds in datasets for n in nodes[ds]]

@@ -327,3 +327,36 @@ def test_conflicting_flag_covers_certificate_parents():
     flagged = {r for r, s in g["statuses"].items()
                if s["conflicting"]}
     assert flagged == {cert["vertex"], *cert["minimal_parents"]}
+
+
+def test_certified_mode_is_the_candidate_source():
+    """With `certified` given, merges come ONLY from the
+    certification layer's prequalified cliques; raw reciprocal
+    matched pairs in `decisions` do not merge (they remain
+    annotations). A 3-dataset clique yields one 3-atlas vertex."""
+    ta = tree({"a1": "nA", "a2": "nA", "nA": "root"})
+    tb = tree({"b1": "nB", "b2": "nB", "nB": "root"})
+    tc = tree({"c1": "nC", "c2": "nC", "nC": "root"})
+    trees = {"A": ta, "B": tb, "C": tc}
+    canon = {k: ident(trees[k]) for k in trees}
+    # raw reciprocity exists for BOTH (a1,b1) and (a2,b2), but the
+    # certification layer only qualified the 3-clique {a1,b1,c1}
+    dec = {"A>B": {"a1": mk("b1"), "a2": mk("b2")},
+           "B>A": {"b1": mk("a1"), "b2": mk("a2")},
+           "A>C": {"a1": mk("c1")}, "C>A": {"c1": mk("a1")}}
+    cert = [{"members": {"A": "a1", "B": "b1", "C": "c1"},
+             "support": 0.97}]
+    g = quotient_assemble(trees, canon, dec, certified=cert)
+    vid_of = _vid_of(g)
+    assert vid_of[("A", "a1")] == vid_of[("B", "b1")] == \
+        vid_of[("C", "c1")]
+    # the uncertified reciprocal pair did NOT merge...
+    assert vid_of[("A", "a2")] != vid_of[("B", "b2")]
+    # ...but its evidence persists as annotations
+    assert any(a["source"] == "a2" and a["target"] == "b2"
+               for a in g["annotations"])
+    # the merged leaf vertex sits under three UNMERGED parents ->
+    # honestly a DAG with one 3-parent certificate, never forced
+    assert not g["is_forest"]
+    assert len(g["certificates"]) == 1
+    assert len(g["certificates"][0]["minimal_parents"]) == 3

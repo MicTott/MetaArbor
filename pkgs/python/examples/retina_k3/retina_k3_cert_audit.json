@@ -1,0 +1,188 @@
+[
+ {
+  "vertex": [
+   [
+    "mac",
+    "mac|c27"
+   ],
+   [
+    "mrca",
+    "mrca|BC3B"
+   ],
+   [
+    "she",
+    "she|BC3B"
+   ]
+  ],
+  "minimal_parents": [
+   {
+    "parents": [
+     "mrca|n03",
+     "she|n03"
+    ],
+    "mrca->she": [
+     "n03",
+     1.0
+    ],
+    "she->mrca": [
+     "mrca|BC3B",
+     1.0
+    ]
+   }
+  ],
+  "mechanisms": [
+   [
+    "same_branch_near_miss",
+    "mrca|n03->n03 (1.0); she|n03->mrca|BC3B (1.0)"
+   ]
+  ]
+ },
+ {
+  "vertex": [
+   [
+    "mac",
+    "mac|c32"
+   ],
+   [
+    "mrca",
+    "mrca|BC7"
+   ],
+   [
+    "she",
+    "she|BC7"
+   ]
+  ],
+  "minimal_parents": [
+   {
+    "parents": [
+     "mac|n03",
+     "mrca|n06"
+    ],
+    "mac->mrca": [
+     "n09",
+     1.0
+    ],
+    "mrca->mac": [
+     "n03",
+     1.0
+    ]
+   }
+  ],
+  "mechanisms": [
+   [
+    "non_reciprocal",
+    "mac|n03->n09 (1.0); mrca|n06->n03 (1.0)"
+   ]
+  ]
+ },
+ {
+  "vertex": [
+   [
+    "mrca",
+    "mrca|BC4"
+   ],
+   [
+    "she",
+    "she|BC4"
+   ]
+  ],
+  "minimal_parents": [
+   {
+    "parents": [
+     "mrca|n03",
+     "she|n03"
+    ],
+    "mrca->she": [
+     "n03",
+     1.0
+    ],
+    "she->mrca": [
+     "mrca|BC3B",
+     1.0
+    ]
+   }
+  ],
+  "mechanisms": [
+   [
+    "same_branch_near_miss",
+    "mrca|n03->n03 (1.0); she|n03->mrca|BC3B (1.0)"
+   ]
+  ]
+ },
+ {
+  "vertex": [
+   [
+    "mrca",
+    "n06"
+   ],
+   [
+    "she",
+    "n06"
+   ]
+  ],
+  "minimal_parents": [
+   {
+    "parents": [
+     "mrca|n09",
+     "she|n07"
+    ],
+    "mrca->she": [
+     "n07",
+     1.0
+    ],
+    "she->mrca": [
+     "n09",
+     1.0
+    ]
+   }
+  ],
+  "mechanisms": [
+   [
+    "weak_uncertified_merge",
+    "child vertex formed at min support 0.065"
+   ],
+   [
+    "unresolved_equal_tie",
+    "mrca|n09<->she|n07 reciprocal at 1.0/1.0, ledgered"
+   ]
+  ]
+ },
+ {
+  "vertex": [
+   [
+    "mrca",
+    "n07"
+   ],
+   [
+    "she",
+    "she|BC8_9"
+   ]
+  ],
+  "minimal_parents": [
+   {
+    "parents": [
+     "mrca|n09",
+     "she|n07"
+    ],
+    "mrca->she": [
+     "n07",
+     1.0
+    ],
+    "she->mrca": [
+     "n09",
+     1.0
+    ]
+   }
+  ],
+  "mechanisms": [
+   [
+    "weak_uncertified_merge",
+    "child vertex formed at min support 0.150"
+   ],
+   [
+    "unresolved_equal_tie",
+    "mrca|n09<->she|n07 reciprocal at 1.0/1.0, ledgered"
+   ]
+  ]
+ }
+]
