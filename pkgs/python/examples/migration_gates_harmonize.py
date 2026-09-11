@@ -12,7 +12,9 @@ GATE B retina K=3: must reproduce the committed certified-quotient
 GATE D consumer contract on the REAL K=3 DAG: no tree record
   carries a plain `parent` key; consensus_cut and from_harmonize
   REFUSE the DAG without an explicit projection policy and, with
-  projection='projected_parent', visibly carry the certificates;
+  projection='projected_parent', visibly carry the certificates —
+  the cut in cut['certificates'], the adapter in the returned
+  tree's 'projection' and 'certificates' keys, both verbatim;
   the audit renderer marks every multi-parent vertex's drawn edge
   as 'projected'; and on the K=2 forest the same consumers work
   with no policy and no false alarm.
@@ -214,6 +216,9 @@ def gate_d(harm_k2, harm_k3):
         checks["projection_refuses_dag"] = "DAG" in str(e)
     tree, _ = from_harmonize(harm_k3, projection="projected_parent")
     checks["projection_explicit_works"] = bool(tree["leaves"])
+    checks["projection_carries_provenance"] = (
+        tree["projection"] == "projected_parent" and
+        tree["certificates"] == harm_k3["certificates"])
     real = {m for nd in harm_k3["tree"].values()
             for m in nd["members"].values()}
     nested = nested_from_harmonize(harm_k3["tree"], real)
@@ -228,9 +233,11 @@ def gate_d(harm_k2, harm_k3):
     # forest: consumers need no policy, no false alarm
     assert harm_k2["is_forest"]
     cut2 = consensus_cut(harm_k2)
+    t2, _ = from_harmonize(harm_k2)
     checks["forest_no_false_alarm"] = (
         cut2["projection"] is None and cut2["certificates"] == []
-        and bool(from_harmonize(harm_k2)[0]["leaves"]))
+        and bool(t2["leaves"]) and t2["projection"] is None
+        and t2["certificates"] == [])
     ok = all(checks.values())
     print("GATE D consumer contract (real K=3 DAG):")
     for k, v in checks.items():

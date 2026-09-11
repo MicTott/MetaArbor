@@ -189,6 +189,9 @@ def test_from_harmonize_refuses_dag_without_policy():
         from_harmonize(h)
     tree, _ = from_harmonize(h, projection="projected_parent")
     assert "MA-Q0003" in tree["parent"]
+    # provenance survives the adapter unchanged
+    assert tree["projection"] == "projected_parent"
+    assert tree["certificates"] == h["certificates"]
 
 
 def test_viz_marks_projected_parent():

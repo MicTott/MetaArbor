@@ -198,7 +198,11 @@ def from_harmonize(harm, projection=None):
     for k in children:
         children[k].sort()
     leaves = [i for i in sorted(nodes) if not children.get(i)]
-    tree = {"parent": parent, "children": children, "leaves": leaves}
+    certificates = list(harm.get("certificates", [])) \
+        if isinstance(harm, dict) else []
+    tree = {"parent": parent, "children": children, "leaves": leaves,
+            "projection": (projection if certificates else None),
+            "certificates": certificates}
     label_maps = {}
     for i, nd in nodes.items():
         for ds, member in nd["members"].items():
